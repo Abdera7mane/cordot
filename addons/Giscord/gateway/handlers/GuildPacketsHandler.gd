@@ -4,11 +4,11 @@ const PACKETS: Dictionary = {
 	"GUILD_CREATE": "_on_guild_create",
 	"GUILD_UPDATE": "_on_guild_update",
 	"GUILD_DELETE": "_on_guild_delete",
-	"GUILD_BAN_ADD": "_on_guild_ban_adde",
+	"GUILD_BAN_ADD": "_on_guild_ban_add",
 	"GUILD_BAN_REMOVE": "_on_guild_ban_remove",
 	"GUILD_EMOJIS_UPDATE": "_on_guild_emojis_update",
 	"GUILD_INTEGRATIONS": "_on_guild_integrations_update",
-	"GUILD_MEMBER_ADD": "_on_guild_member_adde",
+	"GUILD_MEMBER_ADD": "_on_guild_member_add",
 	"GUILD_MEMBER_REMOVE": "_on_guild_member_remove",
 	"GUILD_MEMBER_UPDATE": "_on_guild_member_update",
 	"GUILD_MEMBERs_CHUNK": "_on_guild_members_chunk",
@@ -39,15 +39,26 @@ func _on_guild_create(fields: Dictionary) -> void:
 	self.emit_signal("transmit_event", "guild_created", [guild])
 
 func _on_guild_update(fields: Dictionary) -> void:
-	var guild: Guild = _entity_manager.get_or_construct_guild(fields)
-	self.emit_signal("transmit_event", "guild_updated", [guild])
+	var guild: Guild = _entity_manager.get_guild(fields["id"] as int)
+	if guild:
+		var old: Guild = guild.clone()
+		_entity_manager.guild_manager.update_guild(guild, fields)
+		self.emit_signal("transmit_event", "guild_updated", [old, guild])
 
 # warning-ignore:unused_argument
 func _on_guild_delete(fields: Dictionary) -> void:
-	pass
+	var id: int = fields["id"] as int
+	var guild: Guild = _entity_manager.get_guild(id)
+	if guild:
+		if fields.has("unavailable"):
+			self.emit_signal("transmit_event", "guild_unavailable", [guild])
+			guild._update({unavailable = true})
+		else:
+			_entity_manager.remove_guild(id)
+			self.emit_signal("transmit_event", "guild_updated", [guild])
 
 # warning-ignore:unused_argument
-func _on_guild_ban_adde(fields: Dictionary) -> void:
+func _on_guild_ban_add(fields: Dictionary) -> void:
 	pass
 
 # warning-ignore:unused_argument
@@ -63,7 +74,7 @@ func _on_guild_integrations_update(fields: Dictionary) -> void:
 	pass
 
 # warning-ignore:unused_argument
-func _on_guild_member_adde(member_data: Dictionary) -> void:
+func _on_guild_member_add(member_data: Dictionary) -> void:
 	var _on_guild_id: int = member_data["guild_id"] as int
 
 # warning-ignore:unused_argument
@@ -88,6 +99,10 @@ func _on_guild_role_update(fields: Dictionary) -> void:
 
 # warning-ignore:unused_argument
 func _on_guild_role_delete(fields: Dictionary) -> void:
+	pass
+
+# warning-ignore:unused_argument
+func _on_voice_state_update(fields) -> void:
 	pass
 
 func get_class() -> String:

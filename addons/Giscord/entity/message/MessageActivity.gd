@@ -21,4 +21,4 @@ func _to_string() -> String:
 	return "[%s:%d]" % [self.get_class(), self.id, self.get_instance_id()]
 
 func __set(_value) -> void:
-	GDUtil.protected_setter_printerr(self, get_stack())
+	pass

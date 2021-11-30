@@ -5,57 +5,51 @@ const ENCODING: String = "json"
 var _connection_state: ConnectionState setget __set
 
 func _init(connection_state: ConnectionState) -> void:
-	self.name = "GeneralWebSocketAdapter"
+	name = "GatewayWebSocketAdapter"
 	
 	_connection_state = connection_state
 	
 	# warning-ignore:return_value_discarded
-	self.connect("packet_received", self, "_on_packet")
+	connect("packet_received", self, "_on_packet")
 
 func get_url():
 	return Discord.GATEWAY_URL % [Discord.GATEWAY_VERSION, ENCODING]
 
-func _connection_established(protocol: String) -> void:
-	print("connected !, pootocol: %s" % protocol)
-
-func _connection_closed(was_clean_close: bool) -> void:
-	print("bye bye: %s" % str(was_clean_close)) # sad :(
-	_heartbeat_timer.stop()
-
-func _connection_error() -> void:
-	pass
-
 func _on_packet(packet: DiscordPacket) -> void:
 	var opcode: int = packet.get_opcode()
 	match opcode:
-		GatewayOpcodes.General.DISPATCH:
-			print(packet.get_event_name())
+		GatewayOpcodes.Gateway.DISPATCH:
 			last_sequence = packet.get_sequence()
-			self.dispatch_packet(packet)
-		GatewayOpcodes.General.HEARTBEAT:
-			self._beat()
-		GatewayOpcodes.General.RECONNECT:
-			print("Reconnecting")
-			self.reconnect_to_gateway()
-		GatewayOpcodes.General.INVALID_SESSION:
-			#I'm lazy, maybe for an other time
-			pass
-		GatewayOpcodes.General.HELLO:
-			print("Identifying...")
+			dispatch_packet(packet)
+		GatewayOpcodes.Gateway.HEARTBEAT:
+			_beat()
+		GatewayOpcodes.Gateway.RECONNECT:
+			disconnect_from_gateway(4000, "reconnecting")
+		GatewayOpcodes.Gateway.INVALID_SESSION:
+			last_sequence = 0
+			_connection_state.session_id = ""
+			auto_reconnect = false
+			disconnect_from_gateway()
+			yield(self, "disconnected")
+			yield(get_tree().create_timer(rand_range(1.0, 5.0)), "timeout")
+			emit_signal("reconnecting")
+			connect_to_gateway()
+			auto_reconnect = true
+		GatewayOpcodes.Gateway.HELLO:
 			var pkt: Packet
 			
-			if (_connection_state.session_id.empty()):
+			if _connection_state.session_id.empty():
 				pkt = Packets.IdentifyPacket.new(_connection_state)
 			else:
 				pkt = Packets.ResumePacket.new(_connection_state, last_sequence)
 				
-			self.send_packet(pkt)
-			self._beat()
+			send_packet(pkt)
+			_beat()
 			
 			var wait_time: int = packet.get_data()["heartbeat_interval"] / 1000
 			_heartbeat_timer.start(wait_time)
-		GatewayOpcodes.General.HEARTBEAT_ACK:
-			latency = OS.get_system_time_msecs() - last_beat
+		GatewayOpcodes.Gateway.HEARTBEAT_ACK:
+			latency = OS.get_ticks_msec() - last_beat
 		_:
 			push_warning("Unhandled Opcode: %d" % opcode)
 
@@ -63,4 +57,4 @@ func get_class() -> String:
 	return "DiscordWebsocketAdapter"
 
 func __set(_value) -> void:
-	.__set(_value)
+	pass

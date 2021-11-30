@@ -30,7 +30,7 @@ func _to_string() -> String:
 	return "[%s<%d>:%d]" % [self.get_class(), self.id, self.get_instance_id()]
 
 func __set(_value) -> void:
-	GDUtil.protected_setter_printerr(self, get_stack())
+	pass
 
 # PoolIntArray can not hold 64-bit integers
 static func snowflakes2integers(snowflakes: PoolStringArray) -> Array:

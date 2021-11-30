@@ -21,11 +21,11 @@ func _init(data: Dictionary).(data.id) -> void:
 	if data.has("tags"):
 		tags = PoolStringArray(data["tags"].split(",", false))
 	asset = data["asset"]
-	preview_asset = GDUtil.get_or_default(data, "preview_asset", "")
+	preview_asset = Dictionaries.get_non_null(data, "preview_asset", "")
 	format_type = data["format_type"]
 
 func get_class() -> String:
 	return "MessageSelectMenu"
 
 func __set(_value) -> void:
-	.__set(_value)
+	pass

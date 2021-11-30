@@ -19,18 +19,26 @@ var type: int setget __set
 func _init(id: int).(id) -> void:
 	pass
 
-# warning-ignore:unused_argument
-func compare_to(channel: Channel) -> int:
-	return OP_NOT_EQUAL
-
 func get_mention() -> String:
 	return "<#%d>" % self.id
 
-func get_creation_date() -> int:
+func get_creation_timestamp() -> int:
 	return self.snowflake.get_timestamp()
+
+func is_guild() -> bool:
+	return "guild_id" in self
+
+func is_text() -> bool:
+	return "last_message_id" in self
+
+func is_voice() -> bool:
+	return "bitrate" in self
 
 func get_class() -> String:
 	return "Channel"
 
+func _update(_data: Dictionary) -> void:
+	pass
+
 func __set(_value) -> void:
-	.__set(_value)
+	pass

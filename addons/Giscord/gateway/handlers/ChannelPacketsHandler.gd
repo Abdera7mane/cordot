@@ -21,19 +21,24 @@ func get_packets() -> Dictionary:
 func _on_channel_create(fields: Dictionary) -> void:
 	var channel: Channel = _entity_manager.get_or_construct_channel(fields)
 	if channel.has_method("get_guild"):
-		var guild: Guild = channel.guild
-		guild._add_channel(channel.id)
+		channel.guild._add_channel(channel.id)
+		self.emit_signal("transmit_event", "channel_created", [channel])
 
 func _on_channel_update(fields: Dictionary) -> void:
-	var channel: Channel = _entity_manager.get_or_construct_channel(fields)
-	_entity_manager.channel_manager.update_channel(channel, fields)
+	var id: int = fields["id"] as int
+	var channel: Channel = _entity_manager.get_channel(id)
+	if channel:
+		var old: Channel = channel.clone()
+		_entity_manager.channel_manager.update_channel(channel, fields)
+		self.emit_signal("transmit_event", "channel_updated", [old, channel])
 
 func _on_channel_delete(fields: Dictionary) -> void:
 	var channel: Channel = _entity_manager.get_or_construct_channel(fields)
-	if channel.has_method("get_guild"):
-		var guild: Guild = channel.guild
-		guild._remove_channel(channel.id)
-	_entity_manager.remove_channel(channel.id)
+	if channel:
+		if channel.has_method("get_guild"):
+			channel.guild._remove_channel(channel.id)
+		_entity_manager.remove_channel(channel.id)
+		self.emit_signal("transmit_event", "channel_deleted", [channel])
 
 # warning-ignore:unused_argument
 func _on_channel_pins_update(fields: Dictionary) -> void:

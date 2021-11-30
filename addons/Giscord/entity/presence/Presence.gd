@@ -9,59 +9,56 @@ enum Status {
 }
 
 enum Platforms {
-	DESKTOP,
-	MOBILE,
-	WEB
+	DESKTOP = 1 << 0,
+	MOBILE  = 1 << 1,
+	WEB     = 1 << 2
 }
 
-var status: int             setget __set
-var activities: Array       setget __set
-var platforms: PoolIntArray setget __set, get_platforms
+var status: int        setget __set
+var activities: Array  setget __set
+var platforms: BitFlag setget __set
 
 func _init(data: Dictionary).(data["id"]) -> void:
 	activities = data["activities"]
 	status = data["status"]
 	platforms = data["platforms"]
-
-func get_platforms() -> PoolIntArray:
-	# Bad way to duplicate the array
-	return PoolIntArray(Array(platforms))
+	platforms = BitFlag.new(Platforms)
 
 func on_desktop() -> bool:
-	return Platforms.DESKTOP in platforms
+	return platforms.DESKTOP
 
 func on_mobile() -> bool:
-	return Platforms.MOBILE in platforms
+	return platforms.MOBILE
 
 func on_web() -> bool:
-	return Platforms.WEB in platforms
+	return platforms.WEB
 
 func get_class() -> String:
 	return "Presence"
 
 func __set(_value) -> void:
-	.__set(_value)
+	pass
 
 # warning-ignore:shadowed_variable
 static func status_to_string(status: int) -> String:
 	return Status.keys()[clamp(0, status, Status.size())].to_upper()
 
-static func playing(game: String) -> Activity:
-	return create_activity(game, Activity.Type.GAME)
+static func playing(game: String) -> DiscordActivity:
+	return create_activity(game, DiscordActivity.Type.GAME)
 
-static func listening(to: String) -> Activity:
-	return create_activity(to, Activity.Type.LISTENING)
+static func listening(to: String) -> DiscordActivity:
+	return create_activity(to, DiscordActivity.Type.LISTENING)
 
-static func streaming(what: String, url: String) -> Activity:
-	return create_activity(what, Activity.Type.STREAMING, url)
+static func streaming(what: String, url: String) -> DiscordActivity:
+	return create_activity(what, DiscordActivity.Type.STREAMING, url)
 
-static func create_activity(name: String, type: int, stream_url: String = "") -> Activity:
+static func create_activity(name: String, type: int, stream_url: String = "") -> DiscordActivity:
 	var data: Dictionary = {
 		"name": name,
 		"type": type,
 		"created_at": OS.get_unix_time()
 	}
 	
-	if type == Activity.Type.STREAMING:
+	if type == DiscordActivity.Type.STREAMING:
 		data["url"] = stream_url
-	return Activity.new(data)
+	return DiscordActivity.new(data)

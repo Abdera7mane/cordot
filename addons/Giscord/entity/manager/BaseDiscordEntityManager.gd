@@ -8,6 +8,8 @@ var guild_manager: BaseGuildManager
 var message_manager: BaseMessageManager
 var user_manager: BaseUserManager
 
+var rest_mediator: DiscordRESTMediator
+
 func get_or_construct_channel(data: Dictionary) -> Channel:
 	var id: int = data["id"] as int
 	var channel: Channel = self.get_channel(id)
@@ -37,6 +39,34 @@ func get_or_construct_guild(data: Dictionary) -> Guild:
 	
 	return guild
 
+func get_or_construct_guild_member(data: Dictionary) -> Guild.Member:
+	var id: int = data["user"]["id"] as int
+	var guild: Guild = self.get_guild(data["guild_id"] as int)
+	var member: Guild.Member
+	if guild:
+		member = guild.get_member(id)
+	
+	if member:
+		self.guild_manager.update_guild_member(member, data)
+	
+	else:
+		member = self.guild_manager.construct_guild_member(data)
+	
+	return member
+
+func get_or_construct_message(data: Dictionary) -> Message:
+	var id: int = data["id"] as int
+	var message: Message = self.get_message(id)
+	
+	if message:
+		self.message_manager.update_message(message, data)
+	
+	else:
+		message = self.message_manager.construct_message(data)
+		self.put_message(message)
+	
+	return message
+
 func get_or_construct_user(data: Dictionary) -> User:
 	var id: int = data["id"] as int
 	var user: User = self.get_user(id)
@@ -63,12 +93,15 @@ func get_or_construct_presence(data: Dictionary) -> Presence:
 	
 	return presence
 
+func get_self() -> User:
+	return get_user(self.container.bot_id)
+
 func get_user(id: int) -> User:
 	return self.container.users.get(id)
 
 func get_presence(id: int) -> Presence:
 	return self.container.presences.get(id)
-
+ 
 func get_guild(id: int) -> Guild:
 	return self.container.guilds.get(id)
 
@@ -129,7 +162,10 @@ func remove_user(id: int) -> void:
 	self.container.users.erase(id)
 
 func remove_guild(id: int) -> void:
-	self.container.guilds.erase(id)
+	var guild: Guild = self.container.guilds.erase(id)
+	if guild:
+		for channel_id in guild.channels_ids:
+			self.remove_channel(channel_id)
 
 func remove_channel(id: int) -> void:
 	self.container.channels.erase(id)
@@ -147,7 +183,6 @@ func _to_string() -> String:
 	return "[%s:%d]" % [self.get_class(), self.get_instance_id()]
 
 class AbstractManager:
-	const SIGNAL_FORWARD_METHOD = "_on_entity_event"
 	
 	var entity_manager: WeakRef
 	
@@ -157,9 +192,6 @@ class AbstractManager:
 	func get_manager() -> BaseDiscordEntityManager:
 		return entity_manager.get_ref()
 	
-	func register_signals() -> void:
-		pass
-
 	func get_class() -> String:
 		return "AbstractManager"
 	
@@ -187,7 +219,10 @@ class BaseEmojiManager extends AbstractManager:
 	
 	func construct_emoji(_data: Dictionary) -> Emoji:
 		return null
-	
+
+	func update_emoji(_emoji: Emoji, _data: Dictionary) -> void:
+		pass
+
 	func get_class() -> String:
 		return "BaseEmojiManager"
 
@@ -202,10 +237,16 @@ class BaseGuildManager extends AbstractManager:
 	func construct_guild_member(_data: Dictionary) -> Guild.Member:
 		return null
 	
+	func construct_role(_data: Dictionary) -> Guild.Role:
+		return null
+	
 	func update_guild(_guild: Guild, _data: Dictionary) -> void:
 		pass
 
 	func update_guild_member(_member: Guild.Member, _data: Dictionary) -> void:
+		pass
+	
+	func update_role(_role: Guild.Role, _data: Dictionary) -> void:
 		pass
 	
 	func get_class() -> String:

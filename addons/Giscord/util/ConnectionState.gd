@@ -5,14 +5,15 @@ var _start: int        setget __set
 var token: String      setget __set
 var intents: int       setget __set
 var session_id: String
-var self_user_id: int
 
 func _init(_token: String, _intents: int) -> void:
 	token = _token
 	intents = _intents
+	
+	_start = OS.get_ticks_msec()
 
 func get_uptime_ms() -> int:
-	return OS.get_ticks_msec() - self._start
+	return OS.get_ticks_msec() - _start
 
 func get_class() -> String:
 	return "ConnectionState"

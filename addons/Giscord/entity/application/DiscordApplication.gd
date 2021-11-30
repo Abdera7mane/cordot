@@ -26,7 +26,7 @@ var guild_id: int                setget __set
 var primary_sku_id: int          setget __set
 var slug: String                 setget __set
 var cover_image_hash: String     setget __set
-var flags: int                   setget __set
+var flags: BitFlag               setget __set
 
 func _init(data: Dictionary).(data.id) -> void:
 	name = data.name
@@ -45,7 +45,7 @@ func _init(data: Dictionary).(data.id) -> void:
 	primary_sku_id = data.get("primary_sku_id", 0)
 	slug = data.get("slug", "")
 	cover_image_hash = data.get("cover_image_hash", "")
-	flags = data.get("flags", 0)
+	flags.flags = data.get("flags", 0)
 
 func get_class() -> String:
 	return "Application"

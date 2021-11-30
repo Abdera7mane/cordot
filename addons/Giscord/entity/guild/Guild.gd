@@ -1,32 +1,5 @@
 class_name Guild extends DiscordEntity
 
-# warning-ignore:unused_signal
-signal updated()
-# warning-ignore:unused_signal
-signal ban_added(user)
-# warning-ignore:unused_signal
-signal ban_removed(user)
-# warning-ignore:unused_signal
-signal emojis_updated(emojies)
-# warning-ignore:unused_signal
-signal integrations_update()
-# warning-ignore:unused_signal
-signal member_added(member)
-# warning-ignore:unused_signal
-signal member_removed(member)
-# warning-ignore:unused_signal
-signal member_update(member)
-# warning-ignore:unused_signal
-signal role_created(role)
-# warning-ignore:unused_signal
-signal role_updated(role)
-# warning-ignore:unused_signal
-signal role_deleted(role)
-# warning-ignore:unused_signal
-signal invite_created(invite)
-# warning-ignore:unused_signal
-signal invite_deleted(invite)
-
 enum MessageNotificationLevel {
 	ALL_MESSAGES,
 	ONLY_MENTIONS
@@ -66,7 +39,6 @@ enum PremiumTier {
 }
 
 enum SystemChannelFlags {
-	DEFAULT,
 	SUPPRESS_JOIN_NOTIFICATIONS           = 1 << 0,
 	SUPPRESS_PREMIUM_SUBSCRIPTIONS        = 1 << 1,
 	SUPPRESS_GUILD_REMINDER_NOTIFICATIONS = 1 << 2
@@ -123,10 +95,10 @@ var mfa_level: int                           setget __set
 var application_id: int                      setget __set
 var system_channel_id: int                   setget __set
 var system_channel: GuildTextChannel         setget __set, get_system_channel
-var system_channel_flags: int                setget __set
+var system_channel_flags: BitFlag            setget __set
 var rules_channel_id: int                    setget __set
 var rules_channel: GuildTextChannel          setget __set, get_rules_channel
-var large: bool                              setget __set
+var is_large: bool                           setget __set
 var unavailable: bool                        setget __set
 var member_count: int                        setget __set
 var voice_states: Array                      setget __set
@@ -143,51 +115,12 @@ var preferred_locale: String                 setget __set
 var public_updates_channel_id: int           setget __set
 var public_updates_channel: GuildTextChannel setget __set, get_public_updates_channel
 var max_video_channel_users: int             setget __set
+var welcome_screen: WelcomeScreen            setget __set
 var nsfw_level: int                          setget __set
 
 func _init(data: Dictionary).(data.id) -> void:
+	system_channel_flags = BitFlag.new(SystemChannelFlags)
 	_update(data)
-
-func _update(data: Dictionary) -> void:
-	name = data.get("name", name)
-	icon_hash = data.get("icon_hash", icon_hash)
-	splash_hash = data.get("splash_hash", splash_hash)
-	discovery_splash_hash = data.get("discovery_splash_hash", discovery_splash_hash)
-	afk_timeout = data.get("afk_timeout", afk_timeout)
-	widget_enabled = data.get("widget_enabled", widget_enabled)
-	verification_level = data.get("verification_level", verification_level)
-	default_message_notifications = data.get("default_message_notifications", default_message_notifications)
-	explicit_content_filter = data.get("explicit_content_filter", explicit_content_filter)
-	features = data.get("features", features)
-	mfa_level = data.get("mfa_level", mfa_level)
-	owner_id = data.get("owner_id", owner_id)
-	application_id = data.get("application_id", application_id)
-	vanity_url_code = data.get("vanity_url_code", vanity_url_code)
-	description = data.get("description", description)
-	banner_hash = data.get("banner_hash" , banner_hash)
-	premium_tier = data.get("premium_tier", premium_tier)
-	system_channel_flags = data.get("system_channel_flags", system_channel_flags)
-	preferred_locale = data.get("preferred_locale", preferred_locale)
-	nsfw_level = data.get("nsfw_level", nsfw_level)
-	
-	large = data.get("large", large)
-	unavailable = data.get("unavailable", unavailable)
-	member_count = data.get("member_count", member_count)
-	max_members = data.get("max_members", max_members)
-	premium_subscription_count = data.get("premium_subscription_count", premium_subscription_count)
-	max_presences = data.get("max_presences", max_presences)
-	max_video_channel_users = data.get("max_video_channel_users", max_video_channel_users)
-	
-	_members = data.get("members", _members)
-	_roles = data.get("roles", _roles)
-	_emojis = data.get("emojis", _emojis)
-	channels_ids = data.get("channels_ids", channels_ids)
-	
-	afk_channel_id = data.get("afk_channel_id", afk_channel_id)
-	widget_channel_id = data.get("widget_channel_id", widget_channel_id)
-	system_channel_id = data.get("system_channel_id", system_channel_id)
-	rules_channel_id = data.get("rules_channel_id", rules_channel_id)
-	public_updates_channel_id = data.get("public_updates_channel_id", public_updates_channel_id)
 
 func has_feature(feature: int) -> bool:
 	return feature in self.features
@@ -275,32 +208,114 @@ func _add_channel(id: int) -> void:
 func _remove_channel(id: int) -> void:
 	channels_ids.erase(id)
 
+func _update(data: Dictionary) -> void:
+	name = data.get("name", name)
+	icon_hash = data.get("icon_hash", icon_hash)
+	splash_hash = data.get("splash_hash", splash_hash)
+	discovery_splash_hash = data.get("discovery_splash_hash", discovery_splash_hash)
+	afk_timeout = data.get("afk_timeout", afk_timeout)
+	widget_enabled = data.get("widget_enabled", widget_enabled)
+	verification_level = data.get("verification_level", verification_level)
+	default_message_notifications = data.get("default_message_notifications", default_message_notifications)
+	explicit_content_filter = data.get("explicit_content_filter", explicit_content_filter)
+	features = data.get("features", features)
+	mfa_level = data.get("mfa_level", mfa_level)
+	owner_id = data.get("owner_id", owner_id)
+	application_id = data.get("application_id", application_id)
+	vanity_url_code = data.get("vanity_url_code", vanity_url_code)
+	description = data.get("description", description)
+	banner_hash = data.get("banner_hash" , banner_hash)
+	premium_tier = data.get("premium_tier", premium_tier)
+	system_channel_flags.flags = data.get("system_channel_flags", system_channel_flags.flags)
+	preferred_locale = data.get("preferred_locale", preferred_locale)
+	nsfw_level = data.get("nsfw_level", nsfw_level)
+	
+	is_large = data.get("is_large", is_large)
+	unavailable = data.get("unavailable", unavailable)
+	member_count = data.get("member_count", member_count)
+	max_members = data.get("max_members", max_members)
+	premium_subscription_count = data.get("premium_subscription_count", premium_subscription_count)
+	max_presences = data.get("max_presences", max_presences)
+	max_video_channel_users = data.get("max_video_channel_users", max_video_channel_users)
+	
+	_members = data.get("members", _members)
+	_roles = data.get("roles", _roles)
+	_emojis = data.get("emojis", _emojis)
+	channels_ids = data.get("channels_ids", channels_ids)
+	
+	afk_channel_id = data.get("afk_channel_id", afk_channel_id)
+	widget_channel_id = data.get("widget_channel_id", widget_channel_id)
+	system_channel_id = data.get("system_channel_id", system_channel_id)
+	rules_channel_id = data.get("rules_channel_id", rules_channel_id)
+	public_updates_channel_id = data.get("public_updates_channel_id", public_updates_channel_id)
+	
+	welcome_screen = data.get("welcome_screen", welcome_screen)
+
+func _clone_data() -> Array:
+	return [{
+		id = self.id,
+		name = self.name,
+		description = self.description,
+		owner_id = self.owner_id,
+		icon_hash = self.icon_hash,
+		splash_hash = self.splash_hash,
+		discovery_splash_hash = self.discovery_splash_hash,
+		afk_channel_id = self.afk_channel_id,
+		afk_timeout = self.afk_timeout,
+		widget_enabled = self.widget_enabled,
+		widget_channel_id = self.widget_channel_id,
+		verification_level = self.verification_level,
+		default_message_notifications = self.default_message_notifications,
+		explicit_content_filter = self.explicit_content_filter,
+		features = self.features,
+		mfa_level = self.mfa_level,
+		application_id = self.application_id,
+		system_channel_id = self.system_channel_id,
+		system_channel_flags = self.system_channel_flags.flags,
+		rules_channel_id = self.rules_channel_id,
+		is_large = self.is_large,
+		unavailable = self.unavailable,
+		member_count = self.member_count,
+		voice_states = self.voice_states,
+		max_presences = self.max_presences,
+		max_members = self.max_members,
+		vanity_url_code = self.vanity_url_code,
+		banner_hash = self.banner_hash,
+		premium_tier = self.premium_tier,
+		premium_subscription_count = self.premium_subscription_count,
+		preferred_locale = self.preferred_locale,
+		public_updates_channel_id = self.public_updates_channel_id,
+		max_video_channel_users = self.max_video_channel_users,
+		nsfw_level = self.nsfw_level,
+		
+		channels_ids = self.channels_ids.duplicate(),
+		members = self._members.duplicate(),
+		roles = self._roles.duplicate(),
+		emojis = self._emojis.duplicate()
+	}]
+
 func __set(_value) -> void:
-	.__set(_value)
+	pass
 
 class Member extends MentionableEntity:
-	var user: User         setget __set, get_user
-	var nickname: String   setget __set, get_nickname
-	var guild_id: int      setget __set
-	var guild: Guild       setget __set, get_guild
-	var roles_ids: Array   setget __set
-	var roles: Array       setget __set, get_roles
-	var presence: Presence setget __set, get_presence
-	var join_date: int     setget __set
-	var premium_since: int setget __set
-	var is_deaf: bool      setget __set
-	var is_muted: bool     setget __set
-	var pending: bool      setget __set
+	var user: User          setget __set, get_user
+	var nickname: String    setget __set, get_nickname
+	var avatar_hash: String setget __set, get_avatar
+	var guild_id: int       setget __set
+	var guild: Guild        setget __set, get_guild
+	var roles_ids: Array    setget __set
+	var roles: Array        setget __set, get_roles
+	var presence: Presence  setget __set, get_presence
+	var join_date: int      setget __set
+	var premium_since: int  setget __set
+	var is_deaf: bool       setget __set
+	var is_muted: bool      setget __set
+	var pending: bool       setget __set
 	
 	func _init(data: Dictionary).(data["id"]) -> void:
 		guild_id = data["guild_id"]
-		nickname = data.get("nickname", "")
-		roles_ids = data.get("roles_ids", [])
 		join_date = data["join_date"]
-		premium_since = data.get("premium_since", 0)
-		is_deaf = data.get("is_deaf", false)
-		is_muted = data.get("is_muted", false)
-		pending = data.get("pending", false)
+		_update(data)
 	
 	func get_guild() -> Guild:
 		return self.get_container().guilds.get(guild_id)
@@ -313,6 +328,9 @@ class Member extends MentionableEntity:
 	
 	func get_nickname() -> String:
 		return self.user.username if nickname.empty() else nickname
+	
+	func get_avatar() -> String:
+		return avatar_hash if not avatar_hash.empty() else self.user.avatar_hash
 	
 	func get_roles() -> Array:
 		var _roles: Array
@@ -345,6 +363,29 @@ class Member extends MentionableEntity:
 	func get_class() -> String:
 		return "Guild.Member"
 	
+	func _clone_data() -> Array:
+		return [{
+			id = self.id,
+			nickname = nickname,
+			avatar_hash = avatar_hash,
+			guild_id = self.guild_id,
+			role_ids = self.roles_ids.duplicate(),
+			join_date = self.join_date,
+			premium_since = self.premium_since,
+			is_deaf = self.is_deaf,
+			is_muted = self.is_muted,
+			pending = self.pending
+		}]
+	
+	func _update(data: Dictionary) -> void:
+		nickname = data.get("nickname", nickname)
+		avatar_hash = data.get("nickname", avatar_hash)
+		roles_ids = data.get("roles_ids", roles_ids)
+		premium_since = data.get("premium_since", premium_since)
+		is_deaf = data.get("is_deaf", is_deaf)
+		is_muted = data.get("is_muted", is_muted)
+		pending = data.get("pending", pending)
+	
 	func __set(_value) -> void:
 		pass
 
@@ -363,12 +404,10 @@ class ChannelCategory extends Channel:
 	var permission_overwrites: Array setget __set
 	
 	func _init(data: Dictionary).(data["id"]) -> void:
-		name = data.name
-		guild_id = data.guild_id
-		position = data.position
-		permission_overwrites = permission_overwrites
-		for overwrite in data.get("permission_overwrites", []):
-			self.permission_overwrites.append(PermissionOverwrite.new(overwrite))
+		name = data["name"]
+		guild_id = data["guild_id"]
+		position = data["position"]
+		permission_overwrites = data.get("permission_overwrites", [])
 	
 	func get_guild() -> Guild:
 		return self.get_container().guilds.get(guild_id)
@@ -376,22 +415,20 @@ class ChannelCategory extends Channel:
 	func get_class() -> String:
 		return "ChannelCategory"
 	
-	func compare_to(channel: Channel) -> int:
-		if channel == self:
-			return OP_EQUAL
-		if not (channel.has_method("get_guild") and channel.guild == self.guild):
-			return OP_NOT_EQUAL
-		
-		var parent: ChannelCategory = channel.parent
-		if parent:
-			if parent == self:
-				return OP_GREATER
-			if parent.position > self.position:
-				return OP_LESS
-			else:
-				return OP_GREATER
-		
-		return OP_LESS if channel.position > self.position else OP_GREATER
+	func _update(data: Dictionary) -> void:
+		name = data.get("name", name)
+		guild_id = data.get("guild_id", guild_id)
+		position = data.get("position", position)
+		permission_overwrites = data.get("permission_overwrites", permission_overwrites)
+	
+	func _clone_data() -> Array:
+		return [{
+			id = self.id,
+			name = self.name,
+			guild_id = self.guild_id,
+			position = self.position,
+			permission_overwrites = self.permission_overwrites.duplicate()
+		}]
 	
 	func __set(_value) -> void:
 		pass
@@ -415,6 +452,24 @@ class BaseGuildTextChannel extends TextChannel:
 	func get_class() -> String:
 		return "Guild.BaseGuildTextChannel"
 	
+	func _update(data: Dictionary) -> void:
+		._update(data)
+		name = data.get("name", name)
+		guild_id = data.get("guild_id", guild_id)
+		position = data.get("position", position)
+		rate_limit_per_user = data.get("rate_limit_per_user", rate_limit_per_user)
+	
+	func _clone_data() -> Array:
+		var data: Array = ._clone_data()
+		
+		var arguments: Dictionary = data[0]
+		arguments["name"] = self.name
+		arguments["guild_id"] = self.guild_id
+		arguments["position"] = self.position
+		arguments["rate_limit_per_user"] = self.rate_limit_per_user
+		
+		return data
+	
 	func __set(_value) -> void:
 		pass
 
@@ -430,8 +485,7 @@ class GuildTextChannel extends BaseGuildTextChannel:
 		
 		topic = data.get("topic", "")
 		parent_id = data.get("parent_id", 0)
-		for overwrite in data.get("permission_overwrites", []):
-			self.permission_overwrites.append(PermissionOverwrite.new(overwrite))
+		permission_overwrites = data.get("permission_overwrites", [])
 		nsfw = data.get("nsfw", false)
 	
 	func has_parent() -> bool:
@@ -442,6 +496,24 @@ class GuildTextChannel extends BaseGuildTextChannel:
 	
 	func get_class() -> String:
 		return "Guild.GuildTextChannel"
+	
+	func _update(data: Dictionary) -> void:
+		._update(data)
+		topic = data.get("topic", topic)
+		parent_id = data.get("parent_id", parent_id)
+		permission_overwrites = data.get("permission_overwrites", permission_overwrites)
+		nsfw = data.get("nsfw", nsfw)
+	
+	func _clone_data() -> Array:
+		var data: Array = ._clone_data()
+		
+		var arguments: Dictionary = data[0]
+		arguments["topic"] = self.topic
+		arguments["parent_id"] = self.parent_id
+		arguments["permission_overwrites"] = self.permission_overwrites.duplicate()
+		arguments["nsfw"] = self.nsfw
+		
+		return data
 	
 	func __set(_value) -> void:
 		pass
@@ -477,6 +549,18 @@ class ThreadChannel extends BaseGuildTextChannel:
 	func get_class() -> String:
 		return "Guild.ThreadChannel"
 	
+	func _clone_data() -> Array:
+		var data: Array = ._clone_data()
+		
+		var arguments: Dictionary = data[0]
+		arguments["archived"] = self.archived
+		arguments["auto_archive_duration"] = self.auto_archive_duration
+		arguments["archive_timestamp"] = self.archive_timestamp
+		arguments["locked"] = self.locked
+		arguments["parent_id"] = self.parent_id
+		
+		return data
+	
 	func __set(_value) -> void:
 		pass
 
@@ -496,8 +580,7 @@ class GuildStoreChannel extends Channel:
 		guild_id = data["guild_id"]
 		position = data["position"]
 		parent_id = data["parent_id"]
-		for overwrite in data.get("permission_overwrites", []):
-			self.permission_overwrites.append(PermissionOverwrite.new(overwrite))
+		permission_overwrites = data.get("permission_overwrites", [])
 	
 	func get_guild() -> Guild:
 		return self.get_container().guilds.get(guild_id)
@@ -507,6 +590,16 @@ class GuildStoreChannel extends Channel:
 	
 	func get_class() -> String:
 		return "Guild.GuildStoreChannel"
+	
+	func _clone_data() -> Array:
+		return [{
+			id = self.id,
+			name = self.name,
+			guild_id = self.guild_id,
+			position = self.position,
+			parent_id = self.parent_id,
+			permission_overwrites = self.permission_overwrites.duplicate()
+		}]
 	
 	func __set(_value) -> void:
 		pass
@@ -525,8 +618,7 @@ class BaseGuildVoiceChannel extends VoiceChannel:
 		guild_id = data["guild_id"]
 		position = data["position"]
 		parent_id = data.get("parent_id", 0)
-		for overwrite in data.get("permission_overwrites", []):
-			pass
+		permission_overwrites = data.get("permission_overwrites", [])
 	
 	func get_guild() -> Guild:
 		return self.get_container().guilds.get(guild_id)
@@ -536,6 +628,18 @@ class BaseGuildVoiceChannel extends VoiceChannel:
 	
 	func get_class() -> String:
 		return "Guild.BaseGuildVoiceChannel"
+	
+	func _clone_data() -> Array:
+		var data: Array = ._clone_data()
+		
+		var arguments: Dictionary = data[0]
+		arguments["name"] = self.name
+		arguments["guild_id"] = self.guild_id
+		arguments["position"] = self.position
+		arguments["parent_id"] = self.parent_id
+		arguments["permission_overwrites"] = self.permission_overwrites.duplicate()
+		
+		return data
 	
 	func __set(_value) -> void:
 		pass
@@ -553,12 +657,21 @@ class GuildVoiceChannel extends BaseGuildVoiceChannel:
 	func get_class() -> String:
 		return "GuildVoiceChannel"
 	
+	func _clone_data() -> Array:
+		var data: Array = ._clone_data()
+		
+		var arguments: Dictionary = data[0]
+		arguments["user_limit"] = self.user_limit
+		arguments["video_quality"] = self.video_quality
+		
+		return data
+	
 	func __set(_value) -> void:
 		pass
 
 class StageChannel extends BaseGuildVoiceChannel:
 	var topic: String setget __set
-	var instance
+	var instance: StageInstance
 	
 	func _init(data: Dictionary).(data) -> void:
 		type = Channel.Type.GUILD_STAGE_VOICE
@@ -567,6 +680,15 @@ class StageChannel extends BaseGuildVoiceChannel:
 		
 	func get_class() -> String:
 		return "Guild.StageChannel"
+	
+	func _clone_data() -> Array:
+		var data: Array = ._clone_data()
+		
+		var arguments: Dictionary = data[0]
+		arguments["topic"] = self.topic
+		arguments["instance"] = self.instance
+		
+		return data
 	
 	func __set(_value) -> void:
 		pass
@@ -598,30 +720,24 @@ class StageInstance extends DiscordEntity:
 		pass
 
 class Role extends MentionableEntity:
-	var name: String      setget __set
-	var color: Color      setget __set
-	var hoist: bool       setget __set
-	var position: int     setget __set
-	var permissions: int  setget __set
-	var is_managed: bool  setget __set
-	var mentionable: bool setget __set
-	var tags: Tags        setget __set
-	var guild_id: int     setget __set
-	var guild: Guild      setget __set, get_guild
+	var name: String         setget __set
+	var color: Color         setget __set
+	var hoist: bool          setget __set
+	var position: int        setget __set
+	var permissions: BitFlag setget __set
+	var is_managed: bool     setget __set
+	var mentionable: bool    setget __set
+	var tags: Tags           setget __set
+	var guild_id: int        setget __set
+	var guild: Guild         setget __set, get_guild
 	
-	func _init(data: Dictionary).(data.id) -> void:
-		name = data.name
-		guild_id = data.guild_id
-		color = data.get("color", Color(0))
-		hoist = data.get("hoist", false)
-		position = data.get("position", 0)
-		permissions = data.get("permissions", 0)
-		is_managed = data.get("managed", 0)
-		mentionable = data.get("mentionable", false)
-		tags = data.get("tags")
+	func _init(data: Dictionary).(data["id"]) -> void:
+		guild_id = data["guild_id"]
+		permissions = BitFlag.new(Permissions.get_script_constant_map())
+		_update(data)
 	
 	func get_guild() -> Guild:
-		return self.get_container().get(guild_id)
+		return self.get_container().guilds.get(guild_id)
 	
 	func get_mention() -> String:
 		return "<@&%d>" % self.get_id()
@@ -629,18 +745,48 @@ class Role extends MentionableEntity:
 	func get_class() -> String:
 		return "Guild.Role"
 	
+	func _clone_data() -> Array:
+		return [{
+			id = self.id,
+			name = self.name,
+			guild_id = self.guild_id,
+			hoist = self.hoist,
+			position = self.position,
+			permissions = self.permissions,
+			is_managed = self.is_managed,
+			mentionable = self.mentionable,
+			tags = self.tags.duplicate() if tags else null,
+		}]
+	
+	func _update(data: Dictionary) -> void:
+		name = data.get("name", name)
+		color = data.get("color", color)
+		hoist = data.get("hoist", hoist)
+		position = data.get("position", position)
+		permissions.flags = data.get("permissions", permissions.flags)
+		is_managed = data.get("managed", is_managed)
+		mentionable = data.get("mentionable", mentionable)
+		tags = data.get("tags", tags)
+	
 	func __set(_value) -> void:
 		pass
 	
 	class Tags:
-		var bot_id: int         setget __set
-		var integration_id: int setget __set
-		var premium_subscriber  setget __set
+		var bot_id: int              setget __set
+		var integration_id: int      setget __set
+		var premium_subscriber: bool setget __set
 	
 		func _init(data: Dictionary) -> void:
-			bot_id = data.bot_id
-			integration_id = data.integration_id
-			premium_subscriber = data.premium_subscriber
+			bot_id = data["bot_id"]
+			integration_id = data["integration_id"]
+			premium_subscriber = data["premium_subscriber"]
+		
+		func duplicate() -> Tags:
+			return self.get_script().call("new", {
+				bot_id = self.bot_id,
+				integration_id = self.integration_id,
+				premium_subscriber = self.premium_subscriber
+			})
 		
 		func get_class() -> String:
 			return "Guild.Role.Tags"
@@ -652,15 +798,15 @@ class Role extends MentionableEntity:
 			pass
 
 class GuildEmoji extends Emoji:
-	var guild_id: int           setget __set
-	var guild: Guild            setget __set, get_guild
-	var roles_ids: Array        setget __set
-	var roles: Array            setget __set, get_roles
-	var user_id: int            setget __set
-	var user: User              setget __set, get_user
-	var is_managed: bool        setget __set
-	var is_animated: bool       setget __set
-	var available: bool         setget __set
+	var guild_id: int     setget __set
+	var guild: Guild      setget __set, get_guild
+	var roles_ids: Array  setget __set
+	var roles: Array      setget __set, get_roles
+	var user_id: int      setget __set
+	var user: User        setget __set, get_user
+	var is_managed: bool  setget __set
+	var is_animated: bool setget __set
+	var available: bool   setget __set
 	
 	func _init(data: Dictionary).(data) -> void:
 		guild_id = data.guild_id
@@ -691,38 +837,18 @@ class GuildEmoji extends Emoji:
 	func get_class() -> String:
 		return "Guild.GuildEmoji"
 	
-	func __set(_value) -> void:
-		pass
-
-class GuildMessage extends Message:
-	var guild_id: int           setget __set
-	var guild: Guild            setget __set, get_guild
-	var member_id: int          setget __set
-	var member: Member          setget __set, get_member
-	var role_mentions: Array    setget __set
-	var channel_mentions: Array setget __set
-	var mention_everyone: bool  setget __set
-	var is_tts: bool            setget __set
-	
-	func _init(data: Dictionary).(data) -> void:
-		guild_id = data.guild_id
-		member_id = data.member_id
-		is_tts = data.get("tts", false)
-	
-	func get_guild() -> Guild:
-		return self.get_container().guilds.get(self.guild_id)
-	
-	func get_member() -> Member:
-		return self.guild.get_member(self.member_id)
-	
-	func _update(data: Dictionary) -> void:
-		._update(data)
-		role_mentions = data.get("role_mentions", role_mentions)
-		channel_mentions = data.get("channel_mentions", channel_mentions)
-		mention_everyone = data.get("mention_everyone", mention_everyone)
-	
-	func get_class() -> String:
-		return "Guild.GuildMessage"
+	func _clone_data() -> Array:
+		return [{
+			id = self.id,
+			name = self.name,
+			guild_id = self.guild_id,
+			roles_ids = self.roles_ids.duplicate(),
+			user_id = self.user_id,
+			permissions = self.permissions,
+			is_managed = self.is_managed,
+			is_animated = self.is_animated,
+			available = self.available,
+		}]
 	
 	func __set(_value) -> void:
 		pass

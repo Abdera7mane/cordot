@@ -4,13 +4,15 @@ func _init(manager: BaseDiscordEntityManager).(manager) -> void:
 	pass
 
 func construct_emoji(data: Dictionary) -> Emoji:
+	var manager: BaseDiscordEntityManager = get_manager()
+	
 	var user: User
 	if data.has("user"):
-		user = self.get_manager().get_or_construct_user(data["user"])
+		user = manager.get_or_construct_user(data["user"])
 	var arguments: Dictionary = {
 		id = data["id"] as int,
-		guild_id = data.get("guild_id", 0),
-		name = GDUtil.dict_get_or_default(data, "name" , ""),
+		guild_id = data["guild_id"],
+		name = Dictionaries.get_non_null(data, "name" , ""),
 		roles_ids = Snowflake.snowflakes2integers(data.get("roles", [])),
 		user_id = user.id if user else 0,
 		is_managed = data.get("managed"),
@@ -19,7 +21,8 @@ func construct_emoji(data: Dictionary) -> Emoji:
 	}
 	
 	var emoji: Emoji = Guild.GuildEmoji.new(arguments)
-	emoji.set_meta("container", self.get_manager().container)
+	emoji.set_meta("container", manager.container)
+	emoji.set_meta("rest", manager.rest_mediator)
 	
 	return emoji
 

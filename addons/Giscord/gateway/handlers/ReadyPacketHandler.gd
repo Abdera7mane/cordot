@@ -23,7 +23,7 @@ func remove_unvailable_guild(id: int) -> void:
 
 func check_ready() -> void:
 	if unavailable_guilds.empty():
-		var self_user: User = _entity_manager.get_user(_connection_state.self_user_id)
+		var self_user: User = _entity_manager.get_self()
 		self.emit_signal("transmit_event", "client_ready", [self_user])
 
 func get_packets() -> Dictionary:
@@ -31,7 +31,7 @@ func get_packets() -> Dictionary:
 
 func _on_ready(fields: Dictionary) -> void:
 	var user: User = _entity_manager.get_or_construct_user(fields["user"])
-	_connection_state.self_user_id = user.id
+	_entity_manager.container.bot_id = user.id
 	_connection_state.session_id = fields["session_id"]
 	for guild_data in fields["guilds"]:
 		var guild: Guild = _entity_manager.get_or_construct_guild(guild_data)

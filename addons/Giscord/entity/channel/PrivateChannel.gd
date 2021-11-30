@@ -26,5 +26,9 @@ func get_recipient_by_id(id: int) -> User:
 func get_class() -> String:
 	return "PrivateChannel"
 
+func _update(data: Dictionary) -> void:
+	._update(data)
+	recipients_ids = data.get("recipients_ids", recipients_ids)
+
 func __set(_value) -> void:
-	.__set(_value)
+	pass

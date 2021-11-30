@@ -5,10 +5,10 @@ func _init(payload: Dictionary) -> void:
 	self.payload = payload
 
 func is_gateway_dispatch() -> bool:
-	return self.payload.has(["s","t"]) and self.get_opcode() == 0
+	return self.payload.has_all(["t", "s"]) and self.get_opcode() == 0
 
 func get_sequence() -> int:
-	return self.payload.get("s", -1) as int
+	return self.payload.get("s", 0) as int
 
 func get_event_name() -> String:
 	return self.payload.get("t", "") as String

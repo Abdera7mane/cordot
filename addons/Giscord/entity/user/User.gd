@@ -1,20 +1,20 @@
 class_name User extends MentionableEntity
 
 enum Flags {
-	NONE,
-	DISCORD_EMPLOYEE             = 1 << 0,
-	PARTNERED_SERVER_OWNER       = 1 << 1,
-	HYPESQUAD_EVENTS             = 1 << 2,
-	BUG_HUNTER_LEVEL1            = 1 << 3,
-	HOUSE_BRAVERY                = 1 << 6,
-	HOUSE_BRILLIANCE             = 1 << 7,
-	HOUSE_BALANCE                = 1 << 8,
-	EARLY_SUPPORTER              = 1 << 9,
-	TEAM_USER                    = 1 << 10,
-	SYSTEM                       = 1 << 12,
-	BUG_HUNTER_LEVEL2            = 1 << 14,
-	VERIFIED_BOT                 = 1 << 16,
-	EARLY_VERIFIED_BOT_DEVELOPER = 1 << 17
+	DISCORD_EMPLOYEE      = 1 << 0,
+	PARTNER               = 1 << 1,
+	HYPESQUAD             = 1 << 2,
+	BUG_HUNTER_LEVEL1     = 1 << 3,
+	HOUSE_BRAVERY         = 1 << 6,
+	HOUSE_BRILLIANCE      = 1 << 7,
+	HOUSE_BALANCE         = 1 << 8,
+	EARLY_SUPPORTER       = 1 << 9,
+	TEAM_PSEUDO_USER      = 1 << 10,
+	BUG_HUNTER_LEVEL2     = 1 << 14,
+	VERIFIED_BOT          = 1 << 16,
+	VERIFIED_DEVELOPER    = 1 << 17
+	CERTIFIED_MODERATOR   = 1 << 18
+	BOT_HTTP_INTERACTIONS = 1 << 19
 }
 
 enum PremiumType {
@@ -23,22 +23,24 @@ enum PremiumType {
 	NITRO
 }
 
-var username: String    setget __set
-var discriminator: int  setget __set
-var avatar_hash: String setget __set
-var email: String       setget __set
-var locale: String      setget __set
-var is_bot: bool        setget __set
-var is_system: bool     setget __set
-var mfa_enabled: bool   setget __set
-var banner_hash: String setget __set
-var accent_color: Color setget __set
-var verified: bool      setget __set
-var premium_type: int   setget __set
-var flags: int          setget __set
-var public_flags: int   setget __set
+var username: String      setget __set
+var discriminator: int    setget __set
+var avatar_hash: String   setget __set
+var email: String         setget __set
+var locale: String        setget __set
+var is_bot: bool          setget __set
+var is_system: bool       setget __set
+var mfa_enabled: bool     setget __set
+var banner_hash: String   setget __set
+var accent: Color         setget __set
+var verified: bool        setget __set
+var premium_type: int     setget __set
+var flags: BitFlag        setget __set
+var public_flags: BitFlag setget __set
 
 func _init(data: Dictionary).(data["id"]) -> void:
+	flags = BitFlag.new(Flags)
+	public_flags = BitFlag.new(Flags)
 	_update(data)
 
 func get_tag() -> String:
@@ -67,10 +69,29 @@ func _update(data: Dictionary) -> void:
 	mfa_enabled = data.get("mfa_enabled", mfa_enabled)
 	verified = data.get("verified", verified)
 	banner_hash = data.get("banner_hash", banner_hash)
-	accent_color = data.get("accent_color", accent_color)
+	accent = data.get("accent", accent)
 	premium_type = data.get("premium_type", premium_type)
-	flags = data.get("flags", flags)
-	public_flags = data.get("public_flags", public_flags)
+	flags.flags = data.get("flags", flags.flags)
+	public_flags.flags = data.get("public_flags", public_flags.flags)
+
+func _clone_data() -> Array:
+	return [{
+		id = self.id,
+		username = self.username,
+		discriminator = self.discriminator,
+		avatar_hash = self.avatar_hash,
+		email = self.email,
+		locale = self.locale,
+		is_bot = self.is_bot,
+		is_system = self.is_system,
+		mfa_enabled = self.mfa_enabled,
+		banner_hash = self.banner_hash,
+		accent_color = self.accent_color,
+		verified = self.verified,
+		premium_type = self.premium_type,
+		flags = self.flags.flags,
+		public_flags = self.public_flags.flags
+	}]
 
 func __set(_value) -> void:
-	.__set(_value)
+	pass

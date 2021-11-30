@@ -18,5 +18,11 @@ func get_owner() -> User:
 func get_class() -> String:
 	return "GroupDMChannel"
 
+func _update(data: Dictionary) -> void:
+	._update(data)
+	name = data.get("name", name)
+	icon_hash = data.get("icon_hash", icon_hash)
+	owner_id = data.get("owner_id", owner_id)
+
 func __set(_value) -> void:
-	.__set(_value)
+	pass

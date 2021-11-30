@@ -1,6 +1,6 @@
 class_name GatewayOpcodes
 
-enum General {
+enum Gateway {
 	DISPATCH              = 0,
 	HEARTBEAT             = 1,
 	IDENTIFY              = 2,

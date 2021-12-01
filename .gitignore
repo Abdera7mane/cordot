@@ -11,3 +11,5 @@ icon.png
 # Mono-specific ignores
 .mono/
 data_*/
+
+addons/godot-git-plugin/

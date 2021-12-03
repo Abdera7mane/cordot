@@ -15,7 +15,7 @@ func send_message(content: String, tts: bool = false, embeds: Array = []) -> Bas
 		params["embeds"] = embeds
 	return get_rest().request_async(
 		DiscordREST.CHANNEL,
-		"send_message",
+		"create_message",
 		[self.id, params]
 	)
 

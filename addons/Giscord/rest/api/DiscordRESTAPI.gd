@@ -24,6 +24,7 @@ const ENDPOINTS: Dictionary = {
 	MESSAGE_REACTIONS = "/channels/{channel_id}/messages/{message_id}/reactions/{emoji}",
 	MESSAGE_REACTION = "/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me",
 	MESSAGE_USER_REACTION = "/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/{user_id}",
+	MESSAGE_ALL_REACTIONS = "/channels/{channel_id}/messages/{message_id}/reactions",
 	MESSAGE_BULK_DELETE = "/channels/{channel_id}/messages/bulk-delete",
 	THREAD_WITH_MESSAGE = "/channels/{channel_id}/messages/{message_id}/threads",
 	THREAD_WITHOUT_MESSAGE = "/channels/{channel_id}/threads",

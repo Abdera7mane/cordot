@@ -11,6 +11,9 @@ func get_mention() -> String:
 func get_class() -> String:
 	return "Emoji"
 
+func url_encoded() -> String:
+	return ""
+
 func to_dict() -> Dictionary:
 	return {
 		id = self.id,

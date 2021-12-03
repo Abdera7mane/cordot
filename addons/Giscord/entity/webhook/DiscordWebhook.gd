@@ -17,7 +17,7 @@ var name: String                   setget __set
 var avatar_hash: String            setget __set
 var token: String                  setget __set
 var application_id: int            setget __set
-var source_guild: PartialGuild     setget __set
+var source_guild: Guild            setget __set
 var source_channel: PartialChannel setget __set
 var url: String                    setget __set
 

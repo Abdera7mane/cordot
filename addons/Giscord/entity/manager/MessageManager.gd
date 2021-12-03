@@ -185,15 +185,17 @@ func parse_message_data(data: Dictionary) -> Dictionary:
 				mentions_ids.append(user.id)
 		parsed_data["mentions_ids"]  = mentions_ids
 	
-	var attachments: Array = []
-	for attachment_data in data["attachments"]:
-		attachments.append(construct_message_attachment(attachment_data))
-	parsed_data["attachments"] = attachments
+	if data.has("attachments"):
+		var attachments: Array = []
+		for attachment_data in data["attachments"]:
+			attachments.append(construct_message_attachment(attachment_data))
+		parsed_data["attachments"] = attachments
 	
-	var embeds: Array = []
-	for embed_data in data["embeds"]:
-		embeds.append(construct_embed(embed_data))
-	parsed_data["embeds"] = embeds
+	if data.has("embeds"):
+		var embeds: Array = []
+		for embed_data in data["embeds"]:
+			embeds.append(construct_embed(embed_data))
+		parsed_data["embeds"] = embeds
 	
 	if data.has("reactions"):
 		var reactions: Array = []
@@ -210,15 +212,15 @@ func parse_message_data(data: Dictionary) -> Dictionary:
 	if data.has("flags"):
 		parsed_data["flags"] = data["flags"]
 	
-#	if data.has("message_reference"):
-#		parsed_data["message_reference"] = construct_message_reference(data["message_reference"])
-#	if data.has("referenced_message"):
-#		if not Dictionaries.has_non_null(data, "referenced_message"):
-#			pass
-#		else:
-#			var reference_data: Dictionary = data["referenced_message"]
-#			var message: Message = get_manager().get_or_construct_message(reference_data)
-#			parsed_data["referenced_message_id"] = message.id
+	if data.has("message_reference"):
+		parsed_data["message_reference"] = construct_message_reference(data["message_reference"])
+	if data.has("referenced_message"):
+		if not Dictionaries.has_non_null(data, "referenced_message"):
+			pass
+		else:
+			var reference_data: Dictionary = data["referenced_message"]
+			var message: Message = get_manager().get_or_construct_message(reference_data)
+			parsed_data["referenced_message_id"] = message.id
 	
 	return parsed_data
 

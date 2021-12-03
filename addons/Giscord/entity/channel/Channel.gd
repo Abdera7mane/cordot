@@ -1,6 +1,7 @@
 class_name Channel extends MentionableEntity
 
 enum Type {
+	UNKNOWN = -1,
 	GUILD_TEXT,
 	DM,
 	GUILD_VOICE,

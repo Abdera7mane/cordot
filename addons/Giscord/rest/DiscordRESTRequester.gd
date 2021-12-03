@@ -1,7 +1,9 @@
 class_name DiscordRESTRequester
 
+var last_latency: int
+
 func request_async(request: RestRequest) -> HTTPResponse:
-	
+	var _start: int = OS.get_ticks_msec()
 	var response: HTTPResponse = yield(
 	_request_async(
 			request.url,
@@ -9,6 +11,7 @@ func request_async(request: RestRequest) -> HTTPResponse:
 			request.method,
 			request.body
 	), "completed")
+	last_latency = OS.get_ticks_msec() - _start
 	
 	match response.code:
 		HTTPClient.RESPONSE_BAD_REQUEST:

@@ -932,7 +932,7 @@ class GuildScheduledEvent extends DiscordEntity:
 		channel_id = data.get("channel_id", 0)
 		creator_id = data.get("creator_id", 0)
 		name = data["name"]
-		guild_id = data.get("description")
+		description = data.get("description", "")
 		start_time = data.get("start_time", 0)
 		end_time = data.get("end_time", 0)
 		privacy_level = data["privacy_level"]

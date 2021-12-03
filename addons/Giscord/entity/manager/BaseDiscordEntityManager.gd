@@ -206,6 +206,9 @@ class BaseChannelManager extends AbstractManager:
 	func construct_channel(_data: Dictionary) -> Channel:
 		return null
 	
+	func construct_partial_channel(_data: Dictionary) -> PartialChannel:
+		return null
+	
 	func update_channel(_channel: Channel, _data: Dictionary) -> void:
 		pass
 	
@@ -238,6 +241,12 @@ class BaseGuildManager extends AbstractManager:
 		return null
 	
 	func construct_role(_data: Dictionary) -> Guild.Role:
+		return null
+	
+	func construct_invite(_data: Dictionary) -> Guild.Invite:
+		return null
+	
+	func construct_guild_scheduled_event(_data: Dictionary) -> Guild.GuildScheduledEvent:
 		return null
 	
 	func update_guild(_guild: Guild, _data: Dictionary) -> void:

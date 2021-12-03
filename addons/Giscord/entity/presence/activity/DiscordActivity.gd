@@ -34,12 +34,13 @@ var assets: ActivityAssets         setget __set
 var secrets: ActivitySecrets       setget __set
 var instance: bool                 setget __set
 var flags: BitFlag                 setget __set
+var buttons: Array                 setget __set
 
 func _init(data: Dictionary) -> void:
 	flags = BitFlag.new(Flags)
 	
-	name = data.name
-	type = data.type
+	name = data["name"]
+	type = data["type"]
 	url = data.get("url", "")
 	created_at = data["created_at"]
 	timestamps = data.get("timestamps")
@@ -52,6 +53,7 @@ func _init(data: Dictionary) -> void:
 	secrets = data.get("secrets")
 	instance = data.get("instance", false)
 	flags.flags = data.get("flags", 0)
+	buttons = data.get("buttons", [])
 
 func to_dict() -> Dictionary:
 	var data: Dictionary = {
@@ -77,12 +79,12 @@ func to_dict() -> Dictionary:
 	if party:
 		data["party"] = party.to_dict()
 	if secrets:
-		data["secrets"] = secrets
+		data["secrets"] = secrets.to_dict()
 	
 	return data
 
 func get_class() -> String:
-	return "Activity"
+	return "DiscordActivity"
 
 func _to_string() -> String:
 	return "[%s:%d]" % [self.get_class(), self.id, self.get_instance_id()]

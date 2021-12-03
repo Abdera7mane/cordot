@@ -5,7 +5,7 @@ var size: PoolIntArray setget __set
 
 func _init(data: Dictionary) -> void:
 	id = data.get("id", "")
-	size = data.get("id", "size")
+	size = data.get("size", [])
 
 func to_dict() -> Dictionary:
 	var data: Dictionary = {}

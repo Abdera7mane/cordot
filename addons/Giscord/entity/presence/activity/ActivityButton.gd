@@ -5,7 +5,7 @@ var url: String   setget __set
 
 func _init(data: Dictionary) -> void:
 	label = data["label"]
-	label = data["url"]
+	url = data["url"]
 
 func __set(_value) -> void:
 	pass

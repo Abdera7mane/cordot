@@ -38,9 +38,64 @@ func construct_presence(data: Dictionary) -> Presence:
 	
 	return presence
 
-# warning-ignore:unused_argument
 func construct_activity(data: Dictionary) -> DiscordActivity:
-	return null
+	var arguments: Dictionary = {
+		name = data["name"],
+		type = data["type"],
+		url = Dictionaries.get_non_null(data, "url", ""),
+		created_at = data["created_at"],
+		timestamps = construct_activity_timestamps(data["timestamps"]) if data.has("timestamps") else null,
+		application_id = data.get("application_id", 0) as int,
+		details = data.get("details", ""),
+		party = construct_activity_party(data["party"]) if data.has("party") else null,
+		assets = construct_activity_assets(data["assets"]) if data.has("assets") else null,
+		secrets = construct_activity_secrets(data["secrets"]) if data.has("secrets") else null,
+		instance = data.get("instance", false),
+		flags = data.get("flags", 0)
+	}
+	
+	if data.has("emoji"):
+		arguments["emoji"] = get_manager().get_or_construct_emoji(data["emoji"])
+	
+	var buttons: Array = []
+	for button_data in data.get("buttons", []):
+		buttons.append(construct_activity_button(button_data))
+	arguments["buttons"] = buttons
+	
+	return DiscordActivity.new(arguments)
+
+func construct_activity_timestamps(data: Dictionary) -> ActivityTimestamps:
+	return ActivityTimestamps.new({
+		start = data.get("start", 0),
+		end = data.get("end", 0)
+	})
+
+func construct_activity_party(data: Dictionary) -> ActivityParty:
+	return ActivityParty.new({
+		id = data.get("id", ""),
+		size = data.get("size", [])
+	})
+
+func construct_activity_assets(data: Dictionary) -> ActivityAssets:
+	return ActivityAssets.new({
+		large_image = data.get("large_image", ""),
+		large_text = data.get("large_text", ""),
+		small_image = data.get("small_image", ""),
+		small_text = data.get("small_text", "")
+	})
+
+func construct_activity_secrets(data: Dictionary) -> ActivitySecrets:
+	return ActivitySecrets.new({
+		join = data.get("join", ""),
+		spectate = data.get("spectate", ""),
+		instanced_match = data.get("match", "")
+	})
+
+func construct_activity_button(data: Dictionary) -> ActivityButton:
+	return ActivityButton.new({
+		label = data["label"],
+		url = data["url"]
+	})
 
 func update_user(user: User, data: Dictionary) -> void:
 	user._update(parse_user_payload(data))

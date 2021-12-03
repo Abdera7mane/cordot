@@ -809,8 +809,8 @@ class GuildEmoji extends Emoji:
 	var available: bool   setget __set
 	
 	func _init(data: Dictionary).(data) -> void:
-		guild_id = data.guild_id
-		user_id = data.user_id
+		guild_id = data["guild_id"]
+		user_id = data["user_id"]
 		is_managed = data.get("is_managed", false)
 		is_animated = data.get("is_animated", false)
 		available = data.get("available", false)
@@ -827,12 +827,13 @@ class GuildEmoji extends Emoji:
 			var role: Role = self.guild.get_role(role_id)
 			if role:
 				_roles.append(role)
-			else:
-				printerr("what the fuck ? x2")
 		return _roles
 	
 	func get_user() -> User:
 		return self.get_container().users.get(self.user_id)
+	
+	func url_encoded() -> String:
+		return ("%s:%d" % [name, self.id]).http_escape()
 	
 	func get_class() -> String:
 		return "Guild.GuildEmoji"
@@ -849,6 +850,113 @@ class GuildEmoji extends Emoji:
 			is_animated = self.is_animated,
 			available = self.available,
 		}]
+	
+	func __set(_value) -> void:
+		pass
+
+class Invite:
+	
+	enum TargetType {
+		STREAM               = 1,
+		EMBEDDED_APPLICATION = 2
+	}
+	
+	var code: String                           setget __set
+	var guild: Guild                           setget __set
+	var channel: PartialChannel                setget __set
+	var inviter: User                          setget __set
+	var target_type: int                       setget __set
+	var target_user: User                      setget __set
+	var target_application: DiscordApplication setget __set
+	var presence_count: int                    setget __set
+	var member_count: int                      setget __set
+	var expires_at: int                        setget __set
+	var stage_instance: StageInstanceInvite    setget __set
+	var scheduled_event: GuildScheduledEvent   setget __set
+	
+	func _init(data: Dictionary) -> void:
+		code = data["code"]
+		guild = data.get("guild")
+		channel = data.get("channel")
+		inviter = data.get("inviter")
+		target_type = data.get("target_type")
+		target_user = data.get("target_user")
+		target_application = data.get("target_application")
+		presence_count = data.get("presence_count")
+		member_count = data.get("member_count")
+		expires_at = data.get("expires_at")
+		stage_instance = data.get("stage_instance")
+		scheduled_event = data.get("scheduled_event")
+	
+	func get_class() -> String:
+		return "Guild.Invite"
+	
+	func __set(_value) -> void:
+		pass
+
+class GuildScheduledEvent extends DiscordEntity:
+	enum PrivacyLevel {
+		GUILD_ONLY = 2
+	}
+	
+	enum EntityType {
+		STAGE_INSTANCE = 1,
+		VOICE          = 2,
+		EXTERNAL       = 3
+	}
+	
+	enum EventStatus {
+		SCHEDULED = 1,
+		ACTIVE    = 2,
+		COMPLETED = 3,
+		CANCELED  = 4,
+	}
+	
+	var guild_id: int       setget __set
+	var channel_id: int     setget __set
+	var creator_id: int     setget __set
+	var name: String        setget __set
+	var description: String setget __set
+	var start_time: int     setget __set
+	var end_time: int       setget __set
+	var privacy_level: int  setget __set
+	var status: int         setget __set
+	var creator: User       setget __set
+	var user_count: int     setget __set
+	var entity_id: int      setget __set
+	var entity_type: int    setget __set
+	var entity_metadata: ScheduledEventMetadata setget __set
+	
+	func _init(data: Dictionary).(data["id"]) -> void:
+		guild_id = data["guild_id"]
+		channel_id = data.get("channel_id", 0)
+		creator_id = data.get("creator_id", 0)
+		name = data["name"]
+		guild_id = data.get("description")
+		start_time = data.get("start_time", 0)
+		end_time = data.get("end_time", 0)
+		privacy_level = data["privacy_level"]
+		status = data["status"]
+		creator = data.get("creator")
+		entity_id = data.get("entity_id", 0)
+		entity_type = data["entity_type"]
+		entity_metadata = data.get("entity_metadata")
+	
+	func get_class() -> String:
+		return "Guild.GuildScheduledEvent"
+	
+	func __set(_value) -> void:
+		pass
+
+
+class ScheduledEventMetadata:
+	var location: String setget __set
+	
+	func _init(_location) -> void:
+		location = _location
+	
+	func get_class() -> String:
+		return "Guild.ScheduledEventMetadata"
 	
 	func __set(_value) -> void:
 		pass

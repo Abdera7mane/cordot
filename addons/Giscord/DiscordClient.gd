@@ -1,11 +1,20 @@
 class_name DiscordClient extends Node
 
 # warning-ignore-all:unused_signal
+# warning-ignore-all:return_value_discarded
+
+enum {
+	ERR_WEBSOCKET
+}
+
+signal connected()
+signal reconnected()
+signal resumed()
+signal connection_error(error)
+signal disconnected()
 
 signal raw_event(event, payload)
 signal client_ready(user)
-signal resumed()
-signal reconnected()
 signal channel_created(channel)
 signal channel_updated(old, new)
 signal channel_deleted(channel)
@@ -70,6 +79,7 @@ func _init(token: String, intents: int = GatewayIntents.UNPRIVILEGED) -> void:
 func login() -> void:
 	if not is_inside_tree():
 		push_error("Not inside a scene tree !")
+		emit_signal("connection_error", ERR_UNCONFIGURED)
 		return
 	_prepare_adapters()
 	gateway_websocket.connect_to_gateway()
@@ -120,7 +130,10 @@ func get_class() -> String:
 func _create_gateway_websocket(_entity_manager: BaseDiscordEntityManager) -> DiscordWebSocketAdapter:
 	var adapter: DiscordWebSocketAdapter = DiscordWebSocketAdapter.new(_connection_state)
 	
-	# warning-ignore:return_value_discarded
+	adapter.connect("connected", self, "_on_connected")
+	adapter.connect("reconnected", self, "_on_reconnected")
+	adapter.connect("connection_error", self, "_on_connection_error")
+	adapter.connect("disconnected", self, "_on_disconnected")
 	adapter.connect("packet_received", self, "_on_packet")
 	
 	var handlers: Array = [
@@ -154,6 +167,18 @@ func _prepare_adapters() -> void:
 	self.add_child(rest)
 	self.add_child(gateway_websocket)
 	self.add_child(voice_websocket)
+
+func _on_connected() -> void:
+	emit_signal("connected")
+
+func _on_connection_error() -> void:
+	emit_signal("connection_error", ERR_WEBSOCKET)
+
+func _on_reconnected() -> void:
+	emit_signal("reconnected")
+
+func _on_disconnected() -> void:
+	emit_signal("disconnected")
 
 func _on_packet(packet: DiscordPacket) -> void:
 	if packet.is_gateway_dispatch():

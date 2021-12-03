@@ -29,12 +29,15 @@ func _on_packet(packet: DiscordPacket) -> void:
 			last_sequence = 0
 			_connection_state.session_id = ""
 			auto_reconnect = false
+			reconnecting = true
+			_skip_disconnect = true
 			disconnect_from_gateway()
 			yield(self, "disconnected")
 			yield(get_tree().create_timer(rand_range(1.0, 5.0)), "timeout")
 			emit_signal("reconnecting")
 			connect_to_gateway()
 			auto_reconnect = true
+			_skip_disconnect = false
 		GatewayOpcodes.Gateway.HELLO:
 			var pkt: Packet
 			

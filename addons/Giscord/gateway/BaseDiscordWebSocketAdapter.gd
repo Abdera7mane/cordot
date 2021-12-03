@@ -2,7 +2,7 @@ class_name BaseWebSocketAdapter extends Node
 
 signal connected()
 signal disconnected()
-signal reconnecting()
+signal reconnected()
 signal connection_error()
 signal packet_received(packet)
 
@@ -37,15 +37,18 @@ enum CloseEventCode {
 	ALREADY_AUTHENTICATED     = 4005,
 }
 
+
 var _websocket_client: WebSocketClient setget __set
 var _heartbeat_timer: Timer            setget __set
 var _packet_handlers: Array            setget __set
 var _start: int                        setget __set
+var _skip_disconnect: bool             setget __set
 
 var timeout_ms: int = 30_000           setget __set
 var last_sequence: int = 0             setget __set
 var last_beat: int                     setget __set
 var latency: int                       setget __set
+var reconnecting: bool                 setget __set
 var auto_reconnect: bool = true
 
 func setup():
@@ -148,7 +151,11 @@ func _on_data() -> void:
 	emit_signal("packet_received", packet)
 
 func _connection_established(_protocol: String) -> void:
-	emit_signal("connected")
+	if reconnecting:
+		reconnecting = false
+		emit_signal("reconnected")
+	else:
+		emit_signal("connected")
 
 func _connection_error() -> void:
 	print("connection error")
@@ -157,9 +164,9 @@ func _connection_error() -> void:
 func _connection_closed(_was_clean_close: bool) -> void:
 	call_deferred("close")
 	if auto_reconnect:
-		emit_signal("reconnecting")
+		reconnecting = true
 		call_deferred("connect_to_gateway")
-	else:
+	elif not _skip_disconnect:
 		_start = 0
 		emit_signal("disconnected")
 

@@ -91,7 +91,11 @@ func construct_stage_channel(data: Dictionary) -> Guild.StageChannel:
 	return Guild.StageChannel.new(parse_guild_voice_channel_payload(data))
 
 func construct_partial_channel(data: Dictionary) -> PartialChannel:
-	return PartialChannel.new(data["id"] as int, data["name"]) 
+	return PartialChannel.new({
+		id = data["id"] as int,
+		name = data["name"],
+		type = data.get("type", Channel.Type.UNKNOWN)
+	})
 
 func construct_permission_overwrite(data: Dictionary) -> PermissionOverwrite:
 	return PermissionOverwrite.new({

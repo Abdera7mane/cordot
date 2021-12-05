@@ -1,7 +1,12 @@
-class_name GuildManager extends BaseDiscordEntityManager.BaseGuildManager
+class_name GuildManager extends BaseGuildManager
 
-func _init(manager: BaseDiscordEntityManager).(manager) -> void:
-	pass
+var entity_manager: WeakRef
+
+func _init(manager: BaseDiscordEntityManager) -> void:
+	self.entity_manager = weakref(manager)
+
+func get_manager() -> BaseDiscordEntityManager:
+	return entity_manager.get_ref()
 
 func construct_guild(data: Dictionary) -> Guild:
 	var manager: BaseDiscordEntityManager = self.get_manager()

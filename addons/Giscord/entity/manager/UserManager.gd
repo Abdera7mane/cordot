@@ -1,7 +1,12 @@
-class_name UserManager extends BaseDiscordEntityManager.BaseUserManager
+class_name UserManager extends BaseUserManager
 
-func _init(manager: BaseDiscordEntityManager).(manager) -> void:
-	pass
+var entity_manager: WeakRef
+
+func _init(manager: BaseDiscordEntityManager) -> void:
+	self.entity_manager = weakref(manager)
+
+func get_manager() -> BaseDiscordEntityManager:
+	return entity_manager.get_ref()
 
 func construct_user(data: Dictionary) -> User:
 	var manager: BaseDiscordEntityManager = get_manager()

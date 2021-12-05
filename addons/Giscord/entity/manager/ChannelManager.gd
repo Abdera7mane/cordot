@@ -1,7 +1,12 @@
-class_name ChannelManager extends BaseDiscordEntityManager.BaseChannelManager
+class_name ChannelManager extends BaseChannelManager
 
-func _init(manager: BaseDiscordEntityManager).(manager) -> void:
-	pass
+var entity_manager: WeakRef
+
+func _init(manager: BaseDiscordEntityManager) -> void:
+	self.entity_manager = weakref(manager)
+
+func get_manager() -> BaseDiscordEntityManager:
+	return entity_manager.get_ref()
 
 func construct_channel(data: Dictionary) -> Channel:
 	var channel: Channel = null

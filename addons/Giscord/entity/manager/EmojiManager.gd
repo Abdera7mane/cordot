@@ -1,7 +1,12 @@
-class_name EmojiManager extends BaseDiscordEntityManager.BaseEmojiManager
+class_name EmojiManager extends BaseEmojiManager
 
-func _init(manager: BaseDiscordEntityManager).(manager) -> void:
-	pass
+var entity_manager: WeakRef
+
+func _init(manager: BaseDiscordEntityManager) -> void:
+	self.entity_manager = weakref(manager)
+
+func get_manager() -> BaseDiscordEntityManager:
+	return entity_manager.get_ref()
 
 func construct_emoji(data: Dictionary) -> Emoji:
 	var manager: BaseDiscordEntityManager = get_manager()

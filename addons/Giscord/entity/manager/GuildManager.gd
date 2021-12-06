@@ -117,6 +117,7 @@ func update_role(role: Guild.Role, data: Dictionary) -> void:
 	role._update(parse_role_payload(data))
 
 func parse_guild_payload(data: Dictionary) -> Dictionary:
+	var manager: BaseDiscordEntityManager = get_manager()
 	var guild_id = data["id"] as int
 	
 	var parsed_data: Dictionary = {
@@ -162,7 +163,7 @@ func parse_guild_payload(data: Dictionary) -> Dictionary:
 			roles[role.id] = role
 		parsed_data["roles"] = roles
 	
-	if data.has("members"):
+	if manager.cache_flags.GUILD_MEMBERS and data.has("members"):
 		var members: Dictionary = {}
 		for member_data in data.get("members", []):
 			member_data["guild_id"] = guild_id

@@ -81,7 +81,7 @@ func login() -> void:
 		push_error("Not inside a scene tree !")
 		emit_signal("connection_error", ERR_UNCONFIGURED)
 		return
-	_prepare_adapters()
+	_setup()
 	gateway_websocket.connect_to_gateway()
 
 func logout() -> void:
@@ -156,8 +156,12 @@ func _create_voice_websocket() -> VoiceWebSocketAdapter:
 	return adapter
 
 
-func _prepare_adapters() -> void:
+func _setup() -> void:
 	entity_manager = DiscordEntityManager.new()
+	var intents_map: Dictionary = GatewayIntents.get_script_constant_map()
+	var intents: BitFlag = BitFlag.new(intents_map).put(get_intents())
+	entity_manager.cache_flags_from_intents(intents)
+
 	rest = DiscordRESTAdapter.new(_connection_state.token, entity_manager)
 	gateway_websocket = _create_gateway_websocket(entity_manager)
 	voice_websocket = _create_voice_websocket()

@@ -1,5 +1,11 @@
 class_name BaseDiscordEntityManager
 
+enum CacheFlags {
+	GUILD_MEMBERS = 1 << 2,
+	MESSAGES      = 1 << 3,
+	PRESENCES     = 1 << 4
+}
+
 var container: Dictionary = DiscordEntity.DEFAULT_CONTAINER.duplicate()
 
 var channel_manager: BaseChannelManager
@@ -9,6 +15,14 @@ var message_manager: BaseMessageManager
 var user_manager: BaseUserManager
 
 var rest_mediator: DiscordRESTMediator
+var cache_flags: BitFlag = BitFlag.new(CacheFlags)
+
+var max_messages: int = 1000
+
+func cache_flags_from_intents(intents: BitFlag) -> void:
+		cache_flags.GUILD_MEMBERS = intents.GUILD_MEMBERS
+		cache_flags.MESSAGES = intents.GUILD_MESSAGES or intents.DIRECT_MESSAGES 
+		cache_flags.PRESENCES = intents.GUILD_PRESENCES 
 
 func get_or_construct_channel(data: Dictionary) -> Channel:
 	var id: int = data["id"] as int
@@ -18,7 +32,7 @@ func get_or_construct_channel(data: Dictionary) -> Channel:
 		self.channel_manager.update_channel(channel, data)
 	
 	else:
-		channel = self.channel_manager.construct_channel(data)	
+		channel = self.channel_manager.construct_channel(data)
 		self.put_channel(channel)
 	
 	return channel
@@ -63,7 +77,8 @@ func get_or_construct_message(data: Dictionary) -> Message:
 	
 	else:
 		message = self.message_manager.construct_message(data)
-		self.put_message(message)
+		if cache_flags.MESSAGES:
+			put_message(message)
 	
 	return message
 
@@ -89,7 +104,8 @@ func get_or_construct_presence(data: Dictionary) -> Presence:
 	
 	else:
 		presence = self.user_manager.construct_presence(data)
-		self.put_pesence(presence)
+		if cache_flags.PRESENCES:
+			put_pesence(presence)
 	
 	return presence
 
@@ -156,6 +172,11 @@ func put_pesence(presence: Presence) -> void:
 
 func put_message(message: Message) -> void:
 	if message:
+		var messages: Dictionary = container.messages
+		var total_messages: int = messages.size()
+		if total_messages * max_messages != 0 and total_messages == max_messages:
+			var oldest_id: int = messages.keys()[0]
+			remove_message(oldest_id)
 		self.container.messages[message.id] = message
 
 func remove_user(id: int) -> void:

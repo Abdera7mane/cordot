@@ -30,6 +30,9 @@ func get_packets() -> Dictionary:
 	return PACKETS
 
 func _on_ready(fields: Dictionary) -> void:
+	ready = false
+	unavailable_guilds.clear()
+
 	var user: User = _entity_manager.get_or_construct_user(fields["user"])
 	_entity_manager.container.bot_id = user.id
 	_connection_state.session_id = fields["session_id"]

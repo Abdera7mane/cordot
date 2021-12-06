@@ -1,5 +1,8 @@
 class_name DiscordWebSocketAdapter extends BaseWebSocketAdapter
 
+
+signal invalid_session(may_resume)
+
 const ENCODING: String = "json"
 
 var _connection_state: ConnectionState setget __set
@@ -12,7 +15,7 @@ func _init(connection_state: ConnectionState) -> void:
 	# warning-ignore:return_value_discarded
 	connect("packet_received", self, "_on_packet")
 
-func get_url():
+func get_url() -> String:
 	return Discord.GATEWAY_URL % [Discord.GATEWAY_VERSION, ENCODING]
 
 func _on_packet(packet: DiscordPacket) -> void:
@@ -26,18 +29,11 @@ func _on_packet(packet: DiscordPacket) -> void:
 		GatewayOpcodes.Gateway.RECONNECT:
 			disconnect_from_gateway(4000, "reconnecting")
 		GatewayOpcodes.Gateway.INVALID_SESSION:
-			last_sequence = 0
-			_connection_state.session_id = ""
-			auto_reconnect = false
-			reconnecting = true
-			_skip_disconnect = true
-			disconnect_from_gateway()
-			yield(self, "disconnected")
-			yield(get_tree().create_timer(rand_range(1.0, 5.0)), "timeout")
-			emit_signal("reconnecting")
-			connect_to_gateway()
-			auto_reconnect = true
-			_skip_disconnect = false
+			var may_resume: bool = bool(packet.get_data())
+			if not may_resume:
+				last_sequence = 0
+				_connection_state.session_id = ""
+			emit_signal("invalid_session", may_resume)
 		GatewayOpcodes.Gateway.HELLO:
 			var pkt: Packet
 			
@@ -55,6 +51,23 @@ func _on_packet(packet: DiscordPacket) -> void:
 			latency = OS.get_ticks_msec() - last_beat
 		_:
 			push_warning("Unhandled Opcode: %d" % opcode)
+
+func _on_close_request(code: int, _reason: String) -> void:
+	match code:
+		CloseEventCode.AUTHENTICATION_FAILED:
+			auto_reconnect = false
+			push_error("Invalid bot token provided")
+		CloseEventCode.RATE_LIMITED:
+			push_error("Discord Gateway rate limited")
+		CloseEventCode.INVALID_API_VERSION:
+			auto_reconnect = false
+			push_error("Connnected to an invalid Discord gateway API version")
+		CloseEventCode.INVALID_INTENTS:
+			auto_reconnect = false
+			push_error("Invalid gateway intents provided")
+		CloseEventCode.DISALLOWED_INTENTS:
+			auto_reconnect = false
+			push_error("Disallowed gateway intents provided")
 
 func get_class() -> String:
 	return "DiscordWebsocketAdapter"

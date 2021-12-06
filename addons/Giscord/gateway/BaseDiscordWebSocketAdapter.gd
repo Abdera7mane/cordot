@@ -42,7 +42,6 @@ var _websocket_client: WebSocketClient setget __set
 var _heartbeat_timer: Timer            setget __set
 var _packet_handlers: Array            setget __set
 var _start: int                        setget __set
-var _skip_disconnect: bool             setget __set
 
 var timeout_ms: int = 30_000           setget __set
 var last_sequence: int = 0             setget __set
@@ -61,6 +60,7 @@ func setup():
 	_websocket_client.connect("connection_closed", self, "_connection_closed")
 	_websocket_client.connect("connection_error", self, "_connection_error")
 	_websocket_client.connect("data_received", self, "_on_data")
+	_websocket_client.connect("server_close_request", self, "_on_close_request")
 	
 	_heartbeat_timer = Timer.new()
 	_heartbeat_timer.name = "HeartBeatTimer"
@@ -158,7 +158,6 @@ func _connection_established(_protocol: String) -> void:
 		emit_signal("connected")
 
 func _connection_error() -> void:
-	print("connection error")
 	emit_signal("connection_error")
 
 func _connection_closed(_was_clean_close: bool) -> void:
@@ -166,9 +165,12 @@ func _connection_closed(_was_clean_close: bool) -> void:
 	if auto_reconnect:
 		reconnecting = true
 		call_deferred("connect_to_gateway")
-	elif not _skip_disconnect:
+	else:
 		_start = 0
 		emit_signal("disconnected")
+
+func _on_close_request(_code: int, _reason: String) -> void:
+	pass
 
 func _on_heartbeat_timer_timeout() -> void:
 	_beat()

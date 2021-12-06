@@ -24,6 +24,16 @@ func cache_flags_from_intents(intents: BitFlag) -> void:
 		cache_flags.MESSAGES = intents.GUILD_MESSAGES or intents.DIRECT_MESSAGES 
 		cache_flags.PRESENCES = intents.GUILD_PRESENCES 
 
+func reset() -> void:
+	container.applications.clear()
+	container.channels.clear()
+	container.guilds.clear()
+	container.messages.clear()
+	container.presences.clear()
+	container.users.clear()
+	container.teams.clear()
+	container.bot_id = 0
+
 func get_or_construct_channel(data: Dictionary) -> Channel:
 	var id: int = data["id"] as int
 	var channel: Channel = self.get_channel(id)

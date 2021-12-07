@@ -133,9 +133,10 @@ func _create_gateway_websocket(_entity_manager: BaseDiscordEntityManager) -> Dis
 	adapter.connect("connected", self, "_on_connected")
 	adapter.connect("reconnected", self, "_on_reconnected")
 	adapter.connect("connection_error", self, "_on_connection_error")
+	adapter.connect("invalid_session", self, "_on_invalid_session")
 	adapter.connect("disconnected", self, "_on_disconnected")
 	adapter.connect("packet_received", self, "_on_packet")
-	
+
 	var handlers: Array = [
 		ChannelPacketsHandler.new(_entity_manager),
 		GuildPacketsHandler.new(_entity_manager),
@@ -178,10 +179,15 @@ func _on_connected() -> void:
 func _on_connection_error() -> void:
 	emit_signal("connection_error", ERR_WEBSOCKET)
 
+func _on_invalid_session(may_resume) -> void:
+	if not may_resume:
+		entity_manager.reset()
+
 func _on_reconnected() -> void:
 	emit_signal("reconnected")
 
 func _on_disconnected() -> void:
+	entity_manager.reset()
 	emit_signal("disconnected")
 
 func _on_packet(packet: DiscordPacket) -> void:

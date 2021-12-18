@@ -13,3 +13,6 @@ icon.png
 data_*/
 
 addons/godot-git-plugin/
+
+# VSCode-specific ignores
+.vscode/

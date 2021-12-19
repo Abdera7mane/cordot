@@ -47,3 +47,6 @@ class Mediator extends DiscordRESTMediator:
 				return rest.user.callv(request, arguments)
 			DiscordREST.WEBHOOK:
 				return rest.webhook.callv(request, arguments)
+
+	func cdn_download_async(url: String) -> Resource:
+		return get_rest().requester.cdn_download_async(url)

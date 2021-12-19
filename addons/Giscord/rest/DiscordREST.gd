@@ -7,6 +7,14 @@ enum {
 	WEBHOOK
 }
 
+const CDN_FILE_FORMATS: PoolStringArray = PoolStringArray([
+	"jpg", "jpeg",
+	"png",
+	"webp",
+	"gif",
+	"json"
+])
+
 const ENDPOINTS: Dictionary = {
 	INVITE = "/invites/{invite_code}",
 	STICKER = "/stickers/{sticker_id}",
@@ -95,5 +103,22 @@ const ENDPOINTS: Dictionary = {
 	WEBHOOK_WITH_TOKEN = "/webhooks/{webhook_id}/{webhook_token}",
 	WEBHOOK_MESSAGE = "/webhooks/{webhook_id}/{webhook_token}/messages/{message_id}",
 	WEBHOOK_SLACK = "/webhooks/{webhook_id}/{webhook_token}/slack",
-	WEBHOOK_GITHUB = "/webhooks/{webhook_id}/{webhook_token}/github"
+	WEBHOOK_GITHUB = "/webhooks/{webhook_id}/{webhook_token}/github",
+	
+	# CDN endpoints
+	CUSTOM_EMOJI = "/emojis/{emoji_id}",
+	GUILD_ICON = "/icons/{guild_id}/{hash}",
+	GUILD_SPLASH = "/splashes/{guild_id}/{hash}",
+	GUILD_DISCOVERY_SPLASH = "/discovery-splashes/{guild_id}/{hash}",
+	BANNER = "/banners/{entity_id}/{hash}",
+	DEFAULT_USER_AVATAR = "/embed/avatars/{discriminator}",
+	USER_AVATAR = "/avatars/{user_id}/{hash}",
+	GUILD_MEMBER_AVATAR = "/guilds/{guild_id}/users/{user_id}/avatars/{hash}",
+	APPLICATION_ICON = "/app-icons/{application_id}/{hash}",
+	APPLICATION_ASSET = "/app-assets/{application_id}/{asset_id}",
+	ACHIEVEMENT_ID = "/app-assets/{application_id}/achievements/{achievement_id}/icons/{hash}",
+	STICKER_PACK_BANNER = "/app-assets/710982414301790216/store/{asset_id}",
+	TEAM_ICON = "/team-icons/{team_id}/{hash}",
+	STICKER_RESOURCE = "/stickers/{sticker_id}",
+	ROLE_ICON = "/role-icons/{role_id}/{hash}"
 }

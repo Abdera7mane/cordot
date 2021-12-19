@@ -4,3 +4,6 @@ class_name DiscordRESTMediator
 
 func request_async(type: int, request: String, arguments: Array):
 	return null
+
+func cdn_download_async(url: String) -> Resource:
+	return null

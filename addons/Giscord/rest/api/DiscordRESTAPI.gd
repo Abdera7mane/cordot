@@ -19,10 +19,8 @@ func _init(_token: String, _requester: DiscordRESTRequester, _entity_manager: Ba
 		}),
 	]
 
-func rest_request(endpoint) -> RestRequest:
-#	HTTPHeaders.CONTENT_TYPE.format({type = "application/json"})
+func rest_request(endpoint: String) -> RestRequest:
 	return RestRequest.new().url(rest_url(endpoint)).headers(rest_headers)
-		
 
 func __set(_value) -> void:
 	pass

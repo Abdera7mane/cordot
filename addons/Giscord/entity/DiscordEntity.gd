@@ -20,6 +20,7 @@ func _init(_id: int) -> void:
 func clone() -> DiscordEntity:
 	var clone: DiscordEntity = self.get_script().callv("new", self._clone_data())
 	clone.set_meta("container", get_container())
+	clone.set_meta("partial", get_meta("partial"))
 	return clone
 
 func is_partial() -> bool:

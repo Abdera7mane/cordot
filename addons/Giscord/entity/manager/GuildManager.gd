@@ -107,6 +107,9 @@ func construct_guild_scheduled_event(data: Dictionary) -> Guild.GuildScheduledEv
 func construct_guild_event_metadata(data: Dictionary) -> Guild.ScheduledEventMetadata:
 	return Guild.ScheduledEventMetadata.new(data.get("location", ""))
 
+func construct_voice_state(data: Dictionary) -> Guild.VoiceState:
+	return Guild.VoiceState.new(parse_voice_state_payload(data))
+
 func update_guild(guild: Guild, data: Dictionary) -> void:
 	guild._update(parse_guild_payload(data))
 
@@ -116,9 +119,13 @@ func update_guild_member(member: Guild.Member, data: Dictionary) -> void:
 func update_role(role: Guild.Role, data: Dictionary) -> void:
 	role._update(parse_role_payload(data))
 
+func update_voice_state(state: Guild.VoiceState, data: Dictionary) -> void:
+	state._update(parse_voice_state_payload(data))
+
 func parse_guild_payload(data: Dictionary) -> Dictionary:
 	var manager: BaseDiscordEntityManager = get_manager()
 	var guild_id = data["id"] as int
+	var guild: Guild = manager.container.guilds.get(guild_id)
 	
 	var parsed_data: Dictionary = {
 		id = guild_id,
@@ -191,6 +198,14 @@ func parse_guild_payload(data: Dictionary) -> Dictionary:
 	for presence_data in data.get("presences", []):
 		var _presence: Presence = self.get_manager().get_or_construct_presence(presence_data)
 	
+	if data.has("voice_states"):
+		var voice_states: Dictionary = guild.voice_states if guild else {}
+		for state_data in data["voice_states"]:
+			state_data["guild_id"] = guild_id
+			var state: Guild.VoiceState = construct_voice_state(state_data)
+			voice_states[state.id] = state
+		parsed_data["voice_states"] = voice_states
+	
 	if data.has("large"):
 		parsed_data["is_large"] = data["large"]
 	if data.has("unavailable"):
@@ -202,17 +217,26 @@ func parse_guild_payload(data: Dictionary) -> Dictionary:
 
 func parse_guild_member_payload(data: Dictionary) -> Dictionary:
 	var user: User = get_manager().get_or_construct_user(data["user"])
+	var guild_id = data["guild_id"]
+	var guild: Guild = get_manager().container.guilds.get(guild_id)
+	
 	var parsed_data: Dictionary = {
 		id = user.id,
-		guild_id = data["guild_id"],
-		nickname = Dictionaries.get_non_null(data, "nick", ""),
-		avatar_hash = Dictionaries.get_non_null(data, "avatar", ""),
+		guild_id = guild_id,
 		roles_ids = Snowflake.snowflakes2integers(data["roles"]),
 		join_date = Time.iso_to_unix(data["joined_at"]),
-		premium_since = Time.iso_to_unix(Dictionaries.get_non_null(data, "premium_since", "")),
-		deaf = data["deaf"],
-		mute = data["mute"],
+		is_deafened = data["deaf"],
+		is_muted = data["mute"]
 	}
+	
+	if Dictionaries.has_non_null(data, "nick"):
+		parsed_data["nickname"] = data["nick"]
+	
+	if Dictionaries.has_non_null(data, "avatar"):
+		parsed_data["avatar_hash"] = data["avatar"]
+	
+	if Dictionaries.has_non_null(data, "premium_since"):
+		parsed_data["premium_since"] = Time.iso_to_unix(data["premium_since"])
 	
 	if data.has("pending"):
 		parsed_data["pending"] = data["pending"]
@@ -236,6 +260,33 @@ func parse_role_payload(data: Dictionary) -> Dictionary:
 			premium_subscriber = data.has("premium_subscriber")
 		})
 	}
+
+func parse_voice_state_payload(data: Dictionary) -> Dictionary:
+	var guild_id: int = data["guild_id"] as int
+	var user_id: int = data["user_id"] as int
+	var member: Guild.Member = null
+	if data.has("member"):
+		var member_data: Dictionary = data["member"]
+		member_data["id"] = data["user_id"]
+		member = _get_guild_member_uncached(guild_id, data["member"])
+	
+	var parsed_data: Dictionary = {
+		user_id = user_id,
+		guild_id = guild_id,
+		channel_id = Dictionaries.get_non_null(data, "channel_id", 0) as int,
+		member = member,
+		session_id = data["session_id"],
+		deaf = data["deaf"],
+		mute = data["mute"],
+		self_deaf = data["self_deaf"],
+		self_mute = data["self_mute"],
+		self_stream = data.get("self_stream", false),
+		self_video = data.get("self_video"),
+		suppress = data["suppress"],
+		request_to_speak = Time.iso_to_unix(Dictionaries.get_non_null(data, "request_to_speak_timestamp", ""))
+	}
+	
+	return parsed_data
 
 func _get_guild_uncached(guild_data: Dictionary) -> Guild:
 	var guild_id: int = guild_data["id"] as int

@@ -101,7 +101,7 @@ var rules_channel: GuildTextChannel          setget __set, get_rules_channel
 var is_large: bool                           setget __set
 var unavailable: bool                        setget __set
 var member_count: int                        setget __set
-var voice_states: Array                      setget __set
+var voice_states: Dictionary                 setget __set
 var members: Array                           setget __set, get_members
 var channels_ids: Array                      setget __set
 var channels: Array                          setget __set, get_channels
@@ -195,8 +195,26 @@ func get_emojis() -> Array:
 func get_emoji(id: int) -> GuildEmoji:
 	return self._emojis.get(id)
 
+func get_icon_url(format: String = "png", size: int = 128) -> String:
+	if not has_icon():
+		return ""
+	return Discord.CDN_URL + DiscordREST.ENDPOINTS.GUILD_ICON.format({
+		"guild_id": self.id,
+		"hash": icon_hash + "." + format + "?size=" + str(size)
+	})
+
+func get_icon(format: String = "png", size: int = 128) -> Texture:
+	if not has_icon():
+		return Awaiter.submit()
+	return yield(get_rest().cdn_download_async(
+		get_icon_url(format, size))
+	, "completed") as Texture
+
 func has_member(id: int) -> bool:
 	return self.members.has(id)
+
+func has_icon() -> bool:
+	return not icon_hash.empty()
 
 func get_class() -> String:
 	return "Guild"
@@ -237,6 +255,7 @@ func _update(data: Dictionary) -> void:
 	premium_subscription_count = data.get("premium_subscription_count", premium_subscription_count)
 	max_presences = data.get("max_presences", max_presences)
 	max_video_channel_users = data.get("max_video_channel_users", max_video_channel_users)
+	voice_states = data.get("voice_states", voice_states)
 	
 	_members = data.get("members", _members)
 	_roles = data.get("roles", _roles)
@@ -276,7 +295,7 @@ func _clone_data() -> Array:
 		is_large = self.is_large,
 		unavailable = self.unavailable,
 		member_count = self.member_count,
-		voice_states = self.voice_states,
+		voice_states = self.voice_states.duplicate(),
 		max_presences = self.max_presences,
 		max_members = self.max_members,
 		vanity_url_code = self.vanity_url_code,
@@ -308,7 +327,7 @@ class Member extends MentionableEntity:
 	var presence: Presence  setget __set, get_presence
 	var join_date: int      setget __set
 	var premium_since: int  setget __set
-	var is_deaf: bool       setget __set
+	var is_deafened: bool   setget __set
 	var is_muted: bool      setget __set
 	var pending: bool       setget __set
 	
@@ -338,8 +357,6 @@ class Member extends MentionableEntity:
 			var role: Role = self.guild.get_role(role_id)
 			if role:
 				_roles.append(role)
-			else:
-				printerr("what the fuck ?")
 		return _roles
 	
 	func get_user() -> User:
@@ -347,6 +364,21 @@ class Member extends MentionableEntity:
 	
 	func get_presence() -> Presence:
 		return self.get_container().presences.get(self.id)
+	
+	func get_partial_voice_state() -> VoiceState:
+		var state: VoiceState = VoiceState.new({
+			user_id = self.id,
+			guild_id = guild_id,
+			is_deafened = is_deafened,
+			is_muted = is_muted
+		})
+		state.set_meta("partial", true)
+		return state
+	
+	func get_voice_state() -> VoiceState:
+		if self.guild.voice_states.has(self.id):
+			return guild.voice_states[self.id]
+		return get_partial_voice_state()
 	
 	func has_permission(permission: int) -> bool:
 		for role in self.roles:
@@ -372,7 +404,7 @@ class Member extends MentionableEntity:
 			role_ids = self.roles_ids.duplicate(),
 			join_date = self.join_date,
 			premium_since = self.premium_since,
-			is_deaf = self.is_deaf,
+			is_deafened = self.is_deafened,
 			is_muted = self.is_muted,
 			pending = self.pending
 		}]
@@ -382,7 +414,7 @@ class Member extends MentionableEntity:
 		avatar_hash = data.get("nickname", avatar_hash)
 		roles_ids = data.get("roles_ids", roles_ids)
 		premium_since = data.get("premium_since", premium_since)
-		is_deaf = data.get("is_deaf", is_deaf)
+		is_deafened = data.get("is_deafened", is_deafened)
 		is_muted = data.get("is_muted", is_muted)
 		pending = data.get("pending", pending)
 	
@@ -782,7 +814,7 @@ class Role extends MentionableEntity:
 			premium_subscriber = data["premium_subscriber"]
 		
 		func duplicate() -> Tags:
-			return self.get_script().call("new", {
+			return self.get_script().new({
 				bot_id = self.bot_id,
 				integration_id = self.integration_id,
 				premium_subscriber = self.premium_subscriber
@@ -849,6 +881,74 @@ class GuildEmoji extends Emoji:
 			is_managed = self.is_managed,
 			is_animated = self.is_animated,
 			available = self.available,
+		}]
+	
+	func __set(_value) -> void:
+		pass
+
+class VoiceState extends DiscordEntity:
+	var guild_id: int              setget __set
+	var guild: Guild               setget __set, get_guild
+	var channel_id: int            setget __set
+	var channel: GuildVoiceChannel setget __set, get_channel
+	var user: User                 setget __set, get_user
+	var member: Member             setget __set, get_member
+	var session_id: String         setget __set
+	var is_deafened: bool          setget __set
+	var is_muted: bool             setget __set
+	var self_deaf: bool            setget __set
+	var self_mute: bool            setget __set
+	var self_stream: bool          setget __set
+	var self_video: bool           setget __set
+	var suppress: bool             setget __set
+	var request_to_speak: int      setget __set
+
+	func _init(data: Dictionary).(data["user_id"]) -> void:
+		guild_id = data["guild_id"]
+		channel_id = data.get("channel_id", 0)
+		member = data.get("member")
+		_update(data)
+
+	func get_guild() -> Guild:
+		return get_container().guilds.get(guild_id)
+
+	func get_channel() -> GuildVoiceChannel:
+		return self.guild.get_channel(channel_id) as GuildVoiceChannel
+	
+	func get_user() -> User:
+		return get_container().users.get(self.id)
+
+	func get_class() -> String:
+		return "Guild.VoiceState"
+
+	func get_member() -> Member:
+		return member if member else self.guild.get_member(self.id) 
+
+	func _update(data: Dictionary) -> void:
+		session_id = data.get("session_id", session_id)
+		is_deafened = data.get("deaf", is_deafened)
+		is_muted = data.get("mute", is_muted)
+		self_deaf = data.get("self_deaf", self_deaf)
+		self_mute = data.get("self_mute", self_mute)
+		self_stream = data.get("self_stream", self_stream)
+		self_video = data.get("self_video", self_video)
+		suppress = data.get("suppress", suppress)
+		request_to_speak = data.get("request_to_speak", request_to_speak)
+	
+	func _clone_data() -> Array:
+		return [{
+			user_id = self.id,
+			guild_id = self.guild_id,
+			member = member,
+			session_id = self.session_id,
+			is_deafened = self.is_deafened,
+			is_muted = self.is_muted,
+			self_deaf = self.self_deaf,
+			self_mute = self.self_mute,
+			self_stream = self.self_stream,
+			self_video = self.self_video,
+			suppress = self.suppress,
+			request_to_speak = self.request_to_speak
 		}]
 	
 	func __set(_value) -> void:

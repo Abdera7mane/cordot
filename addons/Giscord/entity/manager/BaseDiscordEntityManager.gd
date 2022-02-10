@@ -119,6 +119,21 @@ func get_or_construct_presence(data: Dictionary) -> Presence:
 	
 	return presence
 
+func get_or_construct_voice_state(data: Dictionary) -> Guild.VoiceState:
+	var id: int = data["user_id"] as int
+	var guild: Guild = get_guild(data["guild_id"] as int)
+	var state: Guild.VoiceState
+	if guild:
+		state = guild.voice_states.get(id)
+	
+	if state:
+		guild_manager.update_voice_state(state, data)
+	
+	else:
+		state = guild_manager.construct_voice_state(data)
+	
+	return state
+
 func get_self() -> User:
 	return get_user(self.container.bot_id)
 

@@ -7,7 +7,7 @@ const PACKETS: Dictionary = {
 	"CHANNEL_PINS_UPDATE": "_on_channel_pins_update",
 	"STAGE_INSTANCE_CREATE": "_on_stage_instance_create",
 	"STAGE_INSTANCE_UPDATE": "_on_stage_instance_update",
-	"STAGE_INSTANCE_DELETE": "on_stage_instance_delete"
+	"STAGE_INSTANCE_DELETE": "_on_stage_instance_delete"
 }
 
 var _entity_manager: BaseDiscordEntityManager
@@ -40,8 +40,23 @@ func _on_channel_delete(fields: Dictionary) -> void:
 		_entity_manager.remove_channel(channel.id)
 		self.emit_signal("transmit_event", "channel_deleted", [channel])
 
-# warning-ignore:unused_argument
 func _on_channel_pins_update(fields: Dictionary) -> void:
+	var channel: TextChannel = _entity_manager.get_channel(fields["channel_id"] as int)
+	var last_pin: int = Time.iso_to_unix(Dictionaries.get_non_null(fields, "last_pin_timestamp", ""))
+
+	if channel:
+		emit_signal("transmit_event", "channel_pins_updated", [channel, last_pin])
+
+# warning-ignore:unused_argument
+func _on_stage_instance_create(fields: Dictionary) -> void:
+	pass
+
+# warning-ignore:unused_argument
+func _on_stage_instance_update(fields: Dictionary) -> void:
+	pass
+
+# warning-ignore:unused_argument
+func _on_stage_instance_delete(fields: Dictionary) -> void:
 	pass
 
 func get_class() -> String:

@@ -20,7 +20,7 @@ func get_packets() -> Dictionary:
 
 func _on_channel_create(fields: Dictionary) -> void:
 	var channel: Channel = _entity_manager.get_or_construct_channel(fields)
-	if channel.has_method("get_guild"):
+	if channel.is_guild():
 		channel.guild._add_channel(channel.id)
 		self.emit_signal("transmit_event", "channel_created", [channel])
 
@@ -35,7 +35,7 @@ func _on_channel_update(fields: Dictionary) -> void:
 func _on_channel_delete(fields: Dictionary) -> void:
 	var channel: Channel = _entity_manager.get_or_construct_channel(fields)
 	if channel:
-		if channel.has_method("get_guild"):
+		if channel.is_guild():
 			channel.guild._remove_channel(channel.id)
 		_entity_manager.remove_channel(channel.id)
 		self.emit_signal("transmit_event", "channel_deleted", [channel])
@@ -43,8 +43,9 @@ func _on_channel_delete(fields: Dictionary) -> void:
 func _on_channel_pins_update(fields: Dictionary) -> void:
 	var channel: TextChannel = _entity_manager.get_channel(fields["channel_id"] as int)
 	var last_pin: int = Time.iso_to_unix(Dictionaries.get_non_null(fields, "last_pin_timestamp", ""))
-
+	
 	if channel:
+		channel._update({last_pin_timestamp = last_pin})
 		emit_signal("transmit_event", "channel_pins_updated", [channel, last_pin])
 
 # warning-ignore:unused_argument

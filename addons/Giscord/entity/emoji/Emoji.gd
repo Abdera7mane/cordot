@@ -5,6 +5,9 @@ var name: String setget __set
 func _init(data: Dictionary).(data["id"]):
 	name = data["name"]
 
+func equals(entity: DiscordEntity) -> bool:
+	return .equals(entity) and name == entity.name
+
 func get_mention() -> String:
 	return self.name
 

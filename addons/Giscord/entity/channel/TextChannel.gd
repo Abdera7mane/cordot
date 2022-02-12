@@ -1,10 +1,12 @@
 class_name TextChannel extends Channel
 
 var last_message_id: int      setget __set
-var last_message: BaseMessage setget __set
+var last_message: BaseMessage setget __set, get_last_message
+var last_pin_timestamp: int   setget __set
 
 func _init(data: Dictionary).(data["id"]) -> void:
-	last_message_id = data["last_message_id"]
+	last_message_id = data.get("last_message_id", 0)
+	last_pin_timestamp = data.get("last_pin_timestamp", 0)
 
 func send_message(content: String, tts: bool = false, embeds: Array = []) -> BaseMessage:
 	var params: Dictionary = {
@@ -31,15 +33,20 @@ func edit_message(message_id: int, content: String, embeds: Array = []):
 		[self.id, message_id, params]
 	)
 
+func get_last_message() -> BaseMessage:
+	return get_container().messages.get(last_message_id)
+
 func get_class() -> String:
 	return "TextChannel"
 
 func _update(data: Dictionary) -> void:
+	last_pin_timestamp = data.get("last_pin_timestamp", last_pin_timestamp)
 	last_message_id = data.get("last_message_id", last_message_id)
 
 func _clone_data() -> Array:
 	return [{
 		id = self.id,
+		last_pin_timestamp = self.last_pin_timestamp,
 		last_message_id = self.last_message_id
 	}]
 

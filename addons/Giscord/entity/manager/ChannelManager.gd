@@ -110,6 +110,14 @@ func construct_permission_overwrite(data: Dictionary) -> PermissionOverwrite:
 		deny = data["deny"] as int
 	})
 
+func parse_text_channel_payload(data: Dictionary) -> Dictionary:
+	var parsed_data: Dictionary = {}
+	if Dictionaries.has_non_null(data, "last_pin_timestamp"):
+		parsed_data["last_pin_timestamp"] = Time.iso_to_unix(data["last_pin_timestamp"])
+	if Dictionaries.has_non_null(data, "last_message_id"):
+		parsed_data["last_message_id"] = data["last_message_id"] as int
+	return parsed_data
+
 func parse_guild_channel_payload(data: Dictionary) -> Dictionary:
 	var overwrites: Array = []
 	for overwrite in data.get("permission_overwrites", []):
@@ -127,13 +135,14 @@ func parse_guild_channel_payload(data: Dictionary) -> Dictionary:
 func parse_guild_text_channel_payload(data: Dictionary) -> Dictionary:
 	return Dictionaries.merge(
 		parse_guild_channel_payload(data),
+		Dictionaries.merge(
+		parse_text_channel_payload(data),
 		{
 			topic = Dictionaries.get_non_null(data, "topic", ""),
 			rate_limit_per_user = data["rate_limit_per_user"],
 #			nsfw = data["nsfw"],  V9
-			last_message_id = Dictionaries.get_non_null(data, "last_message_id", 0) as int,
 #			default_auto_archive_duration = data["default_auto_archive_duration"] V9
-		}
+		})
 	)
 
 func parse_guild_voice_channel_payload(data: Dictionary) -> Dictionary:
@@ -155,11 +164,13 @@ func parse_dm_channel_payload(data: Dictionary) -> Dictionary:
 		var user: User = self.get_manager().get_or_construct_user(recipient_data)
 		users_ids.append(user.id)
 	
-	return {
-		id = data["id"] as int,
-		users_ids = users_ids,
-		last_message_id = Dictionaries.get_non_null(data, "last_message_id", 0) as int,
-	}
+	return Dictionaries.merge(
+		parse_text_channel_payload(data),
+		{
+			id = data["id"] as int,
+			users_ids = users_ids
+		}
+	)
 
 func parse_group_dm_channel_payload(data: Dictionary) -> Dictionary:
 	return Dictionaries.merge(
@@ -174,7 +185,7 @@ func parse_group_dm_channel_payload(data: Dictionary) -> Dictionary:
 func parse_thread_channel_payload(data: Dictionary) -> Dictionary:
 	var metadata: Dictionary = data["thread_metadata"]
 	return Dictionaries.merge(
-		parse_dm_channel_payload(data),
+		parse_text_channel_payload(data),
 		{
 			id = data["id"] as int,
 			guild_id = data["guild_id"] as int,
@@ -182,7 +193,6 @@ func parse_thread_channel_payload(data: Dictionary) -> Dictionary:
 			owner_id = data["owner_id"] as int,
 			name = data["name"],
 			type = data["type"],
-			last_message_id = Dictionaries.get_non_null(data, "last_message_id", 0) as int,
 			message_count = data["message_count"],
 			member_count = data["member_count"],
 			rate_limit_per_user = data["rate_limit_per_user"],

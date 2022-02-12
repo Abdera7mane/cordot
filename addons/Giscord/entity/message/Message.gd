@@ -16,9 +16,9 @@ enum Type {
 	CHANNEL_FOLLOW_ADD,
 	GUILD_DISCOVERY_DISQUALIFIED                 = 14,
 	GUILD_DISCOVERY_REQUALIFIED                  = 15,
-	GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING = 15,
-	GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING   = 15,
-	THREAD_CREATED                               = 15,
+	GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING = 16,
+	GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING   = 17,
+	THREAD_CREATED                               = 18,
 	REPLY                                        = 19,
 	APPLICATION_COMMAND                          = 20,
 	THREAD_STARTER_MESSAGE                       = 21,
@@ -144,7 +144,19 @@ func _update(data: Dictionary) -> void:
 	flags.flags = data.get("flags", flags.flags)
 
 func _add_reaction(reaction: MessageReaction):
+	for i in range(reactions.size()):
+		var _reaction: MessageReaction = reactions[i]
+		if _reaction.equals(reaction):
+			reactions[i] = reaction
+			return
 	reactions.append(reaction)
+
+func _remove_reaction(reaction: MessageReaction):
+	for i in range(reactions.size()):
+		var _reaction: MessageReaction = reactions[i]
+		if _reaction.equals(reaction):
+			reactions.remove(i)
+			return
 
 func __set(_value):
 	pass

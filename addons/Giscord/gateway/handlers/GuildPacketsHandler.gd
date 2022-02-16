@@ -108,7 +108,6 @@ func _on_guild_member_remove(fields: Dictionary) -> void:
 			emit_signal("transmit_event", "member_left", [guild, member])
 
 func _on_guild_member_update(fields: Dictionary) -> void:
-	print("member update")
 	var guild_id: int = fields["guild_id"] as int
 	fields["guild_id"] = guild_id
 	var member_id: int = fields["user"]["id"] as int
@@ -155,7 +154,7 @@ func _on_guild_role_delete(fields: Dictionary) -> void:
 	var guild_id: int = fields["guild_id"] as int
 	var guild: Guild = _entity_manager.get_guild(guild_id)
 	var role_id: int = fields["role_id"] as int
-
+	
 	if guild:
 		var role: Guild.Role = guild.get_role(role_id)
 		if guild._roles.erase(role_id):

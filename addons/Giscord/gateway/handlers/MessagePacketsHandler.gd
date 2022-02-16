@@ -70,28 +70,82 @@ func _on_message_bulk_delete(fields: Dictionary) -> void:
 	if messages.size() > 0:
 		emit_signal("transmit_event", "message_bulk_deleted", [messages, channel])
 
-# warning-ignore:unused_argument
 func _on_reaction_add(fields: Dictionary) -> void:
-	return
+	var user_id: int = fields["user_id"] as int
+	var user: User = _entity_manager.get_user(user_id)
+	var is_self: int = user_id == _entity_manager.container.bot_id
+	
+	if fields.has("guild_id"):
+		fields["emoji"]["guild_id"] = fields["guild_id"] as int
+	var emoji: Emoji = _entity_manager.get_or_construct_emoji(fields["emoji"])
+	emoji.set_meta("partial", true)
+	
+	var message: Message = _entity_manager.get_message(fields["message_id"] as int)
+	var reaction: MessageReaction
+	if message and user:
+		for _reaction in message.reactions:
+			if _reaction.emoji.equals(emoji):
+				_reaction._update({count = _reaction.count + 1})
+				if is_self:
+					_reaction._update({reacted = true})
+				reaction = _reaction
+				break
+		if not reaction:
+			reaction = MessageReaction.new(1, is_self, emoji)
+			message.reactions.append(reaction)
+		emit_signal("transmit_event", "reaction_added", [message, user, reaction])
 
-# warning-ignore:unused_argument
 func _on_reaction_remove(fields: Dictionary) -> void:
-	pass
+	var user_id: int = fields["user_id"] as int
+	var user: User = _entity_manager.get_user(user_id)
+	var is_self: int = user_id == _entity_manager.container.bot_id
+	
+	if fields.has("guild_id"):
+		fields["emoji"]["guild_id"] = fields["guild_id"] as int
+	var emoji: Emoji = _entity_manager.get_or_construct_emoji(fields["emoji"])
+	emoji.set_meta("partial", true)
+	
+	var message: Message = _entity_manager.get_message(fields["message_id"] as int)
+	if message and user:
+		var reaction: MessageReaction
+		for i in range(message.reactions.size()):
+			var _reaction: MessageReaction = message.reactions[i]
+			if _reaction.emoji.equals(emoji):
+				_reaction._update({count = _reaction.count - 1})
+				if is_self:
+					_reaction._update({reacted = false})
+				if _reaction.count == 0:
+					message.reactions.remove(i)
+				reaction = _reaction
+				break
+		if not reaction:
+			reaction = MessageReaction.new(0, false, emoji)
+		emit_signal("transmit_event", "reaction_removed", [message, user, reaction])
 
-# warning-ignore:unused_argument
 func _on_reactions_clear(fields: Dictionary) -> void:
-	pass
+	var message: Message = _entity_manager.get_message(fields["message_id"] as int)
+	if message:
+		var reactions: Array = message.reactions.duplicate()
+		message.reactions.clear()
+		emit_signal("transmit_event", "reactions_cleared", [message, reactions])
 
-# warning-ignore:unused_argument
 func _on_reactions_clear_emoji(fields: Dictionary) -> void:
-	pass
+	var emoji: Emoji = _entity_manager.get_or_construct_emoji(fields["emoji"])
+	var message: Message = _entity_manager.get_message(fields["message_id"] as int)
+	if message:
+		for i in range(message.reactions.size()):
+			var reaction: MessageReaction = message.reactions[i]
+			if reaction.emoji.equals(emoji):
+				message.reactions.remove(i)
+				emit_signal("transmit_event", "reactions_cleared_emoji", [message, reaction])
+				break
 
-# warning-ignore:unused_argument
 func _on_typing_start(fields: Dictionary) -> void:
 	var channel: TextChannel = _entity_manager.get_channel(fields["channel_id"] as int)
 	var user: User = _entity_manager.get_user(fields["user_id"] as int)
 	var timestamp: int = fields["timestamp"]
-	self.emit_signal("transmit_event", "typing_started", [channel, user, timestamp])
+	if channel and user:
+		emit_signal("transmit_event", "typing_started", [channel, user, timestamp])
 
 func get_class() -> String:
 	return "MessagePacketsHandler"

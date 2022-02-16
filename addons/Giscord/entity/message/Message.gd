@@ -143,20 +143,5 @@ func _update(data: Dictionary) -> void:
 		flags = BitFlag.new(Flags)
 	flags.flags = data.get("flags", flags.flags)
 
-func _add_reaction(reaction: MessageReaction):
-	for i in range(reactions.size()):
-		var _reaction: MessageReaction = reactions[i]
-		if _reaction.equals(reaction):
-			reactions[i] = reaction
-			return
-	reactions.append(reaction)
-
-func _remove_reaction(reaction: MessageReaction):
-	for i in range(reactions.size()):
-		var _reaction: MessageReaction = reactions[i]
-		if _reaction.equals(reaction):
-			reactions.remove(i)
-			return
-
 func __set(_value):
 	pass

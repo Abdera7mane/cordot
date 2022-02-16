@@ -7,7 +7,6 @@ const PACKETS: Dictionary = {
 	"GUILD_BAN_ADD": "_on_guild_ban_add",
 	"GUILD_BAN_REMOVE": "_on_guild_ban_remove",
 	"GUILD_EMOJIS_UPDATE": "_on_guild_emojis_update",
-	"GUILD_INTEGRATIONS": "_on_guild_integrations_update",
 	"GUILD_MEMBER_ADD": "_on_guild_member_add",
 	"GUILD_MEMBER_REMOVE": "_on_guild_member_remove",
 	"GUILD_MEMBER_UPDATE": "_on_guild_member_update",
@@ -77,10 +76,6 @@ func _on_guild_emojis_updated(fields: Dictionary) -> void:
 		
 		guild._update({emojis = emojis})
 		emit_signal("transmit_event", "guild_emojis_updated", [guild, emojis])
-
-# warning-ignore:unused_argument
-func _on_guild_integrations_update(fields: Dictionary) -> void:
-	pass
 
 func _on_guild_member_add(fields: Dictionary) -> void:
 	var guild_id: int = fields["guild_id"] as int

@@ -30,7 +30,7 @@ func construct_embed(data: Dictionary) -> MessageEmbed:
 		type = string_to_embed_type(data.get("type", "")),
 		description = data.get("description", ""),
 		url = data.get("url", ""),
-		timestamp = Time.iso_to_unix(data.get("timestamp", "")),
+		timestamp = TimeUtil.iso_to_unix(data.get("timestamp", "")),
 		color = Color(int(data.get("color", 0))),
 		footer = construct_embed_footer(data["footer"]) if data.has("footer") else null,
 		image = construct_embed_image(data["image"]) if data.has("image") else null,
@@ -163,10 +163,10 @@ func parse_message_data(data: Dictionary) -> Dictionary:
 		parsed_data["content"] = data["content"]
 	
 	if data.has("timestamp"):
-		parsed_data["timestamp"] = Time.iso_to_unix(data["timestamp"])
+		parsed_data["timestamp"] = TimeUtil.iso_to_unix(data["timestamp"])
 	
 	if Dictionaries.has_non_null(data, "edited_timestamp"):
-		parsed_data["type"] = Time.iso_to_unix(data["edited_timestamp"])
+		parsed_data["type"] = TimeUtil.iso_to_unix(data["edited_timestamp"])
 	
 	if data.has("tts"):
 		parsed_data["tts"] = data["tts"]

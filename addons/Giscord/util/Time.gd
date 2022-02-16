@@ -1,4 +1,4 @@
-class_name Time
+class_name TimeUtil
 
 static func iso_to_unix(iso_timestamp: String) -> int:
 	if iso_timestamp.empty():

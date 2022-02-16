@@ -43,7 +43,7 @@ func construct_invite(data: Dictionary) -> Guild.Invite:
 		target_type = data.get("target_type", 0),
 		presence_count = data.get("approximate_presence_count", 0),
 		member_count = data.get("approximate_member_count", 0),
-		expires_at = Time.iso_to_unix(Dictionaries.get_non_null(data, "expires_at", "")),
+		expires_at = TimeUtil.iso_to_unix(Dictionaries.get_non_null(data, "expires_at", "")),
 	}
 	
 	if data.has("guild"):
@@ -224,7 +224,7 @@ func parse_guild_member_payload(data: Dictionary) -> Dictionary:
 		id = user.id,
 		guild_id = guild_id,
 		roles_ids = Snowflake.snowflakes2integers(data["roles"]),
-		join_date = Time.iso_to_unix(data["joined_at"]),
+		join_date = TimeUtil.iso_to_unix(data["joined_at"]),
 		is_deafened = data["deaf"],
 		is_muted = data["mute"]
 	}
@@ -236,7 +236,7 @@ func parse_guild_member_payload(data: Dictionary) -> Dictionary:
 		parsed_data["avatar_hash"] = data["avatar"]
 	
 	if Dictionaries.has_non_null(data, "premium_since"):
-		parsed_data["premium_since"] = Time.iso_to_unix(data["premium_since"])
+		parsed_data["premium_since"] = TimeUtil.iso_to_unix(data["premium_since"])
 	
 	if data.has("pending"):
 		parsed_data["pending"] = data["pending"]
@@ -283,7 +283,7 @@ func parse_voice_state_payload(data: Dictionary) -> Dictionary:
 		self_stream = data.get("self_stream", false),
 		self_video = data.get("self_video"),
 		suppress = data["suppress"],
-		request_to_speak = Time.iso_to_unix(Dictionaries.get_non_null(data, "request_to_speak_timestamp", ""))
+		request_to_speak = TimeUtil.iso_to_unix(Dictionaries.get_non_null(data, "request_to_speak_timestamp", ""))
 	}
 	
 	return parsed_data

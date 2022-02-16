@@ -113,7 +113,7 @@ func construct_permission_overwrite(data: Dictionary) -> PermissionOverwrite:
 func parse_text_channel_payload(data: Dictionary) -> Dictionary:
 	var parsed_data: Dictionary = {}
 	if Dictionaries.has_non_null(data, "last_pin_timestamp"):
-		parsed_data["last_pin_timestamp"] = Time.iso_to_unix(data["last_pin_timestamp"])
+		parsed_data["last_pin_timestamp"] = TimeUtil.iso_to_unix(data["last_pin_timestamp"])
 	if Dictionaries.has_non_null(data, "last_message_id"):
 		parsed_data["last_message_id"] = data["last_message_id"] as int
 	return parsed_data
@@ -198,7 +198,7 @@ func parse_thread_channel_payload(data: Dictionary) -> Dictionary:
 			rate_limit_per_user = data["rate_limit_per_user"],
 			archived = metadata[""],
 			auto_archive_duration = metadata["auto_archive_duration"],
-			archive_timestamp = Time.iso_to_unix(metadata["archive_timestamp"]),
+			archive_timestamp = TimeUtil.iso_to_unix(metadata["archive_timestamp"]),
 			locked = metadata["locked"],
 			invitable = metadata["invitable"]
 		}

@@ -42,7 +42,7 @@ func _on_channel_delete(fields: Dictionary) -> void:
 
 func _on_channel_pins_update(fields: Dictionary) -> void:
 	var channel: TextChannel = _entity_manager.get_channel(fields["channel_id"] as int)
-	var last_pin: int = Time.iso_to_unix(Dictionaries.get_non_null(fields, "last_pin_timestamp", ""))
+	var last_pin: int = TimeUtil.iso_to_unix(Dictionaries.get_non_null(fields, "last_pin_timestamp", ""))
 	
 	if channel:
 		channel._update({last_pin_timestamp = last_pin})

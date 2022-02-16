@@ -23,9 +23,9 @@ func construct_emoji(data: Dictionary) -> Emoji:
 			name = Dictionaries.get_non_null(data, "name" , ""),
 			roles_ids = Snowflake.snowflakes2integers(data.get("roles", [])),
 			user_id = user.id if user else 0,
-			is_managed = data.get("managed"),
-			is_animated = data.get("animated"),
-			available = data.get("available"),
+			is_managed = data.get("managed", false),
+			is_animated = data.get("animated", false),
+			available = data.get("available", false),
 	})
 	else:
 		emoji = UnicodeEmoji.new(data["name"])

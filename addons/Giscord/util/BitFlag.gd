@@ -96,8 +96,8 @@ func _iter_next(_arg) -> bool:
 	_current_index += 1
 	return _iter_resume()
 
-func _iter_get(_arg) -> bool:
-	return get(enum_set.keys()[_current_index])
+func _iter_get(_arg) -> String:
+	return enum_set.keys()[_current_index]
 
 func _to_string() -> String:
 	return str(enum_set) + ", flags: %d" % flags

@@ -218,7 +218,6 @@ func parse_guild_payload(data: Dictionary) -> Dictionary:
 func parse_guild_member_payload(data: Dictionary) -> Dictionary:
 	var user: User = get_manager().get_or_construct_user(data["user"])
 	var guild_id = data["guild_id"]
-	var guild: Guild = get_manager().container.guilds.get(guild_id)
 	
 	var parsed_data: Dictionary = {
 		id = user.id,

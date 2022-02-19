@@ -20,6 +20,13 @@ var type: int setget __set
 func _init(id: int).(id) -> void:
 	pass
 
+func fetch() -> Channel:
+	return get_rest().request_async(
+		DiscordREST.CHANNEL,
+		"get_channel",
+		[self.id]
+	)
+
 func get_mention() -> String:
 	return "<#%d>" % self.id
 

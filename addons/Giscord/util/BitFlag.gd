@@ -3,7 +3,7 @@
 
 class_name BitFlag
 
-var _current_index: int  setget __set
+var _current_index: int setget __set
 
 var enum_set: Dictionary setget __set, get_enum
 var flags: int
@@ -58,6 +58,17 @@ func clone() -> BitFlag:
 	var clone: BitFlag = get_script().new(enum_set)
 	clone.flags = flags
 	return clone
+
+func enable_all() -> BitFlag:
+	flags = int(pow(2, size())) - 1
+	return self
+
+func disable_all() -> BitFlag:
+	flags = 0
+	return self
+
+func size() -> int:
+	return enum_set.size()
 
 func _set(property: String, value) -> bool:
 	if enum_set.has(property):

@@ -20,9 +20,9 @@ func _init(_id: int) -> void:
 func clone() -> DiscordEntity:
 	var clone: DiscordEntity = self.get_script().callv("new", self._clone_data())
 	clone.set_meta("container", get_container())
-	if clone.has_meta("partial"):
+	if has_meta("partial"):
 		clone.set_meta("partial", get_meta("partial"))
-	if clone.has_meta("rest"):
+	if has_meta("rest"):
 		clone.set_meta("rest", get_meta("rest"))
 	return clone
 
@@ -40,13 +40,6 @@ func get_container() -> Dictionary:
 
 func get_rest() -> DiscordRESTMediator:
 	return self.get_meta("rest")
-
-func get_properties() -> Dictionary:
-	var properties: Dictionary = {}
-	for property in self.get_property_list():
-		var name: String = property["name"]
-		properties[name] = self.get(name)
-	return properties
 
 func get_class() -> String:
 	return "DiscordEntity"

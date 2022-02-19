@@ -119,18 +119,20 @@ func parse_text_channel_payload(data: Dictionary) -> Dictionary:
 	return parsed_data
 
 func parse_guild_channel_payload(data: Dictionary) -> Dictionary:
-	var overwrites: Array = []
-	for overwrite in data.get("permission_overwrites", []):
-		overwrites.append(construct_permission_overwrite(overwrite))
-	
-	return {
+	var parsed_data: Dictionary = {
 		id = data["id"] as int,
 		name = data["name"],
 		guild_id = data["guild_id"] as int,
 		position = data["position"],
 		parent_id = Dictionaries.get_non_null(data, "parent_id", 0) as int,
-		permission_overwrites = overwrites
 	}
+	if data.has("permission_overwrites"):
+		var overwrites: Dictionary = {}
+		for overwrite_data in data["permission_overwrites"]:
+			var overwrite: PermissionOverwrite = construct_permission_overwrite(overwrite_data)
+			overwrites[overwrite.id] = overwrite
+		parsed_data["overwrites"] = overwrites
+	return parsed_data
 
 func parse_guild_text_channel_payload(data: Dictionary) -> Dictionary:
 	return Dictionaries.merge(

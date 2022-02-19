@@ -211,7 +211,7 @@ func get_icon(format: String = "png", size: int = 128) -> Texture:
 	, "completed") as Texture
 
 func has_member(id: int) -> bool:
-	return self.members.has(id)
+	return _members.has(id)
 
 func has_icon() -> bool:
 	return not icon_hash.empty()
@@ -380,11 +380,64 @@ class Member extends MentionableEntity:
 			return guild.voice_states[self.id]
 		return get_partial_voice_state()
 	
-	func has_permission(permission: int) -> bool:
-		for role in self.roles:
-			if (permission & role.permissions):
-				return true
-		return false
+	func get_permissions() -> BitFlag:
+		var _enum: Dictionary = Permissions.get_script_constant_map()
+		# warning-ignore:narrowing_conversion
+		var all: int = pow(2, _enum.size()) - 1
+		
+		var permissions: BitFlag
+		if is_owner():
+			permissions = BitFlag.new(_enum)
+			permissions.flags = all
+		else:
+			var default_role: Role = self.guild.get_default_role()
+			permissions = default_role.permissions.clone()
+			for role in roles:
+				# warning-ignore:return_value_discarded
+				permissions.put(role.permissions.flags)
+			if permissions.has(Permissions.ADMINISTRATOR):
+				permissions.flags = all
+		return permissions
+	
+	func permissions_in(channel_id: int) -> BitFlag:
+		var base_permissions: BitFlag = get_permissions()
+		if base_permissions.ADMINISTRATOR:
+			return base_permissions
+		
+		var permissions: BitFlag = base_permissions.clone()
+		
+		var channel: Channel = self.guild.get_channel(channel_id)
+		if not channel:
+			push_error("Channel with id '%d' was not found in guild with id '%d'" % [channel_id, guild_id])
+			return permissions
+		
+		var default_overwrite: PermissionOverwrite = channel.overwrites.get(guild_id)
+		if default_overwrite:
+			# warning-ignore:return_value_discarded
+			permissions.clear(default_overwrite.deny.flags)\
+						.put(default_overwrite.allow.flags)
+		
+		var allow: int = 0
+		var deny: int = 0
+		for role_id in roles_ids:
+			var overwrite: PermissionOverwrite = channel.overwrites.get(role_id)
+			if overwrite:
+				allow |= overwrite.allow.flags
+				deny |= overwrite.deny.flags
+		
+		# warning-ignore:return_value_discarded
+		permissions.clear(deny).put(allow)
+		
+		var member_overwrite: PermissionOverwrite = channel.overwrites.get(self.id)
+		if member_overwrite:
+			# warning-ignore:return_value_discarded
+			permissions.clear(member_overwrite.deny.flags)\
+						.put(member_overwrite.allow.flags)
+		
+		return permissions
+	
+	func is_owner() -> bool:
+		return self.guild.owner_id == self.id
 	
 	func has_role(id: int) -> bool:
 		return id in self.roles_ids
@@ -429,17 +482,15 @@ class Widget:
 		return "Widget"
 
 class ChannelCategory extends Channel:
-	var name: String                 setget __set
-	var guild_id: int                setget __set
-	var guild: Guild                 setget __set, get_guild
-	var position: int                setget __set
-	var permission_overwrites: Array setget __set
+	var name: String           setget __set
+	var guild_id: int          setget __set
+	var guild: Guild           setget __set, get_guild
+	var position: int          setget __set
+	var overwrites: Dictionary setget __set
 	
 	func _init(data: Dictionary).(data["id"]) -> void:
-		name = data["name"]
 		guild_id = data["guild_id"]
-		position = data["position"]
-		permission_overwrites = data.get("permission_overwrites", [])
+		_update(data)
 	
 	func get_guild() -> Guild:
 		return self.get_container().guilds.get(guild_id)
@@ -448,10 +499,11 @@ class ChannelCategory extends Channel:
 		return "ChannelCategory"
 	
 	func _update(data: Dictionary) -> void:
+		._update(data)
 		name = data.get("name", name)
 		guild_id = data.get("guild_id", guild_id)
 		position = data.get("position", position)
-		permission_overwrites = data.get("permission_overwrites", permission_overwrites)
+		overwrites = data.get("overwrites", overwrites)
 	
 	func _clone_data() -> Array:
 		return [{
@@ -459,7 +511,7 @@ class ChannelCategory extends Channel:
 			name = self.name,
 			guild_id = self.guild_id,
 			position = self.position,
-			permission_overwrites = self.permission_overwrites.duplicate()
+			overwrites = self.overwrites.duplicate()
 		}]
 	
 	func __set(_value) -> void:
@@ -473,10 +525,7 @@ class BaseGuildTextChannel extends TextChannel:
 	var rate_limit_per_user: int setget __set
 	
 	func _init(data: Dictionary).(data) -> void:
-		name = data["name"]
 		guild_id = data["guild_id"]
-		position = data.get("position", 0)
-		rate_limit_per_user = data.get("rate_limit_per_user", 0)
 	
 	func get_guild() -> Guild:
 		return self.get_container().guilds.get(guild_id)
@@ -487,7 +536,6 @@ class BaseGuildTextChannel extends TextChannel:
 	func _update(data: Dictionary) -> void:
 		._update(data)
 		name = data.get("name", name)
-		guild_id = data.get("guild_id", guild_id)
 		position = data.get("position", position)
 		rate_limit_per_user = data.get("rate_limit_per_user", rate_limit_per_user)
 	
@@ -506,19 +554,14 @@ class BaseGuildTextChannel extends TextChannel:
 		pass
 
 class GuildTextChannel extends BaseGuildTextChannel:
-	var topic: String                setget __set
-	var parent_id: int               setget __set
-	var parent: ChannelCategory      setget __set, get_parent
-	var permission_overwrites: Array setget __set
-	var nsfw: bool                   setget __set
+	var topic: String           setget __set
+	var parent_id: int          setget __set
+	var parent: ChannelCategory setget __set, get_parent
+	var overwrites: Dictionary  setget __set
+	var nsfw: bool              setget __set
 	
 	func _init(data: Dictionary).(data) -> void:
 		type = Channel.Type.GUILD_TEXT
-		
-		topic = data.get("topic", "")
-		parent_id = data.get("parent_id", 0)
-		permission_overwrites = data.get("permission_overwrites", [])
-		nsfw = data.get("nsfw", false)
 	
 	func has_parent() -> bool:
 		return get_parent() != null
@@ -533,7 +576,7 @@ class GuildTextChannel extends BaseGuildTextChannel:
 		._update(data)
 		topic = data.get("topic", topic)
 		parent_id = data.get("parent_id", parent_id)
-		permission_overwrites = data.get("permission_overwrites", permission_overwrites)
+		overwrites = data.get("overwrites", overwrites)
 		nsfw = data.get("nsfw", nsfw)
 	
 	func _clone_data() -> Array:
@@ -542,7 +585,7 @@ class GuildTextChannel extends BaseGuildTextChannel:
 		var arguments: Dictionary = data[0]
 		arguments["topic"] = self.topic
 		arguments["parent_id"] = self.parent_id
-		arguments["permission_overwrites"] = self.permission_overwrites.duplicate()
+		arguments["overwrites"] = self.overwrites.duplicate()
 		arguments["nsfw"] = self.nsfw
 		
 		return data
@@ -567,19 +610,19 @@ class ThreadChannel extends BaseGuildTextChannel:
 	
 	func _init(data: Dictionary).(data) -> void:
 		type = data["type"]
-		
-		archived = data["archived"]
-		auto_archive_duration = data["auto_archive_duration"]
-		archive_timestamp = data["archive_timestamp"]
-		parent_id = data.get("parent_id", 0)
-		for overwrite in data.get("permission_overwrites", []):
-			self.permission_overwrites.append(PermissionOverwrite.new(overwrite))
 	
 	func get_parent() -> GuildTextChannel:
 		return self.get_container().channels.get(self.parent_id)
 	
 	func get_class() -> String:
 		return "Guild.ThreadChannel"
+	
+	func _update(data: Dictionary) -> void:
+		archived = data.get("archived", archived)
+		auto_archive_duration = data.get("auto_archive_duration", auto_archive_duration)
+		archive_timestamp = data.get("archive_timestamp", archive_timestamp)
+		locked = data.get("locked", locked)
+		parent_id = data.get("parent_id", parent_id)
 	
 	func _clone_data() -> Array:
 		var data: Array = ._clone_data()
@@ -597,22 +640,18 @@ class ThreadChannel extends BaseGuildTextChannel:
 		pass
 
 class GuildStoreChannel extends Channel:
-	var name: String                 setget __set
-	var guild_id: int                setget __set
-	var guild: Guild                 setget __set, get_guild
-	var position: int                setget __set
-	var parent_id: int               setget __set
-	var parent: ChannelCategory      setget __set, get_parent
-	var permission_overwrites: Array setget __set
+	var name: String            setget __set
+	var guild_id: int           setget __set
+	var guild: Guild            setget __set, get_guild
+	var position: int           setget __set
+	var parent_id: int          setget __set
+	var parent: ChannelCategory setget __set, get_parent
+	var overwrites: Dictionary  setget __set
 	
 	func _init(data: Dictionary).(data["id"]) -> void:
 		type = Channel.Type.GUILD_STORE
-		
-		name = data["name"]
 		guild_id = data["guild_id"]
-		position = data["position"]
-		parent_id = data["parent_id"]
-		permission_overwrites = data.get("permission_overwrites", [])
+		_update(data)
 	
 	func get_guild() -> Guild:
 		return self.get_container().guilds.get(guild_id)
@@ -623,6 +662,13 @@ class GuildStoreChannel extends Channel:
 	func get_class() -> String:
 		return "Guild.GuildStoreChannel"
 	
+	func _update(data: Dictionary) -> void:
+		._update(data)
+		name = data.get("name", name)
+		position = data.get("position", position)
+		parent_id = data.get("parent_id", parent_id)
+		overwrites = data.get("overwrites", overwrites)
+	
 	func _clone_data() -> Array:
 		return [{
 			id = self.id,
@@ -630,7 +676,7 @@ class GuildStoreChannel extends Channel:
 			guild_id = self.guild_id,
 			position = self.position,
 			parent_id = self.parent_id,
-			permission_overwrites = self.permission_overwrites.duplicate()
+			overwrites = self.overwrites.duplicate()
 		}]
 	
 	func __set(_value) -> void:
@@ -643,14 +689,10 @@ class BaseGuildVoiceChannel extends VoiceChannel:
 	var position: int                setget __set
 	var parent_id: int               setget __set
 	var parent: ChannelCategory      setget __set, get_parent
-	var permission_overwrites: Array setget __set
+	var overwrites: Array setget __set
 	
 	func _init(data: Dictionary).(data) -> void:
-		name = data["name"]
 		guild_id = data["guild_id"]
-		position = data["position"]
-		parent_id = data.get("parent_id", 0)
-		permission_overwrites = data.get("permission_overwrites", [])
 	
 	func get_guild() -> Guild:
 		return self.get_container().guilds.get(guild_id)
@@ -661,6 +703,13 @@ class BaseGuildVoiceChannel extends VoiceChannel:
 	func get_class() -> String:
 		return "Guild.BaseGuildVoiceChannel"
 	
+	func _update(data: Dictionary) -> void:
+		._update(data)
+		name = data.get("name", name)
+		position = data.get("position", position)
+		parent_id = data.get("parent_id", parent_id)
+		overwrites = data.get("overwrites", overwrites)
+	
 	func _clone_data() -> Array:
 		var data: Array = ._clone_data()
 		
@@ -669,7 +718,7 @@ class BaseGuildVoiceChannel extends VoiceChannel:
 		arguments["guild_id"] = self.guild_id
 		arguments["position"] = self.position
 		arguments["parent_id"] = self.parent_id
-		arguments["permission_overwrites"] = self.permission_overwrites.duplicate()
+		arguments["overwrites"] = self.overwrites.duplicate()
 		
 		return data
 	
@@ -682,12 +731,13 @@ class GuildVoiceChannel extends BaseGuildVoiceChannel:
 	
 	func _init(data: Dictionary).(data) -> void:
 		type = Channel.Type.GUILD_VOICE
-		
-		user_limit = data.get("user_limit", 0)
-		video_quality = data.get("var video_quality", VoiceChannel.VideoQualityModes.AUTO)
 	
 	func get_class() -> String:
 		return "GuildVoiceChannel"
+	
+	func _update(data: Dictionary) -> void:
+		user_limit = data.get("user_limit", user_limit)
+		video_quality = data.get("var video_quality", video_quality)
 	
 	func _clone_data() -> Array:
 		var data: Array = ._clone_data()
@@ -702,16 +752,18 @@ class GuildVoiceChannel extends BaseGuildVoiceChannel:
 		pass
 
 class StageChannel extends BaseGuildVoiceChannel:
-	var topic: String setget __set
-	var instance: StageInstance
+	var topic: String            setget __set
+	var instance: StageInstance setget __set
 	
 	func _init(data: Dictionary).(data) -> void:
 		type = Channel.Type.GUILD_STAGE_VOICE
 		
-		topic = data.get("topic", "")
-		
 	func get_class() -> String:
 		return "Guild.StageChannel"
+	
+	func _update(data: Dictionary) -> void:
+		topic = data.get("topic", topic)
+		instance = data.get("instance", instance)
 	
 	func _clone_data() -> Array:
 		var data: Array = ._clone_data()

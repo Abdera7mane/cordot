@@ -322,7 +322,18 @@ func edit_guild_widget_settings(guild_id: int, params: Dictionary) -> Object:
 func get_guild_widget(guild_id: int) -> Object:
 	return null
 
-func get_guild_vanity_url(guild_id: int, style: String = "shield") -> Texture:
+func get_guild_vanity_url(guild_id: int) -> Guild.Invite:
+	var invite: Guild.Invite = null
+	var request: RestRequest = rest_request(
+		DiscordREST.ENDPOINTS.GUILD_VANITY_URL.format({guild_id = guild_id})
+	).method_get()
+	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	if response.successful():
+		var invite_data: Dictionary = parse_json(response.body.get_string_from_utf8())
+		invite = entity_manager.guild_manager.construct_invite(invite_data)
+	return invite
+
+func get_guild_widget_image(guild_id: int, style: String = "shield") -> Texture:
 	var widget_image: Texture = null
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_WIDGET_IMAGE.format({guild_id = guild_id})

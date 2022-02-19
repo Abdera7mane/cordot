@@ -5,8 +5,7 @@ var last_message: BaseMessage setget __set, get_last_message
 var last_pin_timestamp: int   setget __set
 
 func _init(data: Dictionary).(data["id"]) -> void:
-	last_message_id = data.get("last_message_id", 0)
-	last_pin_timestamp = data.get("last_pin_timestamp", 0)
+	_update(data)
 
 func send_message(content: String, tts: bool = false, embeds: Array = []) -> BaseMessage:
 	var params: Dictionary = {

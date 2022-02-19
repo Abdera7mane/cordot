@@ -8,7 +8,7 @@ enum VideoQualityModes {
 var bitrate: int setget __set
 
 func _init(data: Dictionary).(data["id"]) -> void:
-	bitrate = data["bitrate"]
+	_update(data)
 
 func get_class() -> String:
 	return "VoiceChannel"

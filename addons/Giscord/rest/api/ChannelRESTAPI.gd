@@ -6,21 +6,21 @@ func _init(_token: String,
 ).(_token, _requester, _entity_manager) -> void:
 	pass
 
-func get_channel(channel_id) -> Channel:
+func get_channel(channel_id: int) -> Channel:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.CHANNEL.format({channel_id = channel_id})
 	).method_get()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_channel_response(response)
 
-func edit_channel(channel_id: int, params: Dictionary) -> Channel:
+func edit_channel(channel_id: int, params: Dictionary = {}) -> Channel:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.CHANNEL.format({channel_id = channel_id})
 	).json_body(params).method_patch()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_channel_response(response)
 
-func delete_channel(channel_id) -> Channel:
+func delete_channel(channel_id: int) -> Channel:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.CHANNEL.format({channel_id = channel_id})
 	).method_delete()

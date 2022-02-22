@@ -13,7 +13,7 @@ static func wait(timeout: int) -> void:
 	yield(AwaiterReference.new().create_clock(timeout), "timeout")
 
 static func submit() -> void:
-	wait(0)
+	yield(wait(0), "completed")
 
 class AwaiterReference:
 

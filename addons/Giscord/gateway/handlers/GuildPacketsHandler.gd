@@ -133,13 +133,15 @@ func _on_guild_role_update(fields: Dictionary) -> void:
 	var guild_id: int = fields["guild_id"] as int
 	fields["guild_id"] = guild_id
 	var guild: Guild = _entity_manager.get_guild(guild_id)
-	var role_id: int = fields["role"]["id"] as int
-
+	var role_data: Dictionary = fields["role"]
+	var role_id: int = role_data["id"] as int
+	role_data["guild_id"] = guild_id
+	
 	if guild:
 		var role: Guild.Role = guild.get_role(role_id)
 		if role:
 			var old: Guild.Role = role.clone()
-			_entity_manager.guild_manager.update_role(role, fields)
+			_entity_manager.guild_manager.update_role(role, fields["role"])
 			emit_signal("transmit_event", "guild_role_updated", [guild, old, role])
 		else:
 			role = _entity_manager.guild_manager.construct_role(fields)

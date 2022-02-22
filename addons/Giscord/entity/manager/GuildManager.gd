@@ -223,11 +223,15 @@ func parse_guild_member_payload(data: Dictionary) -> Dictionary:
 		id = user.id,
 		guild_id = guild_id,
 		roles_ids = Snowflake.snowflakes2integers(data["roles"]),
-		join_date = TimeUtil.iso_to_unix(data["joined_at"]),
-		is_deafened = data["deaf"],
-		is_muted = data["mute"]
+		join_date = TimeUtil.iso_to_unix(data["joined_at"])
 	}
 	
+	if data.has("deaf"):
+		parsed_data["is_deafened"] = data["deaf"]
+	
+	if data.has("mute"):
+		parsed_data["is_muted"] = data["mute"]
+		
 	if Dictionaries.has_non_null(data, "nick"):
 		parsed_data["nickname"] = data["nick"]
 	

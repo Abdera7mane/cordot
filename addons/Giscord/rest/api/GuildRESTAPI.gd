@@ -62,7 +62,7 @@ func create_guild_channel(guild_id: int, params: Dictionary) -> Channel:
 		channel = entity_manager.get_or_construct_channel(channel_data)
 	return channel
 
-func edit_guild_channel_positions(guild_id: int, params: Dictionary) -> bool:
+func edit_guild_channel_positions(guild_id: int, params: Array) -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_CHANNELS.format({guild_id = guild_id})
 	).json_body(params).method_patch()
@@ -79,17 +79,21 @@ func get_guild_member(guild_id: int, user_id) -> Guild.Member:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_guild_member_response(response, guild_id)
 
-func list_guild_members(guild_id: int, params: Dictionary = {}) -> Array:
+func list_guild_members(guild_id: int, limit: int = 1, after: int = 0) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_MEMBERS.format({guild_id = guild_id})
-	).json_body(params).method_get()
+		+ "?limit=" + str(limit)
+		+ "&after=" + str(after)
+	).method_get()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_guild_members_list_response(response, guild_id)
 
-func search_guild_members(guild_id: int, params: Dictionary) -> Array:
+func search_guild_members(guild_id: int, query: String, limit: int = 1) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_MEMBERS_SEARCH.format({guild_id = guild_id})
-	).json_body(params).method_get()
+		+ "?query=" + query.http_escape()
+		+ "&limit=" + str(limit)
+	).method_get()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_guild_members_list_response(response, guild_id)
 
@@ -337,7 +341,7 @@ func get_guild_widget_image(guild_id: int, style: String = "shield") -> Texture:
 	var widget_image: Texture = null
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_WIDGET_IMAGE.format({guild_id = guild_id})
-		+ "?style=" + style
+		+ "?style=" + style.http_escape()
 	).method_get()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	if response.successful():

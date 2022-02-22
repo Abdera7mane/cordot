@@ -53,19 +53,20 @@ enum Features {
 	FEATURABLE,
 	INVITE_SPLASH,
 	MEMBER_VERIFICATION_GATE_ENABLED,
+	MONETIZATION_ENABLED,
+	MORE_STICKERS,
 	NEWS,
 	PARTNERED,
 	PREVIEW_ENABLED,
+	PRIVATE_THREADS,
+	ROLE_ICONS,
+	SEVEN_DAY_THREAD_ARCHIVE,
+	THREE_DAY_THREAD_ARCHIVE,
+	TICKETED_EVENTS_ENABLED,
 	VANITY_URL,
 	VERIFIED,
 	VIP_REGIONS,
 	WELCOME_SCREEN_ENABLED,
-	TICKETED_EVENTS_ENABLED,
-	MONETIZATION_ENABLED,
-	MORE_STICKERS,
-	THREE_DAY_THREAD_ARCHIVE,
-	SEVEN_DAY_THREAD_ARCHIVE,
-	PRIVATE_THREADS
 }
 
 var _members: Dictionary                     setget __set
@@ -125,8 +126,8 @@ func _init(data: Dictionary).(data.id) -> void:
 func has_feature(feature: int) -> bool:
 	return feature in self.features
 
-func get_channel(id: int) -> Channel:
-	var channel: Channel = self.get_container().channels.get(id)
+func get_channel(channel_id: int) -> Channel:
+	var channel: Channel = self.get_container().channels.get(channel_id)
 	if channel and channel.has_method("get_guild") and channel.guild.id == self.id:
 		return channel
 	return null
@@ -171,8 +172,8 @@ func get_public_updates_channel() -> GuildTextChannel:
 		return channel as GuildTextChannel
 	return null
 
-func get_member(id: int) -> Member:
-	return self._members.get(id)
+func get_member(member_id: int) -> Member:
+	return self._members.get(member_id)
 
 func get_members() -> Array:
 	return self._members.values()
@@ -210,8 +211,154 @@ func get_icon(format: String = "png", size: int = 128) -> Texture:
 		get_icon_url(format, size))
 	, "completed") as Texture
 
-func has_member(id: int) -> bool:
-	return _members.has(id)
+func edit(data: GuildEditData) -> Guild:
+	var bot_id: int = get_container().bot_id
+	var self_permissions: BitFlag = get_member(bot_id).get_permissions()
+	var fail: bool = false
+	if not self_permissions.MANAGE_GUILD:
+		fail = true
+		push_error("Can not edit guild, missing MANAGE_GUILD permission")
+	if data.has("splash") and not has_feature(Features.INVITE_SPLASH):
+		fail = true
+		push_error("Can not edit splash image, guild is missing INVITE_SPLASH feature")
+	if data.has("discovery_splash") and not has_feature(Features.DISCOVERABLE):
+		fail = true
+		push_error("Can not edit discovery splash image, guild is missing DISCOVERABLE feature")
+	if data.has("banner") and not has_feature(Features.BANNER):
+		fail = true
+		push_error("Can not edit banner image, guild is missing BANNER feature")
+	if fail:
+		return Awaiter.submit()
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"edit_guild", [self.id, data.to_dict()]
+	)
+
+func delete() -> bool:
+	var bot_id: int = get_container().bot_id
+	if bot_id != owner_id:
+		push_error("Can not delete Guild, bot must be the Guild owner")
+		return false
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"delete_guild", [self.id]
+	)
+
+func fetch_channels() -> Array:
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"get_guild_channels", [self.id]
+	)
+
+func create_channel(data: ChannelCreateData) -> Channel:
+	var bot_id: int = get_container().bot_id
+	var self_permissions: BitFlag = get_member(bot_id).get_permissions()
+	if not self_permissions.MANAGE_CHANNELS:
+		return Awaiter.submit()
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"create_guild_channel", [self.id, data.to_dict()]
+	)
+
+func edit_channel_positions(data: ChannelPositionsEditData) -> bool:
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"edit_guild_channel_positions", [self.id, data.to_array()]
+	)
+
+func fetch_member(member_id: int) -> Member:
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"get_guild_member", [self.id, member_id]
+	)
+
+func list_members(limit: int = 1, after: int = 0) -> Array:
+	if limit < 1 or limit > 1000:
+		push_error("list_member() 'limit' argument must be in range of 1 to 1000")
+		yield(Awaiter.submit(), "completed")
+		return []
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"list_guild_members", [self.id, limit, after]
+	)
+
+func search_members(query: String, limit: int = 1) -> Array:
+	if limit < 1 or limit > 1000:
+		push_error("search_members() 'limit' argument must be in range of 1 to 1000")
+		yield(Awaiter.submit(), "completed")
+		return []
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"search_guild_members", [self.id, query, limit]
+	)
+
+func add_member(user_id: int, access_token: String) -> Array:
+	# TODO add the rest of parameters of this endpoint
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"add_guild_member", [self.id, user_id, {access_token = access_token}]
+	)
+
+func edit_current_member(nickname: String) ->  Guild.Member:
+	var bot_id: int = get_container().bot_id
+	var self_permissions: BitFlag = get_member(bot_id).get_permissions()
+	if not self_permissions.CHANGE_NICKNAME:
+		push_error("Can not edit nickname, missing CHANGE_NICKNAME permission")
+		return Awaiter.submit()
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"edit_current_member", [self.id, {nick = nickname}]
+	)
+
+func fetch_bans() -> Array:
+	var bot_id: int = get_container().bot_id
+	var self_permissions: BitFlag = get_member(bot_id).get_permissions()
+	if not self_permissions.BAN_MEMBERS:
+		push_error("Can not fetch guild bans, missing BAN_MEMBERS permission")
+		yield(Awaiter.submit(), "completed")
+		return []
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"get_guild_bans", [self.id]
+	)
+
+func fetch_ban(user_id: int) -> GuildBan:
+	var bot_id: int = get_container().bot_id
+	var self_permissions: BitFlag = get_member(bot_id).get_permissions()
+	if not self_permissions.BAN_MEMBERS:
+		push_error("Can not fetch guild ban, missing BAN_MEMBERS permission")
+		yield(Awaiter.submit(), "completed")
+		return []
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"get_guild_ban", [self.id, user_id]
+	)
+
+func fetch_roles() -> Array:
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"get_guild_roles", [self.id]
+	)
+
+func create_role(data: RoleCreateData) -> Role:
+	var bot_id: int = get_container().bot_id
+	var self_permissions: BitFlag = get_member(bot_id).get_permissions()
+	var fail: bool = false
+	if not self_permissions.MANAGE_ROLES:
+		push_error("Can not create role, missing MANAGE_ROLES permission")
+		fail = true
+	if data.has("icon") or data.has("unicode_emoji") and not has_feature(Features.ROLE_ICONS):
+		push_error("Can not edit role icon, guild is missing ROLE_ICONS feature")
+		fail = true
+	if fail:
+		return Awaiter.submit()
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"create_guild_role", [self.id, data.to_dict()]
+	)
+
+func has_member(member_id: int) -> bool:
+	return _members.has(member_id)
 
 func has_icon() -> bool:
 	return not icon_hash.empty()
@@ -319,7 +466,7 @@ func __set(_value) -> void:
 class Member extends MentionableEntity:
 	var user: User          setget __set, get_user
 	var nickname: String    setget __set, get_nickname
-	var avatar_hash: String setget __set, get_avatar
+	var avatar_hash: String setget __set, get_avatar_hash
 	var guild_id: int       setget __set
 	var guild: Guild        setget __set, get_guild
 	var roles_ids: Array    setget __set
@@ -348,7 +495,7 @@ class Member extends MentionableEntity:
 	func get_nickname() -> String:
 		return self.user.username if nickname.empty() else nickname
 	
-	func get_avatar() -> String:
+	func get_avatar_hash() -> String:
 		return avatar_hash if not avatar_hash.empty() else self.user.avatar_hash
 	
 	func get_roles() -> Array:
@@ -392,7 +539,7 @@ class Member extends MentionableEntity:
 		else:
 			var default_role: Role = self.guild.get_default_role()
 			permissions = default_role.permissions.clone()
-			for role in roles:
+			for role in self.roles:
 				# warning-ignore:return_value_discarded
 				permissions.put(role.permissions.flags)
 			if permissions.has(Permissions.ADMINISTRATOR):
@@ -441,6 +588,103 @@ class Member extends MentionableEntity:
 	
 	func has_role(id: int) -> bool:
 		return id in self.roles_ids
+	
+	func edit(data: GuildMemberEditData) -> Member:
+		var bot_id: int = get_container().bot_id
+		var self_permissions: BitFlag = self.guild.get_member(bot_id).get_permissions()
+		
+		var fail: bool = false
+		if data.has("nick") and not self_permissions.MANAGE_NICKNAMES:
+			push_error("Can not edit member nickname, missing MANAGE_NICKNAMES permission")
+			fail = true
+		if data.has("roles") and not self_permissions.MANAGE_ROLES:
+			push_error("Can not edit member roles, missing MANAGE_ROLES permission")
+			fail = true
+		if data.has("mute") and not self_permissions.MUTE_MEMBERS:
+			push_error("Can not mute member, missing MUTE_MEMBERS permission")
+			fail = true
+		if data.has("deaf") and not self_permissions.DEAFEN_MEMBERS:
+			push_error("Can not deafen member, missing DEAFEN_MEMBERS permission")
+			fail = true
+		if data.has("channel_id") and not self_permissions.MOVE_MEMBERS:
+			push_error("Can not move member, missing MOVE_MEMBERS permission")
+			fail = true
+		if data.has("communication_disabled_until") and not self_permissions.MODERATE_MEMBERS:
+			push_error("Can not timeout member, missing MODERATE_MEMBERS permission")
+			fail = true
+		if fail:
+			return Awaiter.submit()
+		
+		return get_rest().request_async(
+			DiscordREST.GUILD,
+			"edit_guild_member", [guild_id, self.id, data.to_dict()]
+		)
+	
+	func assign_role(role_id: int) -> bool:
+		var bot_id: int = get_container().bot_id
+		var self_permissions: BitFlag = self.guild.get_member(bot_id).get_permissions()
+		
+		var fail: bool = false
+		if not self_permissions.MANAGE_ROLES:
+			push_error("Can not assign role, missing MANAGE_ROLES permission")
+			fail = true
+		elif has_role(role_id):
+			push_error("Member already has the role '%d'" % role_id)
+			fail = true
+		elif self.guild._roles.has(role_id):
+			push_error("Role with id '%d' does not exist in guild '%d'" % [role_id, guild_id])
+			fail = true
+		if fail:
+			yield(Awaiter.submit(), "completed")
+			return false
+		return get_rest().request_async(
+			DiscordREST.GUILD,
+			"add_guild_member_role", [guild_id, self.id, role_id]
+		)
+	
+	func revoke_role(role_id: int) -> bool:
+		var bot_id: int = get_container().bot_id
+		var self_permissions: BitFlag = self.guild.get_member(bot_id).get_permissions()
+		
+		var fail: bool = false
+		if not self_permissions.MANAGE_ROLES:
+			push_error("Can not revoke role, missing MANAGE_ROLES permission")
+			fail = true
+		elif not has_role(role_id):
+			push_error("Member does not have role with '%d', can not revoke it" % role_id)
+			fail = true
+		elif self.guild._roles.has(role_id):
+			push_error("Role with id '%d' does not exist in guild '%d'" % [role_id, guild_id])
+			fail = true
+		if fail:
+			yield(Awaiter.submit(), "completed")
+			return false
+		return get_rest().request_async(
+			DiscordREST.GUILD,
+			"remove_guild_member_role", [guild_id, self.id, role_id]
+		)
+	
+	func kick() -> bool:
+		var bot_id: int = get_container().bot_id
+		var self_permissions: BitFlag = self.guild.get_member(bot_id).get_permissions()
+		if not self_permissions.KICK_MEMBERS:
+			yield(Awaiter.submit(), "completed")
+			return false
+		return get_rest().request_async(
+			DiscordREST.GUILD,
+			"remove_guild_member", [guild_id, self.id]
+		)
+	
+	func ban() -> bool:
+		var bot_id: int = get_container().bot_id
+		var self_permissions: BitFlag = self.guild.get_member(bot_id).get_permissions()
+		if not self_permissions.BAN_MEMBERS:
+			yield(Awaiter.submit(), "completed")
+			return false
+		return get_rest().request_async(
+			DiscordREST.GUILD,
+			"create_guild_ban", [guild_id, self.id]
+		)
 	
 	func _update_presence(_presence: Presence) -> void:
 		presence = _presence
@@ -836,7 +1080,7 @@ class Role extends MentionableEntity:
 			guild_id = self.guild_id,
 			hoist = self.hoist,
 			position = self.position,
-			permissions = self.permissions,
+			permissions = self.permissions.flags,
 			is_managed = self.is_managed,
 			mentionable = self.mentionable,
 			tags = self.tags.duplicate() if tags else null,
@@ -848,7 +1092,7 @@ class Role extends MentionableEntity:
 		hoist = data.get("hoist", hoist)
 		position = data.get("position", position)
 		permissions.flags = data.get("permissions", permissions.flags)
-		is_managed = data.get("managed", is_managed)
+		is_managed = data.get("is_managed", is_managed)
 		mentionable = data.get("mentionable", mentionable)
 		tags = data.get("tags", tags)
 	
@@ -957,7 +1201,6 @@ class VoiceState extends DiscordEntity:
 
 	func _init(data: Dictionary).(data["user_id"]) -> void:
 		guild_id = data["guild_id"]
-		channel_id = data.get("channel_id", 0)
 		member = data.get("member")
 		_update(data)
 
@@ -977,6 +1220,7 @@ class VoiceState extends DiscordEntity:
 		return member if member else self.guild.get_member(self.id) 
 
 	func _update(data: Dictionary) -> void:
+		channel_id = data.get("channel_id", channel_id)
 		session_id = data.get("session_id", session_id)
 		is_deafened = data.get("deaf", is_deafened)
 		is_muted = data.get("mute", is_muted)
@@ -992,6 +1236,7 @@ class VoiceState extends DiscordEntity:
 			user_id = self.id,
 			guild_id = self.guild_id,
 			member = member,
+			channel_id = self.channel_id,
 			session_id = self.session_id,
 			is_deafened = self.is_deafened,
 			is_muted = self.is_muted,

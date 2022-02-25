@@ -45,7 +45,7 @@ func _on_bot_ready(user: User) -> void:
     client.update_presence(presence)
 
 func _on_message(message: Message) -> void:
-    if message.user.is_bot:
+    if message.author.is_bot:
         return
 
     if message.content.to_lower().begins_with("hello"):

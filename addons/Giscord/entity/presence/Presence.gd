@@ -41,7 +41,7 @@ func __set(_value) -> void:
 
 # warning-ignore:shadowed_variable
 static func status_to_string(status: int) -> String:
-	return Status.keys()[clamp(0, status, Status.size())].to_upper()
+	return Status.keys()[clamp(0, status, Status.size())].to_lower()
 
 static func playing(game: String) -> DiscordActivity:
 	return create_activity(game, DiscordActivity.Type.GAME)

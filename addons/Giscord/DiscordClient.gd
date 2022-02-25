@@ -89,6 +89,13 @@ func logout() -> void:
 	gateway_websocket.auto_reconnect = false
 	gateway_websocket.disconnect_from_gateway()
 
+func update_presence(presence: PresenceUpdate) -> void:
+	print(JSON.print(presence.to_dict(), "\t"))
+	gateway_websocket.send_packet(Packet.new({
+		op = GatewayOpcodes.Gateway.PRESENCE_UPDATE,
+		d = presence.to_dict()
+	}))
+
 func is_client_connected() -> bool:
 	return gateway_websocket.is_connected_to_gateway()
 

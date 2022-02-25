@@ -87,7 +87,7 @@ func get_class() -> String:
 	return "DiscordActivity"
 
 func _to_string() -> String:
-	return "[%s:%d]" % [self.get_class(), self.id, self.get_instance_id()]
+	return "[%s:%d]" % [self.get_class(), self.get_instance_id()]
 
 func __set(_value) -> void:
 	pass

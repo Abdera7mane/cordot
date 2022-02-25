@@ -232,7 +232,7 @@ func create_guild_role(guild_id: int, params: Dictionary) -> Guild.Role:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_role_response(response, guild_id)
 
-func edit_guild_role_positions(guild_id: int, params: Dictionary) -> Array:
+func edit_guild_role_positions(guild_id: int, params: Array) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_ROLES.format({guild_id = guild_id})
 	).json_body(params).method_patch()
@@ -259,10 +259,12 @@ func delete_guild_role(guild_id: int, role_id: int) -> bool:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
-func get_guild_prune_count(guild_id: int, params: Dictionary) -> int:
+func get_guild_prune_count(guild_id: int, days: int = 7, include_roles: PoolStringArray = []) -> int:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_PRUNE.format({guild_id = guild_id})
-	).json_body(params).method_get()
+		+ "?days=" + days
+		+ ("&include_roles=" + include_roles.join(",")) if include_roles else ""
+	).method_get()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	if response.successful():
 		var body: Dictionary = parse_json(response.body.get_string_from_utf8())
@@ -298,7 +300,7 @@ func get_guild_voice_regions(guild_id: int) -> Array:
 			regions.append(region)
 	return regions
 
-func get_guild_voice_invites(guild_id: int) -> Array:
+func get_guild_invites(guild_id: int) -> Array:
 	var invites: Array = []
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_INVITES.format({guild_id = guild_id})
@@ -334,7 +336,8 @@ func get_guild_vanity_url(guild_id: int) -> Guild.Invite:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	if response.successful():
 		var invite_data: Dictionary = parse_json(response.body.get_string_from_utf8())
-		invite = entity_manager.guild_manager.construct_invite(invite_data)
+		if Dictionaries.has_non_null(invite_data, "code"):
+			invite = entity_manager.guild_manager.construct_invite(invite_data)
 	return invite
 
 func get_guild_widget_image(guild_id: int, style: String = "shield") -> Texture:

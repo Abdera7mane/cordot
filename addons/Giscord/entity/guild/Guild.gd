@@ -238,6 +238,7 @@ func delete() -> bool:
 	var bot_id: int = get_container().bot_id
 	if bot_id != owner_id:
 		push_error("Can not delete Guild, bot must be the Guild owner")
+		yield(Awaiter.submit(), "completed")
 		return false
 	return get_rest().request_async(
 		DiscordREST.GUILD,
@@ -355,6 +356,93 @@ func create_role(data: RoleCreateData) -> Role:
 	return get_rest().request_async(
 		DiscordREST.GUILD,
 		"create_guild_role", [self.id, data.to_dict()]
+	)
+
+func edit_role_positions(data: RolePositionsEditData) -> Array:
+	var bot_id: int = get_container().bot_id
+	var self_permissions: BitFlag = get_member(bot_id).get_permissions()
+	if not self_permissions.MANAGE_ROLES:
+		push_error("Can not create role, missing MANAGE_ROLES permission")
+		yield(Awaiter.submit(), "completed")
+		return []
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"edit_guild_role_positions", [self.id, data.to_array()]
+	)
+
+func fetch_prune_count(days: int = 7, role_ids: PoolStringArray = []) -> int:
+	var bot_id: int = get_container().bot_id
+	var self_permissions: BitFlag = get_member(bot_id).get_permissions()
+	var fail: bool = false
+	if not self_permissions.KICK_MEMBERS:
+		push_error("Can not get guild prune count, missing KICK_MEMBERS permission")
+		fail = true
+	if days < 1 or days > 30:
+		push_error("fetch_prune_count() 'days' argument must be in range of 1 to 30")
+		fail = true
+	if fail:
+		yield(Awaiter.submit(), "completed")
+		return -1
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"get_guild_prune_count", [self.id, days, role_ids]
+	)
+
+func begin_prune(days: int = 7, return_count: bool = true, role_ids: PoolStringArray = []) -> int:
+	var bot_id: int = get_container().bot_id
+	var self_permissions: BitFlag = get_member(bot_id).get_permissions()
+	var fail: bool = false
+	if not self_permissions.KICK_MEMBERS:
+		push_error("Can not get guild prune count, missing KICK_MEMBERS permission")
+		fail = true
+	if days < 1 or days > 30:
+		push_error("fetch_prune_count() 'days' argument must be in range of 1 to 30")
+		fail = true
+	if fail:
+		yield(Awaiter.submit(), "completed")
+		return -1
+	var options: Dictionary = {
+		days = days,
+		compute_prune_count = return_count,
+		include_roles = role_ids
+	}
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"begin_guild_prune", [self.id, options]
+	)
+
+func fetch_voice_regions() -> Array:
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"get_guild_voice_regions", [self.id]
+	)
+
+func fetch_invites() -> Array:
+	var bot_id: int = get_container().bot_id
+	var self_permissions: BitFlag = get_member(bot_id).get_permissions()
+	if not self_permissions.MANAGE_GUILD:
+		push_error("Can not get guild invites, missing MANAGE_GUILD permission")
+		yield(Awaiter.submit(), "completed")
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"get_guild_invites", [self.id]
+	)
+
+func fetch_vanity_url() -> Invite:
+	var bot_id: int = get_container().bot_id
+	var self_permissions: BitFlag = get_member(bot_id).get_permissions()
+	if not self_permissions.MANAGE_GUILD:
+		push_error("Can not get vanity url, missing MANAGE_GUILD permission")
+		return Awaiter.submit()
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"get_guild_vanity_url", [self.id]
+	)
+
+func fetch_widget_image(style: String = "shield") -> Texture:
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"get_guild_widget_image", [self.id, style]
 	)
 
 func has_member(member_id: int) -> bool:
@@ -668,6 +756,7 @@ class Member extends MentionableEntity:
 		var bot_id: int = get_container().bot_id
 		var self_permissions: BitFlag = self.guild.get_member(bot_id).get_permissions()
 		if not self_permissions.KICK_MEMBERS:
+			push_error("Can not kick member, missing KICK_MEMBERS permission")
 			yield(Awaiter.submit(), "completed")
 			return false
 		return get_rest().request_async(
@@ -679,6 +768,7 @@ class Member extends MentionableEntity:
 		var bot_id: int = get_container().bot_id
 		var self_permissions: BitFlag = self.guild.get_member(bot_id).get_permissions()
 		if not self_permissions.BAN_MEMBERS:
+			push_error("Can not ban member, missing BAN_MEMBERS permission")
 			yield(Awaiter.submit(), "completed")
 			return false
 		return get_rest().request_async(
@@ -1069,6 +1159,29 @@ class Role extends MentionableEntity:
 	
 	func get_mention() -> String:
 		return "<@&%d>" % self.get_id()
+	
+	func edit(data: RoleEditData) -> Role:
+		var bot_id: int = get_container().bot_id
+		var self_permissions: BitFlag = self.guild.get_member(bot_id).get_permissions()
+		if not self_permissions.MANAGE_ROLES:
+			push_error("Can not edit role, missing MANAGE_ROLES permission")
+			return Awaiter.submit()
+		return get_rest().request_async(
+			DiscordREST.GUILD,
+			"edit_guild_role", [guild_id, self.id, data.to_dict()]
+		)
+	
+	func delete() -> bool:
+		var bot_id: int = get_container().bot_id
+		var self_permissions: BitFlag = self.guild.get_member(bot_id).get_permissions()
+		if not self_permissions.MANAGE_ROLES:
+			push_error("Can not delete role, missing MANAGE_ROLES permission")
+			yield(Awaiter.submit(), "completed")
+			return false
+		return get_rest().request_async(
+			DiscordREST.GUILD,
+			"delete_guild_role", [guild_id, self.id]
+		)
 	
 	func get_class() -> String:
 		return "Guild.Role"

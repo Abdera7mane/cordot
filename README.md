@@ -12,7 +12,7 @@
     <a href="https://discord.com/developers/docs/reference">
         <img src="https://img.shields.io/static/v1?label=Discord%20API&message=V8&color=5865f2&style=for-the-badge&logo=discord&logoColor=white" alt="Discord API version">
     </a>
-    <a href="LICENCE">
+    <a href="LICENSE">
         <img src="https://img.shields.io/github/license/abdera7mane/Giscord?style=for-the-badge" alt="License">
     </a>
 </p>

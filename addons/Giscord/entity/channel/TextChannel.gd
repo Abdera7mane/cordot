@@ -16,20 +16,28 @@ func send_message(content: String, tts: bool = false, embeds: Array = []) -> Bas
 		params["embeds"] = embeds
 	return get_rest().request_async(
 		DiscordREST.CHANNEL,
-		"create_message",
-		[self.id, params]
+		"create_message", [self.id, params]
 	)
 
-func edit_message(message_id: int, content: String, embeds: Array = []):
-	var params: Dictionary = {
-		content = content
-	}
-	if embeds.size() > 0:
-		params["embeds"] = embeds
+func fetch_messages(data: ChannelFetchMessgesParams = null) -> Array:
 	return get_rest().request_async(
 		DiscordREST.CHANNEL,
-		"edit_message",
-		[self.id, message_id, params]
+		"get_messages", [self.id, data.to_dict() if data else {}]
+	)
+
+func fetch_message(message_id: int) -> BaseMessage:
+	return get_rest().request_async(
+		DiscordREST.CHANNEL,
+		"get_message", [self.id, message_id]
+	)
+
+func fetch_last_message() -> BaseMessage:
+	return fetch_message(last_message_id) if last_message_id else Awaiter.submit()
+
+func delete_messages(message_ids: PoolStringArray) -> bool:
+	return get_rest().request_async(
+		DiscordREST.CHANNEL,
+		"bulk_delete_messages", [self.id, message_ids]
 	)
 
 func get_last_message() -> BaseMessage:

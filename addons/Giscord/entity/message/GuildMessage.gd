@@ -17,6 +17,15 @@ func get_guild() -> Guild:
 func get_member() -> Guild.Member:
 	return self.guild.get_member(author_id)
 
+func crosspost() -> GuildMessage:
+	if self.channel.type != Channel.Type.GUILD_NEWS:
+		push_error("Can not crosspost a message in a non-news channel")
+		return Awaiter.submit()
+	return get_rest().request_async(
+		DiscordREST.CHANNEL,
+		"crosspost_message", [channel_id, self.id]
+	)
+
 func get_class() -> String:
 	return "GuildMessage"
 

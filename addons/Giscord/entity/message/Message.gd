@@ -98,8 +98,69 @@ func edit(new_content: String, new_embeds: Array = []) -> Message:
 		params["embeds"] = new_embeds
 	return get_rest().request_async(
 		DiscordREST.CHANNEL,
-		"edit_message",
-		[channel_id, self.id, params]
+		"edit_message", [channel_id, self.id, params]
+	)
+
+func fetch_message() -> Message:
+	return get_rest().request_async(
+		DiscordREST.CHANNEL,
+		"get_message", [channel_id, self.id]
+	)
+
+func fetch_referenced_message() -> Message:
+	return get_rest().request_async(
+		DiscordREST.CHANNEL,
+		"get_message", [channel_id, referenced_message_id]
+	) if referenced_message_id != 0 else Awaiter.submit()
+
+func react(emoji: Emoji) -> bool:
+	return get_rest().request_async(
+		DiscordREST.CHANNEL,
+		"create_reaction", [channel_id, self.id, emoji]
+	)
+
+func unreact(emoji: Emoji) -> bool:
+	return get_rest().request_async(
+		DiscordREST.CHANNEL,
+		"delete_own_reaction", [channel_id, self.id, emoji]
+	)
+
+func remove_reaction(user_id: int, emoji: Emoji) -> bool:
+	return get_rest().request_async(
+		DiscordREST.CHANNEL,
+		"delete_user_reaction", [channel_id, self.id, emoji, user_id]
+	)
+
+func fetch_reactions(emoji: Emoji, after: int = 0, limit: int = 25) -> Array:
+	return get_rest().request_async(
+		DiscordREST.CHANNEL,
+		"get_reactions", [channel_id, self.id, emoji, after, limit]
+	)
+
+func clear_all_reactions() -> void:
+	yield(get_rest().request_async(
+		DiscordREST.CHANNEL,
+		"delete_all_reactions", [channel_id, self.id]
+	), "completed")
+
+func clear_emoji_reactions(emoji: Emoji) -> void:
+	yield(get_rest().request_async(
+		DiscordREST.CHANNEL,
+		"delete_emoji_reactions", [channel_id, self.id, emoji]
+	), "completed")
+
+func delete() -> bool:
+	var bot_id: int = get_container().bot_id
+	if bot_id != author_id:
+		push_error("Can not delete a message that was not sent by the client")
+		yield(Awaiter.submit(), "completed")
+		return false
+	return _delete()
+
+func _delete() -> bool:
+	return get_rest().request_async(
+		DiscordREST.CHANNEL,
+		"delete_message", [channel_id, self.id]
 	)
 
 func get_class() -> String:

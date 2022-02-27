@@ -273,9 +273,9 @@ func fetch_member(member_id: int) -> Member:
 		"get_guild_member", [self.id, member_id]
 	)
 
-func list_members(limit: int = 1, after: int = 0) -> Array:
+func fetch_members(limit: int = 1, after: int = 0) -> Array:
 	if limit < 1 or limit > 1000:
-		push_error("list_member() 'limit' argument must be in range of 1 to 1000")
+		push_error("fetch_member() 'limit' argument must be in range of 1 to 1000")
 		yield(Awaiter.submit(), "completed")
 		return []
 	return get_rest().request_async(
@@ -829,6 +829,24 @@ class ChannelCategory extends Channel:
 	func get_guild() -> Guild:
 		return self.get_container().guilds.get(guild_id)
 	
+	func edit(data: GuildChannelEditData) -> ChannelCategory:
+		var bot_id: int = get_container().bot_id
+		var self_permissions: BitFlag = self.guild.get_member(bot_id).permissions_in(self.id)
+		
+		var fail: bool = false
+		if not self_permissions.MANAGE_CHANNELS:
+			push_error("Can not edit channel, missing MANAGE_CHANNELS permission")
+			fail = true
+		elif data.has("permission_overwrites") and not self_permissions.MANAGE_ROLES:
+			push_error("Can not edit permission overwrites, missing MANAGE_ROLES permission")
+			fail = true
+		if fail:
+			return Awaiter.submit()
+		return get_rest().request_async(
+			DiscordREST.CHANNEL,
+			"edit_channel", [self.id, data.to_dict()]
+		)
+	
 	func get_class() -> String:
 		return "ChannelCategory"
 	
@@ -905,6 +923,27 @@ class GuildTextChannel extends BaseGuildTextChannel:
 	
 	func get_class() -> String:
 		return "Guild.GuildTextChannel"
+	
+	func edit(data: GuildTextChannelEditData) -> GuildTextChannel:
+		var bot_id: int = get_container().bot_id
+		var self_permissions: BitFlag = self.guild.get_member(bot_id).permissions_in(self.id)
+		
+		var fail: bool = false
+		if not self_permissions.MANAGE_CHANNELS:
+			fail = true
+			push_error("Can not edit channel, missing MANAGE_CHANNELS permission")
+		elif data.has("permission_overwrites") and not self_permissions.MANAGE_ROLES:
+			fail = true
+			push_error("Can not edit permission overwrites, missing MANAGE_ROLES permission")
+		elif data.has("type") and not self.guild.has_feature(Features.NEWS):
+			fail = true
+			push_error("Can not convert to news channel, guild is missing NEWS feature")
+		if fail:
+			return Awaiter.submit()
+		return get_rest().request_async(
+			DiscordREST.CHANNEL,
+			"edit_channel", [self.id, data.to_dict()]
+		)
 	
 	func _update(data: Dictionary) -> void:
 		._update(data)
@@ -1033,6 +1072,24 @@ class BaseGuildVoiceChannel extends VoiceChannel:
 	
 	func get_parent() -> ChannelCategory:
 		return self.get_container().channels.get(self.parent_id) if self.parent_id != 0 else null
+	
+	func edit(data: GuildVoiceChannelEditData) -> BaseGuildVoiceChannel:
+		var bot_id: int = get_container().bot_id
+		var self_permissions: BitFlag = self.guild.get_member(bot_id).permissions_in(self.id)
+		
+		var fail: bool = false
+		if not self_permissions.MANAGE_CHANNELS:
+			push_error("Can not edit channel, missing MANAGE_CHANNELS permission")
+			fail = true
+		elif data.has("permission_overwrites") and not self_permissions.MANAGE_ROLES:
+			push_error("Can not edit permission overwrites, missing MANAGE_ROLES permission")
+			fail = true
+		if fail:
+			return Awaiter.submit()
+		return get_rest().request_async(
+			DiscordREST.CHANNEL,
+			"edit_channel", [self.id, data.to_dict()]
+		)
 	
 	func get_class() -> String:
 		return "Guild.BaseGuildVoiceChannel"
@@ -1389,12 +1446,12 @@ class Invite:
 		guild = data.get("guild")
 		channel = data.get("channel")
 		inviter = data.get("inviter")
-		target_type = data.get("target_type")
+		target_type = data.get("target_type", 0)
 		target_user = data.get("target_user")
 		target_application = data.get("target_application")
-		presence_count = data.get("presence_count")
-		member_count = data.get("member_count")
-		expires_at = data.get("expires_at")
+		presence_count = data.get("presence_count", 0)
+		member_count = data.get("member_count", 0)
+		expires_at = data.get("expires_at", 0)
 		stage_instance = data.get("stage_instance")
 		scheduled_event = data.get("scheduled_event")
 	

@@ -27,10 +27,11 @@ func delete_channel(channel_id: int) -> Channel:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_channel_response(response)
 
-func get_messages(channel_id: int) -> Array:
+func get_messages(channel_id: int, query: Dictionary = {limit = 50}) -> Array:
 	var messages: Array = []
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.CHANNEL_MESSAGES.format({channel_id = channel_id})
+		+ "?" + HTTPClient.new().query_string_from_dict(query)
 	).method_get()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	if response.successful():
@@ -66,9 +67,9 @@ func crosspost_message(channel_id: int, message_id: int) -> Message:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_message_response(response)
 
-func create_Reaction(channel_id: int, message_id: int, emoji: Emoji) -> bool:
+func create_reaction(channel_id: int, message_id: int, emoji: Emoji) -> bool:
 	var request: RestRequest = rest_request(
-		DiscordREST.ENDPOINTS.MESSAGE_REACTION.format({
+		DiscordREST.ENDPOINTS.MESSAGE_OWN_REACTION.format({
 			channel_id = channel_id,
 			message_id = message_id,
 			emoji = emoji.url_encoded()
@@ -79,7 +80,7 @@ func create_Reaction(channel_id: int, message_id: int, emoji: Emoji) -> bool:
 
 func delete_own_reaction(channel_id: int, message_id: int, emoji: Emoji) -> bool:
 	var request: RestRequest = rest_request(
-		DiscordREST.ENDPOINTS.MESSAGE_REACTION.format({
+		DiscordREST.ENDPOINTS.MESSAGE_OWN_REACTION.format({
 			channel_id = channel_id,
 			message_id = message_id,
 			emoji = emoji.url_encoded()
@@ -100,14 +101,16 @@ func delete_user_reaction(channel_id: int, message_id: int, emoji: Emoji, user_i
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
-func get_reactions(channel_id: int, message_id: int, emoji: Emoji) -> Array:
+func get_reactions(channel_id: int, message_id: int, emoji: Emoji, after: int = 0, limit: int = 25) -> Array:
 	var users: Array = []
 	var request: RestRequest = rest_request(
-		DiscordREST.ENDPOINTS.MESSAGE_REACTIONS.format({
+		DiscordREST.ENDPOINTS.MESSAGE_REACTION.format({
 			channel_id = channel_id,
 			message_id = message_id,
 			emoji = emoji.url_encoded()
 		})
+		+ "?limit=" + str(limit)
+		+ ("&after=" + str(after)) if after > 0 else ""
 	).method_get()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	if response.successful():
@@ -118,7 +121,7 @@ func get_reactions(channel_id: int, message_id: int, emoji: Emoji) -> Array:
 
 func delete_all_reactions(channel_id: int, message_id: int) -> void:
 	var request: RestRequest = rest_request(
-		DiscordREST.ENDPOINTS.MESSAGE_ALL_REACTIONS.format({
+		DiscordREST.ENDPOINTS.MESSAGE_REACTIONS.format({
 			channel_id = channel_id,
 			message_id = message_id
 		})
@@ -127,7 +130,7 @@ func delete_all_reactions(channel_id: int, message_id: int) -> void:
 
 func delete_emoji_reactions(channel_id: int, message_id: int, emoji: Emoji) -> void:
 	var request: RestRequest = rest_request(
-		DiscordREST.ENDPOINTS.MESSAGE_REACTIONS.format({
+		DiscordREST.ENDPOINTS.MESSAGE_REACTION.format({
 			channel_id = channel_id,
 			message_id = message_id,
 			emoji = emoji.url_encoded()

@@ -12,6 +12,12 @@ func _init(data: Dictionary).(data) -> void:
 	owner_id = data["owner_id"]
 	icon_hash = data.get("icon_hash", "")
 
+func edit(data: GroupDMEditData) -> GroupDMChannel:
+	return get_rest().request_async(
+		DiscordREST.CHANNEL,
+		"edit_channel", [data.to_dict()]
+	)
+
 func get_owner() -> User:
 	return self.get_recipient_by_id(owner_id)
 

@@ -1,14 +1,21 @@
+> :information_source: **Note:** If you are looking to integrate your game with the Discord client, check out [Discord RPC](https://github.com/Abdera7mane/Discord-RPC-GDScript).
+
 # Giscord
 
-Discord API wrapper for [Godot Engine](https://github.com/godotengine/godot) written in **GDScript** language.
-
 <p align="center">
-  <img src="screenshots/ping-pong.png" alt="Material Bread logo">
+    Discord API wrapper for <a href="https://github.com/godotengine/godot">Godot Engine</a> written in <b>GDScript</b> language.
+    <img src="screenshots/ping-pong.png" alt="Ping pong example">
+    <br>
+    <a href="https://godotengine.org/download">
+        <img src="https://img.shields.io/static/v1?label=Godot&message=3.5.x&color=478cbf&style=for-the-badge&logo=godotengine&logoColor=white" alt="Godot version">
+    </a>
+    <a href="https://discord.com/developers/docs/reference">
+        <img src="https://img.shields.io/static/v1?label=Discord%20API&message=V8&color=5865f2&style=for-the-badge&logo=discord&logoColor=white" alt="Discord API version">
+    </a>
+    <a href="LICENCE">
+        <img src="https://img.shields.io/github/license/abdera7mane/Giscord?style=for-the-badge" alt="License">
+    </a>
 </p>
-
-![Godot version](https://img.shields.io/static/v1?label=Godot&message=3.5.x&color=478cbf&style=for-the-badge&logo=godotengine&logoColor=white)
-![Discord API version](https://img.shields.io/static/v1?label=Discord%20API&message=V8&color=5865f2&style=for-the-badge&logo=discord&logoColor=white)
-![License](https://img.shields.io/github/license/abdera7mane/Giscord?style=for-the-badge)
 
 # Features
 

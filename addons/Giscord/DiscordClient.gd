@@ -15,13 +15,13 @@ signal disconnected()
 
 signal raw_event(event, payload)
 signal client_ready(user)
-signal channel_created(channel)
-signal channel_updated(old, new)
-signal channel_deleted(channel)
+signal channel_created(guild, channel)
+signal channel_updated(guild, old, new)
+signal channel_deleted(guild, channel)
 signal channel_pins_updated(channel, last_pin)
-signal thread_created(thread)
-signal thread_updated(old, new)
-signal thread_deleted(thread)
+signal thread_created(guild, thread)
+signal thread_updated(guild, old, new)
+signal thread_deleted(guild, thread)
 signal thread_list_sync()
 signal thread_member_updated(thread)
 signal thread_members_updated(thread)
@@ -38,10 +38,10 @@ signal guild_integrations_updated(guild, integration)
 signal guild_role_created(guild, role)
 signal guild_role_updated(guild, old, new)
 signal guild_role_deleted(guild, role)
+signal integration_created(integration)
+signal integration_updated(old, new)
+signal integration_deleted(integration)
 signal interaction_created(interaction)
-signal interaction_updated(old, new)
-signal interaction_deleted(interaction)
-signal interaction_triggered(interaction)
 signal invite_created(invite)
 signal invite_deleted(invite)
 signal member_joined(guild, member)
@@ -70,6 +70,11 @@ var entity_manager: BaseDiscordEntityManager   setget __set
 var rest: DiscordRESTAdapter                   setget __set
 var gateway_websocket: DiscordWebSocketAdapter setget __set
 var voice_websocket: VoiceWebSocketAdapter     setget __set
+
+var commands_map: Dictionary = {
+	application = {},
+	text = {}
+} setget __set
 
 func _init(token: String, intents: int = GatewayIntents.UNPRIVILEGED) -> void:
 	name = "DiscordClient"
@@ -128,8 +133,36 @@ func get_channel(id: int) -> Channel:
 func get_application(id: int) -> DiscordApplication:
 	return self.entity_manager.get_application(id)
 
+func get_client_application() -> DiscordApplication:
+	return get_application(entity_manager.container.application_id)
+
 func get_team(id: int) -> DiscordTeam:
 	return self.entity_manager.get_team(id)
+
+func register_application_command_executor(
+	command: String, executor: ApplicationCommandExecutor
+) -> void:
+	commands_map.application[command] = executor
+
+func register_application_command(
+	builder: ApplicationCommandBuilder, guild_id: int = 0
+) -> DiscordApplicationCommand:
+	if not is_client_connected():
+		push_error("Discord client must be connected in order to register  application commands")
+		return yield(get_tree(), "idle_frame")
+	
+	var application_id: int = get_client_application().id
+	if guild_id:
+		return rest.application.create_guild_application_command(
+			application_id,
+			guild_id,
+			builder.build()
+		)
+	
+	return rest.application.create_global_application_command(
+		application_id,
+		builder.build()
+	)
 
 func get_class() -> String:
 	return "DiscordClient"
@@ -148,9 +181,10 @@ func _create_gateway_websocket(_entity_manager: BaseDiscordEntityManager) -> Dis
 		ChannelPacketsHandler.new(_entity_manager),
 		GuildPacketsHandler.new(_entity_manager),
 		MessagePacketsHandler.new(_entity_manager),
-		ThreadPacketshandler.new(_entity_manager),
+		ThreadPacketsHandler.new(_entity_manager),
 		IntegrationPacketshandler.new(_entity_manager),
-		ReadyPacketHandler.new(_connection_state, _entity_manager)
+		ReadyPacketHandler.new(_connection_state, _entity_manager),
+		InteractionPacketsHandler.new(_entity_manager)
 	]
 	
 	for handler in handlers:
@@ -204,6 +238,17 @@ func _on_packet(packet: DiscordPacket) -> void:
 func _transmit_event(event: String, arguments: Array) -> void:
 	if self.has_signal(event):
 		self.callv("emit_signal", [event] + arguments)
+		if event == "interaction_created":
+			var interaction: DiscordInteraction = arguments[0]
+			var command: String = interaction.data.name
+			if commands_map.application.has(command):
+				var executor: ApplicationCommandExecutor = commands_map.application[command]
+				if interaction.is_command():
+					executor.interact(interaction)
+				elif interaction.is_autocomplete():
+					executor.autocomplete(interaction)
+	else:
+		assert(true, "Transmitted non-existing event '%s'")
 
 func _to_string() -> String:
 	return "[%s:%d]" % [self.get_class(), self.get_instance_id()]

@@ -1,8 +1,10 @@
 class_name DiscordREST
 
 enum {
+	APPLICATION,
 	CHANNEL,
 	GUILD,
+	INTERACTION,
 	USER,
 	WEBHOOK
 }
@@ -121,5 +123,17 @@ const ENDPOINTS: Dictionary = {
 	STICKER_PACK_BANNER = "/app-assets/710982414301790216/store/{asset_id}",
 	TEAM_ICON = "/team-icons/{team_id}/{hash}",
 	STICKER_RESOURCE = "/stickers/{sticker_id}",
-	ROLE_ICON = "/role-icons/{role_id}/{hash}"
+	ROLE_ICON = "/role-icons/{role_id}/{hash}",
+	
+	# Application endpoints
+	APPLICATION_COMMANDS = "/applications/{application_id}/commands",
+	APPLICATION_COMMAND = "/applications/{application_id}/commands/{command_id}",
+	GUILD_APPLICATION_COMMANDS = "/applications/{application_id}/guilds/{guild_id}/commands",
+	GUILD_APPLICATION_COMMAND = "/applications/{application_id}/guilds/{guild_id}/commands/{command_id}",
+	
+	# Interaction endpoints
+	INTERACTION_CALLBACK = "/interactions/{interaction_id}/{token}/callback",
+	INTERACTION_ORIGINAL_RESPONSE = "/webhooks/{application_id}/{token}/messages/@original",
+	CREATE_FOLLOWUP_MESSAGE = "/webhooks/{application_id}/{token}",
+	FOLLOWUP_MESSAGE = "/webhooks/{application_id}/{token}/messages/{message_id}"
 }

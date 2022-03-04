@@ -8,9 +8,11 @@ enum CacheFlags {
 
 var container: Dictionary = DiscordEntity.DEFAULT_CONTAINER.duplicate()
 
+var application_manager: BaseDiscordApplicationManager
 var channel_manager: BaseChannelManager
 var emoji_manager: BaseEmojiManager
 var guild_manager: BaseGuildManager
+var interaction_manager: BaseDiscordInteractionManager
 var message_manager: BaseMessageManager
 var user_manager: BaseUserManager
 
@@ -36,14 +38,27 @@ func reset() -> void:
 
 func get_or_construct_channel(data: Dictionary) -> Channel:
 	var id: int = data["id"] as int
+	var type: int = data["type"]
+	var guild: Guild = get_guild(data.get("guild_id", 0) as int)
 	var channel: Channel = self.get_channel(id)
-	
+	match type:
+		Channel.Type.GUILD_NEWS_THREAD,\
+		Channel.Type.GUILD_PRIVATE_THREAD,\
+		Channel.Type.GUILD_PUBLIC_THREAD:
+			if guild:
+				channel = guild.get_thread(id)
+		_:
+			channel = get_channel(id)
+		
 	if channel:
 		self.channel_manager.update_channel(channel, data)
 	
 	else:
 		channel = self.channel_manager.construct_channel(data)
-		self.put_channel(channel)
+		if channel is Guild.ThreadChannel and guild:
+			guild._threads[channel.id] = channel
+		else:
+			put_channel(channel)
 	
 	return channel
 

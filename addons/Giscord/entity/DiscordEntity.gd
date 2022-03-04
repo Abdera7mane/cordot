@@ -8,7 +8,8 @@ const DEFAULT_CONTAINER: Dictionary = {
 	presences    = {},
 	users        = {},
 	teams        = {},
-	bot_id       = 0
+	bot_id       = 0,
+	application_id = 0
 }
 
 var snowflake: Snowflake setget __set
@@ -46,11 +47,6 @@ func get_class() -> String:
 
 func _clone_data() -> Array:
 	return []
-
-func _notification(what: int) -> void:
-	match what:
-		NOTIFICATION_PREDELETE:
-			pass
 
 func _to_string() -> String:
 	return "[%s<%d>:%d]" % [self.get_class(), self.id, self.get_instance_id()]

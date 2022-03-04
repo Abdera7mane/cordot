@@ -39,6 +39,11 @@ func _on_ready(fields: Dictionary) -> void:
 	for guild_data in fields["guilds"]:
 		var guild: Guild = _entity_manager.get_or_construct_guild(guild_data)
 		unavailable_guilds.append(guild.id)
+	
+	var application: DiscordApplication = _entity_manager.application_manager\
+										.construct_application(fields["application"])
+	_entity_manager.container.applications[application.id] = application
+	_entity_manager.container.application_id = application.id
 
 func _on_guild_created(fields: Dictionary) -> void:
 	if not ready:

@@ -22,6 +22,7 @@ func set_hoist(value: bool) -> RoleCreateData:
 	return self
 
 func set_icon(image: Image) -> RoleCreateData:
+	# warning-ignore:incompatible_ternary
 	_data["icon"] = Marshalls.raw_to_base64(image.get_data()) if image else null
 	return self
 

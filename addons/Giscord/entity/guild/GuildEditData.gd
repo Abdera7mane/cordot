@@ -1,13 +1,12 @@
 class_name GuildEditData
 
 # warning-ignore-all:return_value_discarded
+# warning-ignore-all:incompatible_ternary
 
 var _data: Dictionary setget __set, to_dict
 
 func set_name(name: String) -> GuildEditData:
-	if name.strip_edges().empty():
-		_data.erase("name")
-	_data["name"] = name
+	_data["name"] = name.strip_edges()
 	return self
 
 func set_verification_level(level: int) -> GuildEditData:

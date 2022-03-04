@@ -9,6 +9,7 @@ func set_name(name: String) -> GroupDMEditData:
 	return self
 
 func set_icon(image: Image) -> GroupDMEditData:
+	# warning-ignore:incompatible_ternary
 	_data["icon"] = Marshalls.raw_to_base64(image.get_data()) if image else null
 	return self
 

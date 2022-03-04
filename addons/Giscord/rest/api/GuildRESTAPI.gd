@@ -350,8 +350,8 @@ func get_guild_widget_image(guild_id: int, style: String = "shield") -> Texture:
 	if response.successful():
 		widget_image = ImageTexture.new()
 		var image: Image = Image.new()
-		image.load_png_from_buffer(response.body)
-		widget_image.create_from_image(image)
+		if image.load_png_from_buffer(response.body) == OK:
+			widget_image.create_from_image(image)
 	return widget_image
 
 func get_guild_welcome_screen(guild_id: int) -> WelcomeScreen:

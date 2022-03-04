@@ -112,7 +112,6 @@ func parse_user_payload(data: Dictionary) -> Dictionary:
 		discriminator = data.get("discriminator", 0) as int,
 		avatar_hash = Dictionaries.get_non_null(data, "avatar", ""),
 	}
-	
 	if data.has("bot"):
 		parsed_data["is_bot"] = data["bot"]
 	if data.has("system"):
@@ -122,7 +121,8 @@ func parse_user_payload(data: Dictionary) -> Dictionary:
 	if data.has("banner"):
 		parsed_data["banner_hash"] = Dictionaries.get_non_null(data, "banner", "")
 	if data.has("accent_color"):
-		parsed_data["accent"] = Color(Dictionaries.get_non_null(data, "accent_color", 0))
+		var color: Color = Colors.from_rgb24(Dictionaries.get_non_null(data, "accent_color", 0))
+		parsed_data["accent"] = color
 	if data.has("local"):
 		parsed_data["local"] = data["local"]
 	if data.has("verified"):

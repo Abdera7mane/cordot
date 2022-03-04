@@ -40,6 +40,10 @@ func _on_message_create(fields: Dictionary) -> void:
 				recipients = [fields["author"]],
 				last_message_id = fields["id"]
 			})
+	elif not channel:
+		var guild_id: int = fields["guild_id"] as int
+		var guild: Guild = _entity_manager.get_guild(guild_id)
+		channel = guild.get_thread(channel_id)
 		
 	if channel:
 		message = _entity_manager.get_or_construct_message(fields)
@@ -141,7 +145,12 @@ func _on_reactions_clear_emoji(fields: Dictionary) -> void:
 				break
 
 func _on_typing_start(fields: Dictionary) -> void:
-	var channel: TextChannel = _entity_manager.get_channel(fields["channel_id"] as int)
+	var channel_id: int = fields["channel_id"] as int
+	var channel: TextChannel = _entity_manager.get_channel(channel_id)
+	if not channel and fields.has("guild_id"):
+		var guild_id: int = fields["guild_id"] as int
+		var guild: Guild = _entity_manager.get_guild(guild_id)
+		channel = guild.get_thread(channel_id)
 	var user: User = _entity_manager.get_user(fields["user_id"] as int)
 	var timestamp: int = fields["timestamp"]
 	if channel and user:

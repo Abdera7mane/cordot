@@ -22,7 +22,7 @@ func _on_channel_create(fields: Dictionary) -> void:
 	var channel: Channel = _entity_manager.get_or_construct_channel(fields)
 	if channel.is_guild():
 		channel.guild._add_channel(channel.id)
-		self.emit_signal("transmit_event", "channel_created", [channel])
+		self.emit_signal("transmit_event", "channel_created", [channel.guild, channel])
 
 func _on_channel_update(fields: Dictionary) -> void:
 	var id: int = fields["id"] as int
@@ -30,7 +30,7 @@ func _on_channel_update(fields: Dictionary) -> void:
 	if channel:
 		var old: Channel = channel.clone()
 		_entity_manager.channel_manager.update_channel(channel, fields)
-		self.emit_signal("transmit_event", "channel_updated", [old, channel])
+		self.emit_signal("transmit_event", "channel_updated", [channel.guild, old, channel])
 
 func _on_channel_delete(fields: Dictionary) -> void:
 	var channel: Channel = _entity_manager.get_or_construct_channel(fields)
@@ -38,10 +38,15 @@ func _on_channel_delete(fields: Dictionary) -> void:
 		if channel.is_guild():
 			channel.guild._remove_channel(channel.id)
 		_entity_manager.remove_channel(channel.id)
-		self.emit_signal("transmit_event", "channel_deleted", [channel])
+		self.emit_signal("transmit_event", "channel_deleted", [channel.guild, channel])
 
 func _on_channel_pins_update(fields: Dictionary) -> void:
-	var channel: TextChannel = _entity_manager.get_channel(fields["channel_id"] as int)
+	var channel_id: int = fields["channel_id"] as int
+	var channel: TextChannel = _entity_manager.get_channel(channel_id)
+	if not channel and fields.has("guild_id"):
+		var guild_id: int = fields["guild_id"] as int
+		var guild: Guild = _entity_manager.get_guild(guild_id)
+		channel = guild.get_thread(channel_id)
 	var last_pin: int = TimeUtil.iso_to_unix(Dictionaries.get_non_null(fields, "last_pin_timestamp", ""))
 	
 	if channel:

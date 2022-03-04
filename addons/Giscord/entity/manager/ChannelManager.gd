@@ -92,6 +92,9 @@ func construct_guild_store_channel(data: Dictionary) -> Guild.GuildStoreChannel:
 func construct_thread_channel(data: Dictionary) -> Guild.ThreadChannel:
 	return Guild.ThreadChannel.new(parse_thread_channel_payload(data))
 
+func construct_thread_mdetadata(data: Dictionary) -> Guild.ThreadMetaData:
+	return Guild.ThreadMetaData.new(parse_thread_metadata(data))
+
 func construct_stage_channel(data: Dictionary) -> Guild.StageChannel:
 	return Guild.StageChannel.new(parse_guild_voice_channel_payload(data))
 
@@ -142,8 +145,8 @@ func parse_guild_text_channel_payload(data: Dictionary) -> Dictionary:
 		{
 			topic = Dictionaries.get_non_null(data, "topic", ""),
 			rate_limit_per_user = data["rate_limit_per_user"],
-#			nsfw = data["nsfw"],  V9
-#			default_auto_archive_duration = data["default_auto_archive_duration"] V9
+			nsfw = data.get("nsfw", false),
+			auto_archive_duration = data.get("default_auto_archive_duration", 0)
 		})
 	)
 
@@ -185,26 +188,39 @@ func parse_group_dm_channel_payload(data: Dictionary) -> Dictionary:
 	)
 
 func parse_thread_channel_payload(data: Dictionary) -> Dictionary:
-	var metadata: Dictionary = data["thread_metadata"]
+	var parsed_data: Dictionary = {
+		id = data["id"] as int,
+		name = data["name"],
+		guild_id = data["guild_id"] as int,
+		parent_id = data["parent_id"] as int,
+		owner_id = data["owner_id"] as int,
+		rate_limit_per_user = data["rate_limit_per_user"],
+		auto_archive_duration = data.get("auto_archive_duration", 0),
+		type = data["type"]
+	}
+	if data.has("message_count"):
+		parsed_data["message_count"] = data["message_count"]
+	if data.has("member_count"):
+		parsed_data["member_count"] = data["member_count"]
+	if data.has("thread_metadata"):
+		parsed_data["metadata"] = construct_thread_mdetadata(data["thread_metadata"])
+	
 	return Dictionaries.merge(
 		parse_text_channel_payload(data),
-		{
-			id = data["id"] as int,
-			guild_id = data["guild_id"] as int,
-			parent_id = data["parent_id"] as int,
-			owner_id = data["owner_id"] as int,
-			name = data["name"],
-			type = data["type"],
-			message_count = data["message_count"],
-			member_count = data["member_count"],
-			rate_limit_per_user = data["rate_limit_per_user"],
-			archived = metadata[""],
-			auto_archive_duration = metadata["auto_archive_duration"],
-			archive_timestamp = TimeUtil.iso_to_unix(metadata["archive_timestamp"]),
-			locked = metadata["locked"],
-			invitable = metadata["invitable"]
-		}
+		parsed_data
 	)
+
+func parse_thread_metadata(data: Dictionary) -> Dictionary:
+	return {
+		archived = data["archived"],
+		auto_archive_duration = data["auto_archive_duration"],
+		archive_timestamp = TimeUtil.iso_to_unix(data["archive_timestamp"]),
+		locked = data["locked"],
+		invitable = data.get("invitable", false),
+		create_timestamp = TimeUtil.iso_to_unix(
+			Dictionaries.get_non_null(data, "create_timestamp", "")
+		)
+	}
 
 func get_class() -> String:
 	return "ChannelManager"

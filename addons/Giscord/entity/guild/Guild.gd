@@ -72,6 +72,10 @@ enum Features {
 var _members: Dictionary                     setget __set
 var _roles: Dictionary                       setget __set
 var _emojis: Dictionary                      setget __set
+var _threads: Dictionary                     setget __set
+var _stage_instances: Dictionary             setget __set
+var _stickers: Dictionary                    setget __set
+var _scheduled_events: Dictionary            setget __set
 
 var name: String                             setget __set
 var description: String                      setget __set
@@ -118,6 +122,11 @@ var public_updates_channel: GuildTextChannel setget __set, get_public_updates_ch
 var max_video_channel_users: int             setget __set
 var welcome_screen: WelcomeScreen            setget __set
 var nsfw_level: int                          setget __set
+var threads: Array                           setget __set, get_threads
+var stage_instances: Array                   setget __set, get_stage_instances
+var stickers: Array                          setget __set, get_stickers
+var scheduled_events: Array                  setget __set, get_scheduled_events
+var progress_bar_enabled: bool               setget __set
 
 func _init(data: Dictionary).(data.id) -> void:
 	system_channel_flags = BitFlag.new(SystemChannelFlags)
@@ -184,8 +193,8 @@ func get_owner() -> Member:
 func get_roles() -> Array:
 	return self._roles.values()
 
-func get_role(id: int) -> Role:
-	return self._roles.get(id)
+func get_role(role_id: int) -> Role:
+	return self._roles.get(role_id)
 
 func get_default_role() -> Role:
 	return get_role(self.id)
@@ -193,8 +202,32 @@ func get_default_role() -> Role:
 func get_emojis() -> Array:
 	return self._emojis.values()
 
-func get_emoji(id: int) -> GuildEmoji:
-	return self._emojis.get(id)
+func get_emoji(emoji_id: int) -> GuildEmoji:
+	return self._emojis.get(emoji_id)
+
+func get_threads() -> Array:
+	return _threads.values()
+
+func get_thread(thread_id: int) -> ThreadChannel:
+	return _threads.get(thread_id)
+
+func get_stage_instances() -> Array:
+	return _stage_instances.values()
+
+func get_stage_instance(stage_id: int) -> StageInstance:
+	return _stage_instances.get(stage_id)
+
+func get_stickers() -> Array:
+	return _stickers.values()
+
+func get_sticker(sticker_id: int) -> Object:
+	return _stickers.get(sticker_id)
+
+func get_scheduled_events() -> Array:
+	return _scheduled_events.values()
+
+func get_scheduled_event(event_id: int) -> GuildScheduledEvent:
+	return _scheduled_events.get(event_id)
 
 func get_icon_url(format: String = "png", size: int = 128) -> String:
 	if not has_icon():
@@ -504,6 +537,13 @@ func _update(data: Dictionary) -> void:
 	public_updates_channel_id = data.get("public_updates_channel_id", public_updates_channel_id)
 	
 	welcome_screen = data.get("welcome_screen", welcome_screen)
+	
+	
+	_threads = data.get("threads", _threads)
+	_stage_instances = data.get("stage_instances", _stage_instances)
+	_stickers = data.get("stickers", _stickers)
+	_scheduled_events = data.get("scheduled_events", _scheduled_events)
+	progress_bar_enabled = data.get("progress_bar_enabled", progress_bar_enabled)
 
 func _clone_data() -> Array:
 	return [{
@@ -545,7 +585,15 @@ func _clone_data() -> Array:
 		channels_ids = self.channels_ids.duplicate(),
 		members = self._members.duplicate(),
 		roles = self._roles.duplicate(),
-		emojis = self._emojis.duplicate()
+		emojis = self._emojis.duplicate(),
+		
+		welcome_screen = self.welcome_screen,
+		
+		threads = self._threads.duplicate(),
+		stage_instances = self._stage_instances.duplicate(),
+		stickers = self._stickers.duplicate(),
+		scheduled_events = self._scheduled_events.duplicate(),
+		progress_bar_enabled = self.progress_bar_enabled
 	}]
 
 func __set(_value) -> void:
@@ -853,7 +901,6 @@ class ChannelCategory extends Channel:
 	func _update(data: Dictionary) -> void:
 		._update(data)
 		name = data.get("name", name)
-		guild_id = data.get("guild_id", guild_id)
 		position = data.get("position", position)
 		overwrites = data.get("overwrites", overwrites)
 	
@@ -906,11 +953,12 @@ class BaseGuildTextChannel extends TextChannel:
 		pass
 
 class GuildTextChannel extends BaseGuildTextChannel:
-	var topic: String           setget __set
-	var parent_id: int          setget __set
-	var parent: ChannelCategory setget __set, get_parent
-	var overwrites: Dictionary  setget __set
-	var nsfw: bool              setget __set
+	var topic: String              setget __set
+	var parent_id: int             setget __set
+	var parent: ChannelCategory    setget __set, get_parent
+	var overwrites: Dictionary     setget __set
+	var nsfw: bool                 setget __set
+	var auto_archive_duration: int setget __set
 	
 	func _init(data: Dictionary).(data) -> void:
 		type = Channel.Type.GUILD_TEXT
@@ -951,6 +999,7 @@ class GuildTextChannel extends BaseGuildTextChannel:
 		parent_id = data.get("parent_id", parent_id)
 		overwrites = data.get("overwrites", overwrites)
 		nsfw = data.get("nsfw", nsfw)
+		auto_archive_duration = data.get("auto_archive_duration", auto_archive_duration)
 	
 	func _clone_data() -> Array:
 		var data: Array = ._clone_data()
@@ -960,6 +1009,7 @@ class GuildTextChannel extends BaseGuildTextChannel:
 		arguments["parent_id"] = self.parent_id
 		arguments["overwrites"] = self.overwrites.duplicate()
 		arguments["nsfw"] = self.nsfw
+		arguments["auto_archive_duration"] = self.auto_archive_duration
 		
 		return data
 	
@@ -974,40 +1024,80 @@ class GuildNewsChannel extends GuildTextChannel:
 		return "Guild.GuildNewsChannel"
 
 class ThreadChannel extends BaseGuildTextChannel:
+	var owner_id: int            setget __set
+	var owner: Member            setget __set, get_owner
+	var parent_id: int           setget __set
+	var parent: GuildTextChannel setget __set, get_parent
+	var message_count: int       setget __set
+	var member_count: int        setget __set
+	var metadata: ThreadMetaData setget __set
+	
+	func _init(data: Dictionary).(data) -> void:
+		type = data["type"]
+		owner_id = data["owner_id"]
+		parent_id = data["parent_id"]
+	
+	func get_owner() -> Member:
+		return self.guild.get_member(owner_id)
+	
+	func get_parent() -> GuildTextChannel:
+		return self.guild.get_channel(parent_id) as GuildTextChannel
+	
+	func get_class() -> String:
+		return "Guild.ThreadChannel"
+	
+	func _update(data: Dictionary) -> void:
+		._update(data)
+		message_count = data.get("message_count", message_count)
+		member_count = data.get("member_count", member_count)
+		metadata = data.get("metadata", metadata)
+	
+	func _clone_data() -> Array:
+		var data: Array = ._clone_data()
+		
+		var arguments: Dictionary = data[0]
+		arguments["owner_id"] = self.owner_id
+		arguments["parent_id"] = self.parent_id
+		arguments["message_count"] = self.message_count
+		arguments["member_count"] = self.member_count
+		arguments["metadata"] = self.metadata
+		
+		return data
+	
+	func __set(_value) -> void:
+		pass
+
+class ThreadMetaData:
 	var archived: bool             setget __set
 	var auto_archive_duration: int setget __set
 	var archive_timestamp: int     setget __set
 	var locked: bool               setget __set
-	var parent_id: int             setget __set
-	var parent: GuildTextChannel   setget __set, get_parent
+	var invitable: bool            setget __set
+	var create_timestamp: int      setget __set
 	
-	func _init(data: Dictionary).(data) -> void:
-		type = data["type"]
+	func _init(data: Dictionary) -> void:
+		_update(data)
 	
-	func get_parent() -> GuildTextChannel:
-		return self.get_container().channels.get(self.parent_id)
+	func clone() -> ThreadMetaData:
+		return get_script().new({
+			archived = self.archived,
+			auto_archive_duration = self.auto_archive_duration,
+			archive_timestamp = self.archive_timestamp,
+			locked = self.locked,
+			invitable = self.invitable,
+			create_timestamp = self.create_timestamp
+		})
 	
 	func get_class() -> String:
-		return "Guild.ThreadChannel"
+		return "Guild.ThreadMetaData"
 	
 	func _update(data: Dictionary) -> void:
 		archived = data.get("archived", archived)
 		auto_archive_duration = data.get("auto_archive_duration", auto_archive_duration)
 		archive_timestamp = data.get("archive_timestamp", archive_timestamp)
 		locked = data.get("locked", locked)
-		parent_id = data.get("parent_id", parent_id)
-	
-	func _clone_data() -> Array:
-		var data: Array = ._clone_data()
-		
-		var arguments: Dictionary = data[0]
-		arguments["archived"] = self.archived
-		arguments["auto_archive_duration"] = self.auto_archive_duration
-		arguments["archive_timestamp"] = self.archive_timestamp
-		arguments["locked"] = self.locked
-		arguments["parent_id"] = self.parent_id
-		
-		return data
+		invitable = data.get("invitable", invitable)
+		create_timestamp = data.get("create_timestamp", create_timestamp)
 	
 	func __set(_value) -> void:
 		pass

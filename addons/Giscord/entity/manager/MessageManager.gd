@@ -31,7 +31,7 @@ func construct_embed(data: Dictionary) -> MessageEmbed:
 		description = data.get("description", ""),
 		url = data.get("url", ""),
 		timestamp = TimeUtil.iso_to_unix(data.get("timestamp", "")),
-		color = Color(int(data.get("color", 0))),
+		color = Colors.from_rgb24(int(data.get("color", 0))),
 		footer = construct_embed_footer(data["footer"]) if data.has("footer") else null,
 		image = construct_embed_image(data["image"]) if data.has("image") else null,
 		thumbnail = construct_embed_thumbnail(data["thumbnail"]) if data.has("thumbnail") else null,
@@ -114,7 +114,7 @@ func construct_message_attachment(data: Dictionary) -> MessageAttachment:
 	attachment.set_meta("container", manager.container)
 	attachment.set_meta("rest", manager.rest_mediator)
 	
-	return  attachment
+	return attachment
 
 func construct_message_reference(data: Dictionary) -> MessageReference:
 	return MessageReference.new({

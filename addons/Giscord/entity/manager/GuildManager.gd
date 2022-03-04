@@ -108,7 +108,13 @@ func construct_guild_event_metadata(data: Dictionary) -> Guild.ScheduledEventMet
 	return Guild.ScheduledEventMetadata.new(data.get("location", ""))
 
 func construct_voice_state(data: Dictionary) -> Guild.VoiceState:
-	return Guild.VoiceState.new(parse_voice_state_payload(data))
+	var manager: BaseDiscordEntityManager = get_manager()
+	
+	var state: Guild.VoiceState = Guild.VoiceState.new(parse_voice_state_payload(data))
+	state.set_meta("container", manager.container)
+	state.set_meta("rest", manager.rest_mediator)
+	
+	return state
 
 func update_guild(guild: Guild, data: Dictionary) -> void:
 	guild._update(parse_guild_payload(data))
@@ -182,7 +188,7 @@ func parse_guild_payload(data: Dictionary) -> Dictionary:
 		var channels_ids: Array = []
 		for channel_data in data["channels"]:
 			channel_data["guild_id"] = guild_id
-			var channel = get_manager().get_or_construct_channel(channel_data)
+			var channel = manager.get_or_construct_channel(channel_data)
 			if channel:
 				channels_ids.append(channel.id)
 		parsed_data["channels_ids"] = channels_ids
@@ -191,12 +197,12 @@ func parse_guild_payload(data: Dictionary) -> Dictionary:
 		var emojis: Dictionary = {}
 		for emoji_data in data["emojis"]:
 			emoji_data["guild_id"] = guild_id
-			var emoji: Guild.GuildEmoji = get_manager().get_or_construct_emoji(emoji_data)
+			var emoji: Guild.GuildEmoji = manager.get_or_construct_emoji(emoji_data)
 			emojis[emoji.id] = emoji
 		parsed_data["emojis"] = emojis
 	
 	for presence_data in data.get("presences", []):
-		var _presence: Presence = self.get_manager().get_or_construct_presence(presence_data)
+		var _presence: Presence = manager.get_or_construct_presence(presence_data)
 	
 	if data.has("voice_states"):
 		var voice_states: Dictionary = guild.voice_states if guild else {}
@@ -212,6 +218,12 @@ func parse_guild_payload(data: Dictionary) -> Dictionary:
 		parsed_data["unavailable"] = data["unavailable"]
 	if data.has("member_count"):
 		parsed_data["member_count"] = data["member_count"]
+	if data.has("threads"):
+		var threads: Dictionary = {}
+		for thread_data in data["threads"]:
+			var thread: Guild.ThreadChannel = manager.get_or_construct_channel(thread_data)
+			threads[thread.id] = thread
+		parsed_data["threads"] = threads
 	
 	return parsed_data
 
@@ -251,7 +263,7 @@ func parse_role_payload(data: Dictionary) -> Dictionary:
 		id = data["id"] as int,
 		name = data["name"],
 		guild_id = data["guild_id"],
-		color = Color(int(data["color"])),
+		color = Colors.from_rgb24(int(data["color"])),
 		hoist = data["hoist"],
 		position = data["position"],
 		permissions = data["permissions"] as int,
@@ -300,7 +312,7 @@ func _get_guild_uncached(guild_data: Dictionary) -> Guild:
 	return guild
 
 func _get_guild_member_uncached(guild_id: int, member_data: Dictionary) -> Guild.Member:
-	var member_id: int = member_data["id"] as int
+	var member_id: int = member_data["user"]["id"] as int
 	var guild: Guild = get_manager().get_guild(guild_id)
 	var member: Guild.Member = guild._members.get(member_id)
 	if not member:

@@ -10,7 +10,7 @@
         <img src="https://img.shields.io/static/v1?label=Godot&message=3.5.x&color=478cbf&style=for-the-badge&logo=godotengine&logoColor=white" alt="Godot version">
     </a>
     <a href="https://discord.com/developers/docs/reference">
-        <img src="https://img.shields.io/static/v1?label=Discord%20API&message=V8&color=5865f2&style=for-the-badge&logo=discord&logoColor=white" alt="Discord API version">
+        <img src="https://img.shields.io/static/v1?label=Discord%20API&message=V9&color=5865f2&style=for-the-badge&logo=discord&logoColor=white" alt="Discord API version">
     </a>
     <a href="LICENSE">
         <img src="https://img.shields.io/github/license/abdera7mane/Giscord?style=for-the-badge" alt="License">

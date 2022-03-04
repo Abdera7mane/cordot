@@ -60,7 +60,7 @@ var message_reference: MessageReference setget __set
 var flags: BitFlag                      setget __set
 var referenced_message_id: int          setget __set
 var referenced_message: Message         setget __set, get_referenced_message
-var interaction: DiscordInteraction     setget __set
+var interaction: MessageInteraction     setget __set
 var components: Array                   setget __set
 var sticker_items: Array                setget __set
 
@@ -90,15 +90,10 @@ func get_mentions() -> Array:
 func get_referenced_message() -> Message:
 	return get_container().messages.get(referenced_message_id)
 
-func edit(new_content: String, new_embeds: Array = []) -> Message:
-	var params: Dictionary = {}
-	if not new_content.empty():
-		params["content"] = new_content
-	if new_embeds.size() > 0:
-		params["embeds"] = new_embeds
+func edit(message_edit: MessageEditData) -> Message:
 	return get_rest().request_async(
 		DiscordREST.CHANNEL,
-		"edit_message", [channel_id, self.id, params]
+		"edit_message", [channel_id, self.id, message_edit.to_dict()]
 	)
 
 func fetch_message() -> Message:

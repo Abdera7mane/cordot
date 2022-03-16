@@ -23,6 +23,7 @@ func remove_unvailable_guild(id: int) -> void:
 
 func check_ready() -> void:
 	if unavailable_guilds.empty():
+		ready = true
 		var self_user: User = _entity_manager.get_self()
 		self.emit_signal("transmit_event", "client_ready", [self_user])
 
@@ -44,6 +45,8 @@ func _on_ready(fields: Dictionary) -> void:
 										.construct_application(fields["application"])
 	_entity_manager.container.applications[application.id] = application
 	_entity_manager.container.application_id = application.id
+	
+	check_ready()
 
 func _on_guild_created(fields: Dictionary) -> void:
 	if not ready:

@@ -37,7 +37,8 @@ var locale: String                   setget __set
 var guild_locale: String             setget __set
 var replied: bool                    setget __set
 var deferred: bool                   setget __set
-var last_followup_id: int           setget __set
+var last_followup_id: int            setget __set
+var followup_ids: Array              setget __set
 
 func _init(_data: Dictionary).(_data["id"]) -> void:
 	application_id = _data["application_id"]
@@ -224,34 +225,43 @@ func create_followup(message_data: DiscordInteractionMessage) -> Message:
 		fail = true
 	if fail:
 		return Awaiter.submit()
-	var followup: Message = get_rest().request_async(
+	var followup: Message = yield(get_rest().request_async(
 		DiscordREST.INTERACTION,
 		"create_followup_message", [application_id, token, message_data.to_dict()]
-	)
+	), "completed")
 	if followup:
 		last_followup_id = followup.id
+		followup_ids.append(last_followup_id)
 	return followup
 
-func fetch_followup(message_id: int = last_followup_id) -> Message:
+func fetch_followup(followup_id: int = last_followup_id) -> Message:
 	return get_rest().request_async(
 		DiscordREST.INTERACTION,
-		"create_followup_message", [application_id, token, message_id]
-	) if message_id else Awaiter.submit()
+		"create_followup_message", [application_id, token, followup_id]
+	) if followup_id else Awaiter.submit()
 
-func edit_followup(message_edit: MessageEditData, message_id: int = last_followup_id) -> Message:
+func edit_followup(message_edit: MessageEditData, followup_id: int = last_followup_id) -> Message:
 	return get_rest().request_async(
 		DiscordREST.INTERACTION,
-		"edit_followup_message", [application_id, token, message_id, message_edit.to_dict()]
-	) if message_id else Awaiter.submit()
+		"edit_followup_message", [application_id, token, followup_id, message_edit.to_dict()]
+	) if followup_id else Awaiter.submit()
 
-func delete_followup(message_id: int = last_followup_id) -> bool:
-	if not message_id:
+func delete_followup(followup_id: int = last_followup_id) -> bool:
+	if not followup_id:
 		yield(Awaiter.submit(), "completed")
 		return false
-	return get_rest().request_async(
+		
+	var success: bool = yield(get_rest().request_async(
 		DiscordREST.INTERACTION,
-		"delete_followup_message", [application_id, token, message_id]
-	)
+		"delete_followup_message", [application_id, token, followup_id]
+	), "completed")
+	
+	if success:
+		followup_ids.erase(followup_id)
+		if followup_ids.size() > 0:
+			last_followup_id = followup_ids.back()
+		
+	return success
 
 func fetch_response() -> Message:
 	return get_rest().request_async(

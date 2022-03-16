@@ -31,7 +31,11 @@ func get_messages(channel_id: int, query: Dictionary = {limit = 50}) -> Array:
 	var messages: Array = []
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.CHANNEL_MESSAGES.format({channel_id = channel_id})
-		+ "?" + HTTPClient.new().query_string_from_dict(query)
+		+ (
+			"?" + HTTPClient.new().query_string_from_dict(query) 
+			if not query.empty()
+			else ""
+		)
 	).method_get()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	if response.successful():

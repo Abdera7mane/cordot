@@ -20,10 +20,10 @@ func send_message(content: String, tts: bool = false, embeds: Array = []) -> Bas
 	)
 
 func fetch_messages(data: ChannelFetchMessgesParams = null) -> Array:
-	return get_rest().request_async(
+	return yield(get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"get_messages", [self.id, data.to_dict() if data else {}]
-	)
+	), "completed")
 
 func fetch_message(message_id: int) -> BaseMessage:
 	return get_rest().request_async(

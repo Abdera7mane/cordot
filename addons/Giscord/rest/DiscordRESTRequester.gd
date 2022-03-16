@@ -1,17 +1,12 @@
 class_name DiscordRESTRequester
 
-var last_latency: int
+var limiter: RESTRateLimiter
+
+func _init() -> void:
+	limiter = RESTRateLimiter.new()
 
 func request_async(request: RestRequest) -> HTTPResponse:
-	var _start: int = OS.get_ticks_msec()
-	var response: HTTPResponse = yield(
-	_request_async(
-			request.url,
-			request.headers,
-			request.method,
-			request.body
-	), "completed")
-	last_latency = OS.get_ticks_msec() - _start
+	var response: HTTPResponse = yield(limiter.queue_request(request), "completed")
 	
 	match response.code:
 		HTTPClient.RESPONSE_BAD_REQUEST:
@@ -64,6 +59,9 @@ func cdn_download_async(url: String) -> Resource:
 	var texture: ImageTexture = ImageTexture.new()
 	texture.create_from_image(image)
 	return texture
+
+func get_last_latency_ms() -> int:
+	return limiter.last_latency_ms
 
 func _request_async(url: String, headers: PoolStringArray = [], method: int = HTTPClient.METHOD_GET, data: PoolByteArray = []) -> HTTPResponse:
 	return SimpleHTTPClient.new().request_async(url, headers, true, method, data)

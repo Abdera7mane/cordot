@@ -1,9 +1,5 @@
 class_name DiscordRESTAdapter extends Node
 
-const AUTH_HEADER: String = "Authorization: Bot %s"
-const USER_AGENT_HEADER: String = "User-Agent: %s (%s, %s)" % [Discord.LIBRARY, Discord.LIBRARY_URL, Discord.LIBRARY_VERSION]
-const CONTENT_TYPE_HEADER: String = "Content-Type: application/json"
-
 var requester: DiscordRESTRequester setget __set
 var mediator: DiscordRESTMediator   setget __set
 

@@ -79,3 +79,12 @@ func has_header(name) -> bool:
 		if header.begins_with(name):
 			return true
 	return false
+
+func send_async() -> HTTPResponse:
+	return SimpleHTTPClient.new().request_async(
+		self.url,
+		self.headers,
+		true,
+		self.method,
+		self.body
+	)

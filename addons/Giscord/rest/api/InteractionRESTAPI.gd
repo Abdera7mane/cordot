@@ -13,6 +13,7 @@ func create_response(interaction_id: int, interaction_token: String, params: Dic
 			token = interaction_token
 		})
 	).json_body(params).method_post()
+	request.set_meta("skip-global-rate-limit", true)
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.successful()
 
@@ -23,6 +24,7 @@ func get_original_response(application_id: int, interaction_token: String) -> Me
 			token = interaction_token
 		})
 	).method_get()
+	request.set_meta("skip-global-rate-limit", true)
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_message_response(response)
 
@@ -33,6 +35,7 @@ func edit_original_response(application_id: int, interaction_token: String, para
 			token = interaction_token
 		})
 	).json_body(params).method_patch()
+	request.set_meta("skip-global-rate-limit", true)
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_message_response(response)
 
@@ -43,6 +46,7 @@ func delete_original_response(application_id: int, interaction_token: String) ->
 			token = interaction_token
 		})
 	).method_delete()
+	request.set_meta("skip-global-rate-limit", true)
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
@@ -53,6 +57,7 @@ func create_followup_message(application_id: int, interaction_token: String, par
 			token = interaction_token
 		})
 	).json_body(params).method_post()
+	request.set_meta("skip-global-rate-limit", true)
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_message_response(response)
 
@@ -64,6 +69,7 @@ func get_followup_message(application_id: int, interaction_token: String, messag
 			message_id = message_id
 		})
 	).method_get()
+	request.set_meta("skip-global-rate-limit", true)
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_message_response(response)
 
@@ -75,6 +81,7 @@ func edit_followup_message(application_id: int, interaction_token: String, messa
 			message_id = message_id
 		})
 	).json_body(params).method_patch()
+	request.set_meta("skip-global-rate-limit", true)
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_message_response(response)
 
@@ -86,6 +93,7 @@ func delete_followup_message(application_id: int, interaction_token: String, mes
 			message_id = message_id
 		})
 	).method_delete()
+	request.set_meta("skip-global-rate-limit", true)
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 

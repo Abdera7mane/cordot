@@ -7,6 +7,6 @@ const GATEWAY_URL: String = "wss://gateway.discord.gg/?v=%d&encoding=%s"
 const GATEWAY_VERSION: int = 9
 const VOICE_GATEWAY_VERSION: int = 4
 
-const LIBRARY: String = "Giscord"
-const LIBRARY_URL: String = "https://github.com/abdera7mane/Giscord"
-const LIBRARY_VERSION: String = "UNRELEASED"
+const LIBRARY: String = "cordot"
+const LIBRARY_URL: String = "https://github.com/abdera7mane/cordot"
+const LIBRARY_VERSION: String = "0.1.0"

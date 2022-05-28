@@ -1,6 +1,6 @@
 > :information_source: **Note:** If you are looking to integrate your game with the Discord client, check out [Discord RPC](https://github.com/Abdera7mane/Discord-RPC-GDScript).
 
-# Giscord
+# Cordot
 
 <p align="center">
     Discord API wrapper for <a href="https://github.com/godotengine/godot">Godot Engine</a> written in <b>GDScript</b> language.
@@ -13,7 +13,7 @@
         <img src="https://img.shields.io/static/v1?label=Discord%20API&message=V9&color=5865f2&style=for-the-badge&logo=discord&logoColor=white" alt="Discord API version">
     </a>
     <a href="LICENSE">
-        <img src="https://img.shields.io/github/license/abdera7mane/Giscord?style=for-the-badge" alt="License">
+        <img src="https://img.shields.io/github/license/abdera7mane/cordot?style=for-the-badge" alt="License">
     </a>
 </p>
 
@@ -64,8 +64,8 @@ func _on_message(message: Message) -> void:
 
 
 ```
-git clone --recursive https://github/Abdera7mane/Giscord.git
-cd Giscord
+git clone --recursive https://github/Abdera7mane/cordot.git
+cd cordot
 git submodule update --init --recursive
 ```
 Open the folder as a Godot project or copy the `addons` directory to an existing project.

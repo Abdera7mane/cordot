@@ -106,12 +106,14 @@ func update_user(user: User, data: Dictionary) -> void:
 	user._update(parse_user_payload(data))
 
 func parse_user_payload(data: Dictionary) -> Dictionary:
-	var parsed_data: Dictionary = {
-		id = data["id"] as int,
-		username = data.get("username", ""),
-		discriminator = data.get("discriminator", 0) as int,
-		avatar_hash = Dictionaries.get_non_null(data, "avatar", ""),
-	}
+	var parsed_data: Dictionary = {id = data["id"] as int}
+	
+	if data.has("username"):
+		parsed_data["username"] = data["username"]
+	if data.has("discriminator"):
+		parsed_data["discriminator"] = data["discriminator"] as int
+	if data.has("avatar"):
+		parsed_data["avatar_hash"] = Dictionaries.get_non_null(data, "avatar", "")
 	if data.has("bot"):
 		parsed_data["is_bot"] = data["bot"]
 	if data.has("system"):

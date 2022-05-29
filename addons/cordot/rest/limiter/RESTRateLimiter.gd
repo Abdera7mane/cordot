@@ -69,13 +69,13 @@ func queue_request(request: RestRequest) -> HTTPResponse:
 	route_bucket.add_to_queue(request)
 	
 	var state = route_bucket.wait_for_queue(request)
-	if state is GDScriptFunctionState:
+	if state is GDScriptFunctionState and state.is_valid(true):
 		yield(state, "completed")
 	
 	if global:
 		yield(Awaiter.wait(global_reset - OS.get_ticks_msec()), "completed")
 	
-	var total_wait_time: int
+	var total_wait_time: int = 0
 	
 	if not request.has_meta("skip-global-rate-limit"):
 		if global_bucket.delay():
@@ -84,6 +84,7 @@ func queue_request(request: RestRequest) -> HTTPResponse:
 	
 	if route_bucket.delay():
 		total_wait_time += route_bucket.time_to_wait()
+	route_bucket.use()
 	
 	yield(Awaiter.wait(total_wait_time), "completed")
 	

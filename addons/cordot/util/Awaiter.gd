@@ -1,110 +1,49 @@
 class_name Awaiter
 
-static func wait_for_coroutine(coroutine, timeout: int):
+# warning-ignore-all:unused_signal
+# warning-ignore-all:function_may_yield
+# warning-ignore-all:return_value_discarded
+
+static func wait_for_coroutine(coroutine, timeout_ms: int):
 	if not coroutine is GDScriptFunctionState:
 		push_error("First argument of wait_for_coroutine() is not a coroutine function")
 		return submit()
-	return wait_for_signal(coroutine, "completed", timeout)
+	return wait_for_signal(coroutine, "completed", timeout_ms)
 
-static func wait_for_signal(object: Object, signal_name: String, timeout: int):
-	return AwaiterReference.new(object, signal_name).wait(timeout)
+static func wait_for_signal(object: Object, signal_name: String, timeout_ms: int):
+	return AwaiterReference.new().wait_for_signal(object, signal_name, timeout_ms)
 
-static func wait(timeout: int) -> void:
-	yield(AwaiterReference.new().create_clock(timeout), "timeout")
+static func wait(time_ms: int) -> void:
+	yield(AwaiterReference.new().wait(time_ms), "completed")
 
 static func submit() -> void:
 	yield(wait(0), "completed")
 
 class AwaiterReference:
-
-	var object: Object
-	var signal_name: String
-	var valid: bool
-
-	# warning-ignore:shadowed_variable
-	# warning-ignore:shadowed_variable
-	func _init(object: Object = null, signal_name: String = "") -> void:
-		if object and signal_name.empty():
-			push_error("signal_name can not be empty")
-			return
-		elif not object and not signal_name.empty():
-			push_error("object can not be null")
-			return
-		self.object = object
-		self.signal_name = signal_name
-		self.valid = true
+	signal interrupted
 	
-	func create_clock(timeout: int) -> Clock:
-		var clock: Clock = Clock.new()
-		clock.start(timeout)
-		return clock
+	var result
 	
-	func wait(timeout: int):
-		var clock: Clock
+	func wait(time: int) -> void:
+		yield(_start_timer(time), "completed")
+	
+	func wait_for_signal(object: Object, signal_name: String, timeout: int):
+		var coroutine: GDScriptFunctionState = _start_coroutine(object, signal_name)
+		var timer: GDScriptFunctionState = _start_timer(timeout)
 		
-		if not valid:
-			timeout = 0
+		coroutine.connect("completed", self, "emit_signal", ["interrupted"])
+		timer.connect("completed", self, "emit_signal", ["interrupted"])
 		
-		if not object:
-			clock = create_clock(timeout)
-			return yield(clock, "timeout")
-			
-		# warning-ignore:function_may_yield
-		var state: GDScriptFunctionState = _get_function_state()
-		clock = create_clock(timeout)
-		# warning-ignore:return_value_discarded
-		clock.connect("timeout", self, "_on_timeout", [state])
+		yield(self, "interrupted")
 		
-		var result = yield(state, "completed")
-		
-		clock.call_deferred("end")
+		coroutine.disconnect("completed", self, "emit_signal")
+		timer.disconnect("completed", self, "emit_signal")
 		
 		return result
-	
-	func _get_function_state():
-		yield(self.object, self.signal_name)
-	
-	func _on_timeout(state: GDScriptFunctionState) -> void:
-		if state.is_valid():
-			state.emit_signal("completed")
-
-class Clock extends Object:
-	signal timeout
-	
-	var _thread: Thread
-	var _mutex: Mutex
-	
-	var is_active: bool
-	
-	func start(wait_time: int) -> void:
-		self._thread = Thread.new()
-		self._mutex = Mutex.new()
 		
-		self.is_active = true
-		var error: int = self._thread.start(self, "_run", wait_time)
-		if error == ERR_CANT_CREATE:
-			push_error("Couldn't start background thread")
-			self.emit_signal("timeout")
-			return
-		yield(self, "timeout")
-		self.is_active = false
+	func _start_coroutine(object: Object, signal_name: String) -> void:
+		result = yield(object, signal_name)
 	
-	func end() -> void:
-		self._mutex.lock()
-		self.is_active = false
-		self._mutex.unlock()
-		if self._thread.is_active():
-			self._thread.wait_to_finish()
-		self.call_deferred("free")
-	
-	func _run(wait_time: int) -> void:
-		if wait_time > 0:
-			var start: int = OS.get_ticks_msec()
-			while true:
-				self._mutex.lock()
-				var resume: bool = self.is_active and wait_time + start >= OS.get_ticks_msec()
-				self._mutex.unlock()
-				if not resume:
-					break
-				OS.delay_usec(500)
-		self.emit_signal("timeout")
+	func _start_timer(timeout: int) -> void:
+		var tree: SceneTree = Engine.get_main_loop() as SceneTree
+		yield(tree.create_timer(timeout / 1000.0), "timeout")

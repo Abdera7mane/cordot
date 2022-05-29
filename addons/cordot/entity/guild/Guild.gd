@@ -72,7 +72,6 @@ enum Features {
 var _members: Dictionary                     setget __set
 var _roles: Dictionary                       setget __set
 var _emojis: Dictionary                      setget __set
-var _threads: Dictionary                     setget __set
 var _stage_instances: Dictionary             setget __set
 var _stickers: Dictionary                    setget __set
 var _scheduled_events: Dictionary            setget __set
@@ -109,6 +108,7 @@ var member_count: int                        setget __set
 var voice_states: Dictionary                 setget __set
 var members: Array                           setget __set, get_members
 var channels_ids: Array                      setget __set
+var threads_ids: Array                       setget __set
 var channels: Array                          setget __set, get_channels
 var max_presences: int                       setget __set
 var max_members: int                         setget __set
@@ -137,7 +137,7 @@ func has_feature(feature: int) -> bool:
 
 func get_channel(channel_id: int) -> Channel:
 	var channel: Channel = self.get_container().channels.get(channel_id)
-	if channel and channel.has_method("get_guild") and channel.guild.id == self.id:
+	if channel and channel.is_guild() and channel.guild.id == self.id:
 		return channel
 	return null
 
@@ -155,31 +155,19 @@ func get_channels(sort: bool = false) -> Array:
 	return _channels
 
 func get_afk_channel() -> GuildVoiceChannel:
-	var channel: Channel = self.get_channel(afk_channel_id)
-	if channel is GuildVoiceChannel:
-		return channel as GuildVoiceChannel
-	return null
+	return get_channel(afk_channel_id) as GuildVoiceChannel
 
 func get_widget_channel() -> Channel:
-	return self.get_channel(widget_channel_id)
+	return get_channel(widget_channel_id)
 
 func get_system_channel() -> GuildTextChannel:
-	var channel: Channel = self.get_channel(system_channel_id)
-	if channel is GuildTextChannel:
-		return channel as GuildTextChannel
-	return null
+	return get_channel(system_channel_id) as GuildTextChannel
 
 func get_rules_channel() -> GuildTextChannel:
-	var channel: Channel = self.get_channel(rules_channel_id)
-	if channel is GuildTextChannel:
-		return channel as GuildTextChannel
-	return null
+	return get_channel(rules_channel_id) as GuildTextChannel
 
 func get_public_updates_channel() -> GuildTextChannel:
-	var channel: Channel = self.get_channel(public_updates_channel_id)
-	if channel is GuildTextChannel:
-		return channel as GuildTextChannel
-	return null
+	return get_channel(public_updates_channel_id) as GuildTextChannel
 
 func get_member(member_id: int) -> Member:
 	return self._members.get(member_id)
@@ -206,10 +194,13 @@ func get_emoji(emoji_id: int) -> GuildEmoji:
 	return self._emojis.get(emoji_id)
 
 func get_threads() -> Array:
-	return _threads.values()
+	var _threads: Array = []
+	for id in threads_ids:
+		_threads.append(get_thread(id))
+	return _threads
 
 func get_thread(thread_id: int) -> ThreadChannel:
-	return _threads.get(thread_id)
+	return get_channel(thread_id) as ThreadChannel
 
 func get_stage_instances() -> Array:
 	return _stage_instances.values()
@@ -529,6 +520,7 @@ func _update(data: Dictionary) -> void:
 	_roles = data.get("roles", _roles)
 	_emojis = data.get("emojis", _emojis)
 	channels_ids = data.get("channels_ids", channels_ids)
+	threads_ids = data.get("threads_ids", threads_ids)
 	
 	afk_channel_id = data.get("afk_channel_id", afk_channel_id)
 	widget_channel_id = data.get("widget_channel_id", widget_channel_id)
@@ -538,8 +530,6 @@ func _update(data: Dictionary) -> void:
 	
 	welcome_screen = data.get("welcome_screen", welcome_screen)
 	
-	
-	_threads = data.get("threads", _threads)
 	_stage_instances = data.get("stage_instances", _stage_instances)
 	_stickers = data.get("stickers", _stickers)
 	_scheduled_events = data.get("scheduled_events", _scheduled_events)

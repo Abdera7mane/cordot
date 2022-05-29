@@ -2,7 +2,7 @@ class_name GuildMessage extends Message
 
 var guild_id: int          setget __set
 var guild: Guild           setget __set, get_guild
-var member: Guild.Member   setget __set, get_member
+var member: Guild.Member   setget __set
 var role_mentions: Array   setget __set
 var mention_everyone: bool setget __set
 var is_tts: bool           setget __set
@@ -10,12 +10,10 @@ var is_tts: bool           setget __set
 func _init(data: Dictionary).(data) -> void:
 	guild_id = data["guild_id"]
 	is_tts = data.get("tts", false)
+	member = data["member"]
 
 func get_guild() -> Guild:
 	return get_container().guilds.get(guild_id)
-
-func get_member() -> Guild.Member:
-	return self.guild.get_member(author_id)
 
 func get_channel() -> TextChannel:
 	return self.get_container().channels.get(
@@ -49,6 +47,7 @@ func _clone_data() -> Array:
 	arguments["channel_mentions"] = self.channel_mentions.duplicate()
 	arguments["mention_everyone"] = self.mention_everyone
 	arguments["is_tts"] = self.is_tts
+	arguments["member"] = self.member
 	
 	return data
 

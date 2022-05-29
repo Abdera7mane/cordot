@@ -47,13 +47,16 @@ func construct_invite(data: Dictionary) -> Guild.Invite:
 	}
 	
 	if data.has("guild"):
-		arguments["guild"] = _get_guild_uncached(data["guild"])
+		var guild: Guild = manager.get_or_construct_guild((data["guild"]), false)
+		arguments["guild"] = guild
 		
 	if data.has("inviter"):
-		arguments["inviter"] = _get_user_uncached(data["inviter"])
+		var inviter: User = manager.get_or_construct_user(data["inviter"], false)
+		arguments["inviter"] = inviter
 	
 	if data.has("target_user"):
-		arguments["target_user"] = _get_user_uncached(data["target_user"])
+		var target_user: User = manager.get_or_construct_user(data["target_user"], false)
+		arguments["target_user"] = target_user
 	
 	if data.has("target_application"):
 		pass
@@ -70,7 +73,8 @@ func construct_invite(data: Dictionary) -> Guild.Invite:
 func construct_invite_stage_instance(data: Dictionary) -> StageInstanceInvite:
 	var members: Array = []
 	for member_data in data["members"]:
-		members.append(_get_guild_member_uncached(data["guild_id"], member_data))
+		var member: Guild.Member = get_manager().get_or_construct_guild_member(member_data)
+		members.append(member)
 	return StageInstanceInvite.new({
 			members = members,
 			participant_count = data["participant_count"],
@@ -94,7 +98,7 @@ func construct_guild_scheduled_event(data: Dictionary) -> Guild.GuildScheduledEv
 		entity_type = data["entity_type"],
 	}
 	if data.has("creator"):
-		arguments["creator"] = _get_user_uncached(data["creator"])
+		arguments["creator"] = manager.get_or_construct_user(data["creator"], false)
 	if Dictionaries.has_non_null(data, "entity_metadata"):
 		arguments["entity_metadata"] = construct_guild_event_metadata(data["entity_metadata"])
 	
@@ -202,7 +206,7 @@ func parse_guild_payload(data: Dictionary) -> Dictionary:
 		parsed_data["emojis"] = emojis
 	
 	for presence_data in data.get("presences", []):
-		var _presence: Presence = manager.get_or_construct_presence(presence_data)
+		var _presence: Presence = manager.get_or_construct_presence(presence_data, true)
 	
 	if data.has("voice_states"):
 		var voice_states: Dictionary = guild.voice_states if guild else {}
@@ -219,11 +223,11 @@ func parse_guild_payload(data: Dictionary) -> Dictionary:
 	if data.has("member_count"):
 		parsed_data["member_count"] = data["member_count"]
 	if data.has("threads"):
-		var threads: Dictionary = {}
+		var threads_ids: Array = []
 		for thread_data in data["threads"]:
 			var thread: Guild.ThreadChannel = manager.get_or_construct_channel(thread_data)
-			threads[thread.id] = thread
-		parsed_data["threads"] = threads
+			threads_ids.append(thread.id)
+		parsed_data["threads"] = threads_ids
 	
 	return parsed_data
 
@@ -283,7 +287,7 @@ func parse_voice_state_payload(data: Dictionary) -> Dictionary:
 	if data.has("member"):
 		var member_data: Dictionary = data["member"]
 		member_data["id"] = data["user_id"]
-		member = _get_guild_member_uncached(guild_id, data["member"])
+		member = get_manager().get_or_construct_guild_member(member_data)
 	
 	var parsed_data: Dictionary = {
 		user_id = user_id,
@@ -302,32 +306,6 @@ func parse_voice_state_payload(data: Dictionary) -> Dictionary:
 	}
 	
 	return parsed_data
-
-func _get_guild_uncached(guild_data: Dictionary) -> Guild:
-	var guild_id: int = guild_data["id"] as int
-	var guild: Guild = get_manager().get_guild(guild_id)
-	if not guild:
-		guild = construct_guild(guild_data)
-		guild.set_meta("partial", true)
-	return guild
-
-func _get_guild_member_uncached(guild_id: int, member_data: Dictionary) -> Guild.Member:
-	var member_id: int = member_data["user"]["id"] as int
-	var guild: Guild = get_manager().get_guild(guild_id)
-	var member: Guild.Member = guild._members.get(member_id)
-	if not member:
-		member = construct_guild_member(member_data)
-		member.set_meta("partial", true)
-	return member
-
-func _get_user_uncached(user_data: Dictionary) -> User:
-	var manager: BaseDiscordEntityManager = get_manager()
-	var user_id: int = user_data["id"] as int
-	var user: User = manager.get_user(user_id)
-	if not user:
-		user = manager.user_manager.construct_user(user_data)
-		user.set_meta("partial", true)
-	return user
 
 func get_class() -> String:
 	return "GuildManager"

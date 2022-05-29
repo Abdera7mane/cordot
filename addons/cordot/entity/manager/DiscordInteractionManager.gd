@@ -40,9 +40,9 @@ func parse_interaction_payload(data: Dictionary) -> Dictionary:
 	if data.has("user"):
 		user = manager.get_or_construct_user(data["user"])
 	if data.has("member"):
-		member = _get_guild_member_uncached(guild_id, data["member"])
+		member = manager.get_or_construct_guild_member(data["member"])
 	if data.has("message"):
-		message = manager.get_or_construct_message(data["message"])
+		message = manager.get_or_construct_message(data["message"], true)
 	return {
 		id = data["id"] as int,
 		application_id = data["application_id"] as int,
@@ -55,6 +55,7 @@ func parse_interaction_payload(data: Dictionary) -> Dictionary:
 		token = data["token"],
 		version = data["version"],
 		message_id = message.id if message else 0,
+		meesage = message,
 		locale = data.get("locale", ""),
 		guild_locale = data.get("guild_locale", "")
 	}
@@ -124,7 +125,7 @@ func parse_interaction_resolved_data_payload(data: Dictionary) -> Dictionary:
 			member_data["user"] = data["users"][member_id]
 			member_data["user"]["id"] = member_id
 			member_data["guild_id"] = guild_id
-			var member: Guild.Member = _get_guild_member_uncached(guild_id, member_data)
+			var member: Guild.Member = manager.get_or_construct_guild_member(member_data)
 			members[member.id] = member
 			users[member.id] = member.user
 			
@@ -156,12 +157,11 @@ func parse_interaction_resolved_data_payload(data: Dictionary) -> Dictionary:
 			channels[channel.id] = channel
 	
 	if data.has("messages"):
-		# TODO avoid caching newly constructed Message objects
 		var messages_data: Dictionary = data["messages"]
 		for message_id in messages.keys():
 			var message_data: Dictionary = messages_data[message_id]
 			message_data["id"] = message_id
-			var message: Message = manager.get_or_construct_message(message_data)
+			var message: Message = manager.get_or_construct_message(message_data, false)
 			messages[message.id] = message
 		
 	if data.has("attachments"):
@@ -184,14 +184,3 @@ func parse_interaction_resolved_data_payload(data: Dictionary) -> Dictionary:
 
 func get_class() -> String:
 	return "DiscordInteractionManager"
-
-func _get_guild_member_uncached(guild_id: int, member_data: Dictionary) -> Guild.Member:
-	var manager: BaseDiscordEntityManager = get_manager()
-	
-	var member_id: int = member_data["user"]["id"] as int
-	var guild: Guild = manager.get_guild(guild_id)
-	var member: Guild.Member = guild._members.get(member_id)
-	if not member:
-		member = manager.guild_manager.construct_guild_member(member_data)
-		member.set_meta("partial", true)
-	return member

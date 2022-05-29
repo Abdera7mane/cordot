@@ -33,7 +33,7 @@ func _on_channel_update(fields: Dictionary) -> void:
 		self.emit_signal("transmit_event", "channel_updated", [channel.guild, old, channel])
 
 func _on_channel_delete(fields: Dictionary) -> void:
-	var channel: Channel = _entity_manager.get_or_construct_channel(fields)
+	var channel: Channel = _entity_manager.get_or_construct_channel(fields, false)
 	if channel:
 		if channel.is_guild():
 			channel.guild._remove_channel(channel.id)

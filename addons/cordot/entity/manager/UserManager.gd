@@ -19,11 +19,12 @@ func construct_user(data: Dictionary) -> User:
 	return user
 
 func construct_presence(data: Dictionary) -> Presence:
-	var user: User = self.get_manager().get_or_construct_user(data["user"])
+	var manager: BaseDiscordEntityManager = get_manager()
+	var user: User = manager.get_or_construct_user(data["user"])
 	
 	var activities: Array = []
 	for activity_data in data["activities"]:
-		activities.append(self.construct_activity(activity_data))
+		activities.append(construct_activity(activity_data))
 	
 	var client_status: Dictionary = data["client_status"]
 	var platforms: BitFlag = BitFlag.new(Presence.Platforms)
@@ -39,7 +40,7 @@ func construct_presence(data: Dictionary) -> Presence:
 	}
 	
 	var presence: Presence = Presence.new(arguments)
-	presence.set_meta("container", self.get_manager().container)
+	presence.set_meta("container", manager.container)
 	
 	return presence
 

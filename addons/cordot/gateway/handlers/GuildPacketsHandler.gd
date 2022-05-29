@@ -56,13 +56,13 @@ func _on_guild_delete(fields: Dictionary) -> void:
 
 func _on_guild_ban_add(fields: Dictionary) -> void:
 	var guild: Guild = _entity_manager.get_guild(fields["guild_id"])
-	var user: User = _entity_manager.get_or_construct_user(fields["user"])
+	var user: User = _entity_manager.get_or_construct_user(fields["user"], false)
 	if guild:
 		emit_signal("transmit_event", "guild_ban_added", [guild, user])
 
 func _on_guild_ban_remove(fields: Dictionary) -> void:
 	var guild: Guild = _entity_manager.get_guild(fields["guild_id"])
-	var user: User = _entity_manager.get_or_construct_user(fields["user"])
+	var user: User = _entity_manager.get_or_construct_user(fields["user"], false)
 
 	if guild:
 		emit_signal("transmit_event", "guild_ban_removed", [guild, user])
@@ -85,8 +85,7 @@ func _on_guild_member_add(fields: Dictionary) -> void:
 	if guild:
 		guild._update({member_count = guild.member_count + 1})
 
-		var member: Guild.Member = _entity_manager.get_or_construct_guild_member(fields)
-		guild._members[member.id] = member
+		var member: Guild.Member = _entity_manager.get_or_construct_guild_member(fields, true)
 		emit_signal("transmit_event", "member_joined", [guild, member])
 
 func _on_guild_member_remove(fields: Dictionary) -> void:
@@ -97,7 +96,7 @@ func _on_guild_member_remove(fields: Dictionary) -> void:
 	if guild:
 		guild._update({member_count = guild.member_count - 1})
 
-		var user: User = _entity_manager.get_or_construct_user(fields["user"])
+		var user: User = _entity_manager.get_or_construct_user(fields["user"], false)
 		var member: Guild.Member = guild.get_member(user.id)
 		if guild._members.erase(user.id):
 			emit_signal("transmit_event", "member_left", [guild, member])
@@ -116,7 +115,7 @@ func _on_guild_member_update(fields: Dictionary) -> void:
 			emit_signal("transmit_event", "member_updated", [guild, old, member])
 			
 		else:
-			member = _entity_manager.get_or_construct_guild_member(fields)
+			member = _entity_manager.get_or_construct_guild_member(fields, true)
 
 func _on_guild_role_create(fields: Dictionary) -> void:
 	var guild_id: int = fields["guild_id"] as int

@@ -43,8 +43,7 @@ var timestamp: int                      setget __set
 var type: int                           setget __set
 var content: String                     setget __set
 var edited_timestamp: int               setget __set
-var mentions_ids: Array                 setget __set
-var mentions: Array                     setget __set, get_mentions 
+var mentions: Array                     setget __set
 var channel_mentions: Array             setget __set 
 var attachments: Array                  setget __set
 var embeds: Array                       setget __set
@@ -78,14 +77,6 @@ func _init(data: Dictionary).(data) -> void:
 
 func get_author() -> User:
 	return get_container().users.get(author_id)
-
-func get_mentions() -> Array:
-	var _mentions: Array
-	for mention_id in mentions_ids:
-		var user: User = get_container().users.get(mention_id)
-		if user:
-			_mentions.append(user)
-	return _mentions
 
 func get_referenced_message() -> Message:
 	return get_container().messages.get(referenced_message_id)
@@ -176,7 +167,7 @@ func _clone_data() -> Array:
 		is_pinned = self.is_pinned,
 		content = self.content,
 		edited_timestamp = self.edited_timestamp,
-		mentions_ids = self.mentions_ids.duplicate(),
+		mentions = self.mentions.duplicate(),
 		channel_mentions = self.channel_mentions.duplicate(),
 		attachments = self.attachments.duplicate(),
 		embeds = self.embeds.duplicate(),
@@ -190,7 +181,7 @@ func _update(data: Dictionary) -> void:
 	is_pinned = data.get("is_pinned", is_pinned)
 	content = data.get("content", content)
 	edited_timestamp = data.get("edited_timestamp", edited_timestamp)
-	mentions_ids = data.get("mentions_ids", mentions_ids)
+	mentions = data.get("mentions", mentions)
 	channel_mentions = data.get("channel_mentions", channel_mentions)
 	attachments = data.get("attachments", attachments)
 	embeds = data.get("embeds", embeds)

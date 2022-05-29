@@ -1,9 +1,9 @@
 class_name BaseDiscordEntityManager
 
 enum CacheFlags {
-	GUILD_MEMBERS = 1 << 2,
-	MESSAGES      = 1 << 3,
-	PRESENCES     = 1 << 4
+	GUILD_MEMBERS = 1 << 0,
+	MESSAGES      = 1 << 1,
+	PRESENCES     = 1 << 2
 }
 
 var container: Dictionary = DiscordEntity.DEFAULT_CONTAINER.duplicate()
@@ -22,9 +22,9 @@ var cache_flags: BitFlag = BitFlag.new(CacheFlags)
 var max_messages: int = 1000
 
 func cache_flags_from_intents(intents: BitFlag) -> void:
-		cache_flags.GUILD_MEMBERS = intents.GUILD_MEMBERS
-		cache_flags.MESSAGES = intents.GUILD_MESSAGES or intents.DIRECT_MESSAGES 
-		cache_flags.PRESENCES = intents.GUILD_PRESENCES 
+	cache_flags.GUILD_MEMBERS = intents.GUILD_MEMBERS
+	cache_flags.MESSAGES = intents.GUILD_MESSAGES or intents.DIRECT_MESSAGES 
+	cache_flags.PRESENCES = intents.GUILD_PRESENCES 
 
 func reset() -> void:
 	container.applications.clear()
@@ -36,28 +36,16 @@ func reset() -> void:
 	container.teams.clear()
 	container.bot_id = 0
 
-func get_or_construct_channel(data: Dictionary) -> Channel:
+func get_or_construct_channel(data: Dictionary, cache: bool = true) -> Channel:
 	var id: int = data["id"] as int
-	var type: int = data["type"]
-	var guild: Guild = get_guild(data.get("guild_id", 0) as int)
-	var channel: Channel = self.get_channel(id)
-	match type:
-		Channel.Type.GUILD_NEWS_THREAD,\
-		Channel.Type.GUILD_PRIVATE_THREAD,\
-		Channel.Type.GUILD_PUBLIC_THREAD:
-			if guild:
-				channel = guild.get_thread(id)
-		_:
-			channel = get_channel(id)
+	var channel: Channel = get_channel(id)
 		
 	if channel:
-		self.channel_manager.update_channel(channel, data)
+		channel_manager.update_channel(channel, data)
 	
 	else:
-		channel = self.channel_manager.construct_channel(data)
-		if channel is Guild.ThreadChannel and guild:
-			guild._threads[channel.id] = channel
-		else:
+		channel = channel_manager.construct_channel(data)
+		if cache:
 			put_channel(channel)
 	
 	return channel
@@ -65,71 +53,75 @@ func get_or_construct_channel(data: Dictionary) -> Channel:
 func get_or_construct_emoji(data: Dictionary) -> Emoji:
 	return self.emoji_manager.construct_emoji(data)
 
-func get_or_construct_guild(data: Dictionary) -> Guild:
+func get_or_construct_guild(data: Dictionary, cache: bool = true) -> Guild:
 	var id: int = data["id"] as int
-	var guild: Guild = self.get_guild(id)
+	var guild: Guild = get_guild(id)
 	
 	if guild:
-		self.guild_manager.update_guild(guild, data)
+		guild_manager.update_guild(guild, data)
 	
 	else:
-		guild = self.guild_manager.construct_guild(data)
-		self.put_guild(guild)
+		guild = guild_manager.construct_guild(data)
+		if cache:
+			put_guild(guild)
 	
 	return guild
 
-func get_or_construct_guild_member(data: Dictionary) -> Guild.Member:
+func get_or_construct_guild_member(data: Dictionary, cache: bool = false) -> Guild.Member:
 	var id: int = data["user"]["id"] as int
-	var guild: Guild = self.get_guild(data["guild_id"] as int)
+	var guild: Guild = get_guild(data["guild_id"] as int)
 	var member: Guild.Member
 	if guild:
 		member = guild.get_member(id)
 	
 	if member:
-		self.guild_manager.update_guild_member(member, data)
+		guild_manager.update_guild_member(member, data)
 	
 	else:
-		member = self.guild_manager.construct_guild_member(data)
+		member = guild_manager.construct_guild_member(data)
+		if cache_flags.GUILD_MEMBERS and cache and guild:
+			guild._members[member.id] = member
 	
 	return member
 
-func get_or_construct_message(data: Dictionary) -> Message:
+func get_or_construct_message(data: Dictionary, cache: bool = false) -> Message:
 	var id: int = data["id"] as int
-	var message: Message = self.get_message(id)
+	var message: Message = get_message(id)
 	
 	if message:
-		self.message_manager.update_message(message, data)
+		message_manager.update_message(message, data)
 	
 	else:
-		message = self.message_manager.construct_message(data)
-		if cache_flags.MESSAGES:
+		message = message_manager.construct_message(data)
+		if cache_flags.MESSAGES and cache:
 			put_message(message)
 	
 	return message
 
-func get_or_construct_user(data: Dictionary) -> User:
+func get_or_construct_user(data: Dictionary, cache: bool = true) -> User:
 	var id: int = data["id"] as int
-	var user: User = self.get_user(id)
+	var user: User = get_user(id)
 	
 	if user:
-		self.user_manager.update_user(user, data)
+		user_manager.update_user(user, data)
 	
 	else:
-		user = self.user_manager.construct_user(data)
-		self.put_user(user)
+		user = user_manager.construct_user(data)
+		if cache:
+			put_user(user)
 	
 	return user
 
-func get_or_construct_presence(data: Dictionary) -> Presence:
+func get_or_construct_presence(data: Dictionary, cache: bool = false) -> Presence:
 	var id: int = data["user"]["id"] as int
-	var presence: Presence = self.get_presence(id)
+	var presence: Presence = get_presence(id)
 	
 	if presence:
-		self.user_manager.update_presence(presence, data)
+		user_manager.update_presence(presence, data)
 	
 	else:
-		presence = self.user_manager.construct_presence(data)
-		if cache_flags.PRESENCES:
+		presence = user_manager.construct_presence(data)
+		if cache_flags.PRESENCES and cache:
 			put_pesence(presence)
 	
 	return presence

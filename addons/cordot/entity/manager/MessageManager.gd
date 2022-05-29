@@ -143,6 +143,8 @@ func update_message(message: Message, data: Dictionary) -> void:
 	message._update(parse_message_data(data))
 
 func parse_message_data(data: Dictionary) -> Dictionary:
+	var manager: BaseDiscordEntityManager = get_manager()
+	
 	var parsed_data: Dictionary = {
 		id = data["id"] as int,
 		channel_id = data["channel_id"] as int,
@@ -150,7 +152,7 @@ func parse_message_data(data: Dictionary) -> Dictionary:
 	}
 	
 	if data.has("author"):
-		var author: User = get_manager().get_or_construct_user(data["author"])
+		var author: User = manager.get_or_construct_user(data["author"])
 		parsed_data["author_id"] = author.id
 	
 	if data.has("guild_id"):
@@ -178,17 +180,17 @@ func parse_message_data(data: Dictionary) -> Dictionary:
 		parsed_data["mention_everyone"] = data["mention_everyone"]
 	
 	if data.has("mentions"):
-		var mentions_ids: Array = []
+		var mentions: Array = []
 		for mention_data in data["mentions"]:
 			if data.has("guild_id"):
 				mention_data["member"]["user"] = mention_data.duplicate(true)
 				mention_data["member"]["guild_id"] = data["guild_id"] as int
-				var member: Guild.Member = get_manager().get_or_construct_guild_member(mention_data["member"])
-				mentions_ids.append(member.id)
+				var member: Guild.Member = manager.get_or_construct_guild_member(mention_data["member"])
+				mentions.append(member)
 			else:
-				var user: User = get_manager().get_or_construct_user(mention_data)
-				mentions_ids.append(user.id)
-		parsed_data["mentions_ids"]  = mentions_ids
+				var user: User = manager.get_or_construct_user(mention_data, false)
+				mentions.append(user)
+		parsed_data["mentions"]  = mentions
 	
 	if data.has("attachments"):
 		var attachments: Array = []
@@ -224,8 +226,15 @@ func parse_message_data(data: Dictionary) -> Dictionary:
 			pass
 		else:
 			var reference_data: Dictionary = data["referenced_message"]
-			var message: Message = get_manager().get_or_construct_message(reference_data)
+			var message: Message = manager.get_or_construct_message(reference_data, true)
 			parsed_data["referenced_message_id"] = message.id
+	
+	if data.has("member"):
+		var member_data: Dictionary = data["member"]
+		member_data["user"] = data["author"]
+		member_data["guild_id"] = parsed_data["guild_id"]
+		var member: Guild.Member = manager.get_or_construct_guild_member(data["member"])
+		parsed_data["member"] = member
 	
 	return parsed_data
 

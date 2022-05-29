@@ -46,7 +46,7 @@ func _on_message_create(fields: Dictionary) -> void:
 		channel = guild.get_thread(channel_id)
 		
 	if channel:
-		message = _entity_manager.get_or_construct_message(fields)
+		message = _entity_manager.get_or_construct_message(fields, true)
 		channel._update({last_message_id = message.id})
 		emit_signal("transmit_event", "message_sent", [message])
 

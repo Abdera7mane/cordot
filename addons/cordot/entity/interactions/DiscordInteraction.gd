@@ -26,13 +26,13 @@ var guild_id: int                    setget __set
 var guild: Guild                     setget __set, get_guild
 var channel_id: int                  setget __set
 var channel: TextChannel             setget __set
-var member: Guild.Member             setget __set, get_member
+var member: Guild.Member             setget __set
 var user_id: int                     setget __set, get_user_id
-var user: User                       setget __set, get_user
+var user: User                       setget __set
 var token: String                    setget __set
 var version: int                     setget __set
 var message_id: int                  setget __set
-var message: Message                 setget __set, get_message
+var message: Message                 setget __set
 var locale: String                   setget __set
 var guild_locale: String             setget __set
 var replied: bool                    setget __set
@@ -48,9 +48,11 @@ func _init(_data: Dictionary).(_data["id"]) -> void:
 	channel_id = _data.get("channel_id", 0)
 	member = _data.get("member")
 	user_id = _data["user_id"]
+	user = _data["user"]
 	token = _data["token"]
 	version = _data["version"]
 	message_id = _data["message_id"]
+	message = _data["message"]
 	locale = _data.get("locale", "")
 	guild_locale = _data.get("guild_locale", "")
 
@@ -67,13 +69,10 @@ func get_member() -> Guild.Member:
 	return member
 
 func get_user_id() -> int:
-	return user_id if not self.member else self.member.id
+	return user_id if not member else member.id
 
 func get_user() -> User:
 	return self.get_container().users.get(user_id)
-
-func get_message() -> Message:
-	return self.get_container().messages.get(user_id)
 
 func get_option_name(index: int) -> String:
 	return data.options[index]["name"] if has_option(index) else ""

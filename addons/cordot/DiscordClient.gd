@@ -4,7 +4,7 @@ class_name DiscordClient extends Node
 # warning-ignore-all:return_value_discarded
 
 enum {
-	ERR_WEBSOCKET
+	ERR_WEBSOCKET = 49
 }
 
 signal connected()

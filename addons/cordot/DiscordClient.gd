@@ -76,6 +76,8 @@ var commands_map: Dictionary = {
 	text = {}
 } setget __set
 
+var use_http_pool: bool
+
 func _init(token: String, intents: int = GatewayIntents.UNPRIVILEGED) -> void:
 	name = "DiscordClient"
 	pause_mode = PAUSE_MODE_PROCESS
@@ -204,7 +206,7 @@ func _setup() -> void:
 	var intents: BitFlag = BitFlag.new(intents_map).put(get_intents())
 	entity_manager.cache_flags_from_intents(intents)
 
-	rest = DiscordRESTAdapter.new(_connection_state.token, entity_manager)
+	rest = DiscordRESTAdapter.new(_connection_state.token, entity_manager, use_http_pool)
 	gateway_websocket = _create_gateway_websocket(entity_manager)
 	voice_websocket = _create_voice_websocket()
 	

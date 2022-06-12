@@ -21,7 +21,11 @@ var global_reset: int
 
 var last_latency_ms: int
 
-func _init() -> void:
+var pool: HTTPConnectionPool
+
+func _init(use_pool: bool = false) -> void:
+	if use_pool:
+		pool = HTTPConnectionPool.new(5, 50)
 	# (?!/channels|/guilds|/webhooks)
 	
 	# warning-ignore:return_value_discarded
@@ -34,6 +38,15 @@ func _init() -> void:
 	var global_bucket := RESTRateLimitBucket.new("global", 50, 50, 1000)
 	global_bucket.auto_reset = true
 	add_bucket(global_bucket)
+
+func request_async(request: RestRequest) -> HTTPResponse:
+	return pool.request_async(
+		request.url,
+		request.headers,
+		true,
+		request.method,
+		request.body
+	) if pool else request.send_async()
 
 func add_bucket(bucket: RESTRateLimitBucket) -> void:
 	buckets[bucket.key] = bucket
@@ -48,8 +61,10 @@ func parse_route(endpoint: String, method: int) -> String:
 	return _stringify_method(method) + route
 
 func get_bucket(request: RestRequest) -> Array:
-	var url: URL = URL.new(request.url)
-	var parameters: PoolStringArray = url.path.split("/")
+	var url: Dictionary = URL.parse_url(request.url)
+	var path: String = url.path.split("?", true, 1)[0]
+	path = path.split("#", true, 1)[0]
+	var parameters: PoolStringArray = path.split("/", false)
 	parameters.remove(0) # /api
 	parameters.remove(0) # /v{version_number}
 	var route: String = parse_route("/" + parameters.join("/"), request.method)
@@ -91,7 +106,7 @@ func queue_request(request: RestRequest) -> HTTPResponse:
 	var response: HTTPResponse
 	while true:
 		var _start: int = OS.get_ticks_msec()
-		response = yield(request.send_async(), "completed")
+		response = yield(request_async(request), "completed")
 		last_latency_ms = OS.get_ticks_msec() - _start
 		
 		if response.code == HTTPClient.RESPONSE_TOO_MANY_REQUESTS:
@@ -146,8 +161,7 @@ static func _stringify_method(http_method: int) -> String:
 static func _get_header(response: HTTPResponse, name: String) -> String:
 	var value: String = ""
 	for header in response.headers:
-		var entry: PoolStringArray = header.split(":", true, 1)
-		if entry.size() == 2 and entry[0].strip_edges().to_lower() == name.to_lower():
-			value = entry[1].strip_edges()
+		if header.to_lower() == name.to_lower():
+			value = response.headers[header]
 			break
 	return value

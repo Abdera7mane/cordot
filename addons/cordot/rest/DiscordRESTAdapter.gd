@@ -10,10 +10,10 @@ var interaction: InteractionRESTAPI setget __set
 var user: UserRESTAPI               setget __set
 var webhook: WebhookRESTAPI         setget __set
 
-func _init(token: String, entity_manger: BaseDiscordEntityManager) -> void:
+func _init(token: String, entity_manger: BaseDiscordEntityManager, use_pool: bool = false) -> void:
 	name = "RESTAdapter"
 	
-	requester = DiscordRESTRequester.new()
+	requester = DiscordRESTRequester.new(use_pool)
 	mediator = Mediator.new(self)
 	
 	application = ApplicationRESTAPI.new(token, requester, entity_manger)

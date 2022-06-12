@@ -1,9 +1,10 @@
 class_name RestRequest
 
 # warning-ignore-all:function_conflicts_variable
+# warning-ignore-all:return_value_discarded
 
 var url: String
-var headers: PoolStringArray
+var headers: Dictionary
 var method: int
 var body: PoolByteArray
 
@@ -11,16 +12,12 @@ func url(_url: String) -> RestRequest:
 	url = _url
 	return self
 
-func headers(_headers: PoolStringArray) -> RestRequest:
+func headers(_headers: Dictionary) -> RestRequest:
 	headers = _headers
 	return self
 
-func add_header(_header: String) -> RestRequest:
-	headers.append(_header)
-	return self
-
-func add_headers(_headers: PoolStringArray) -> RestRequest:
-	headers.append_array(_headers)
+func set_header(name: String, value: String) -> RestRequest:
+	headers[name] = value
 	return self
 
 func method(_method: int) -> RestRequest:
@@ -60,9 +57,7 @@ func body(data: PoolByteArray) -> RestRequest:
 
 func json_body(data) -> RestRequest:
 	if not has_header(HTTPHeaders.CONTENT_TYPE):
-		headers.append(HTTPHeaders.CONTENT_TYPE.format({
-			type = "application/json"}
-		))
+		set_header(HTTPHeaders.CONTENT_TYPE, "application/json")
 	return body(to_json(data).to_utf8())
 
 func get_header(name: String) -> String:
@@ -75,10 +70,7 @@ func get_header(name: String) -> String:
 	return value
 
 func has_header(name) -> bool:
-	for header in headers:
-		if header.begins_with(name):
-			return true
-	return false
+	return headers.has(name)
 
 func send_async() -> HTTPResponse:
 	return SimpleHTTPClient.new().request_async(

@@ -2,7 +2,7 @@ class_name DiscordRESTAPI
 
 var token: String                            setget __set
 var requester: DiscordRESTRequester          setget __set
-var rest_headers: PoolStringArray            setget __set
+var rest_headers: Dictionary                 setget __set
 var entity_manager: BaseDiscordEntityManager setget __set
 
 func _init(_token: String, _requester: DiscordRESTRequester, _entity_manager: BaseDiscordEntityManager) -> void:
@@ -10,14 +10,14 @@ func _init(_token: String, _requester: DiscordRESTRequester, _entity_manager: Ba
 	requester = _requester
 	entity_manager = _entity_manager
 		
-	rest_headers = [
-		HTTPHeaders.AUTHORIZATION.format({token = token}),
-		HTTPHeaders.USER_AGENT.format({
-			name = Discord.LIBRARY,
-			url = Discord.LIBRARY_URL,
-			version = Discord.LIBRARY_VERSION
-		}),
-	]
+	rest_headers = {
+		HTTPHeaders.AUTHORIZATION: "Bot %s" % token,
+		HTTPHeaders.USER_AGENT: "%s (%s, %s)" % [
+			Discord.LIBRARY,
+			Discord.LIBRARY_URL,
+			Discord.LIBRARY_VERSION
+		]
+	}
 
 func rest_request(endpoint: String) -> RestRequest:
 	return RestRequest.new().url(rest_url(endpoint)).headers(rest_headers)

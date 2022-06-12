@@ -2,8 +2,8 @@ class_name DiscordRESTRequester
 
 var limiter: RESTRateLimiter
 
-func _init() -> void:
-	limiter = RESTRateLimiter.new()
+func _init(use_pool: bool = false) -> void:
+	limiter = RESTRateLimiter.new(use_pool)
 
 func request_async(request: RestRequest) -> HTTPResponse:
 	var response: HTTPResponse = yield(limiter.queue_request(request), "completed")
@@ -15,6 +15,7 @@ func request_async(request: RestRequest) -> HTTPResponse:
 			push_error("Discord REST: Unauthorized, url: %s" % request.url)
 		HTTPClient.RESPONSE_FORBIDDEN:
 			push_error("Discord REST: Forbidden, url: %s" % request.url)
+			print(response.body.get_string_from_utf8())
 		HTTPClient.RESPONSE_NOT_FOUND:
 			push_error("Discord REST: Not Found, url: %s" % request.url)
 		HTTPClient.RESPONSE_METHOD_NOT_ALLOWED:
@@ -24,9 +25,11 @@ func request_async(request: RestRequest) -> HTTPResponse:
 	
 	return response
 
-func cdn_download_async(url: String) -> Resource:
-	var _url: URL = URL.new(url)
-	var format: String = _url.get_file_extension()
+func cdn_download_async(_url: String) -> Resource:
+	var url: Dictionary = URL.parse_url(_url)
+	var path: String = url.path.split("?", true, 1)[0]
+	path = path.split("#", true, 1)[0]
+	var format: String = path.get_extension()
 	
 	var fail: bool = false
 	if not format in DiscordREST.CDN_FILE_FORMATS:
@@ -39,7 +42,7 @@ func cdn_download_async(url: String) -> Resource:
 		return yield(Awaiter.submit(), "completed")
 
 	var response: HTTPResponse = yield(request_async(
-		RestRequest.new().url(url).method_get()
+		RestRequest.new().url(_url).method_get()
 	), "completed")
 	if not response.successful():
 		return null
@@ -62,9 +65,6 @@ func cdn_download_async(url: String) -> Resource:
 
 func get_last_latency_ms() -> int:
 	return limiter.last_latency_ms
-
-func _request_async(url: String, headers: PoolStringArray = [], method: int = HTTPClient.METHOD_GET, data: PoolByteArray = []) -> HTTPResponse:
-	return SimpleHTTPClient.new().request_async(url, headers, true, method, data)
 
 static func _power_of_2(n: int) -> bool:
 	return (n & (n - 1)) == 0 if n > 0 else false

@@ -48,6 +48,7 @@ func build() -> Dictionary:
 	for option in options:
 		_options.append(option.build())
 	data["options"] = _options
+	data.erase("required")
 	return data
 
 func get_class() -> String:

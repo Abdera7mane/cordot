@@ -40,7 +40,9 @@ func parse_interaction_payload(data: Dictionary) -> Dictionary:
 	if data.has("user"):
 		user = manager.get_or_construct_user(data["user"])
 	if data.has("member"):
-		member = manager.get_or_construct_guild_member(data["member"])
+		var member_data: Dictionary = data["member"]
+		member_data["guild_id"] = guild_id
+		member = manager.get_or_construct_guild_member(member_data)
 	if data.has("message"):
 		message = manager.get_or_construct_message(data["message"], true)
 	return {
@@ -51,11 +53,12 @@ func parse_interaction_payload(data: Dictionary) -> Dictionary:
 		guild_id = guild_id,
 		channel_id = data.get("channel_id", 0) as int,
 		member = member,
+		user = user,
 		user_id = user.id if user else 0,
 		token = data["token"],
 		version = data["version"],
 		message_id = message.id if message else 0,
-		meesage = message,
+		message = message,
 		locale = data.get("locale", ""),
 		guild_locale = data.get("guild_locale", "")
 	}

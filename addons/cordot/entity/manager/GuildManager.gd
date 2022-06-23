@@ -287,6 +287,7 @@ func parse_voice_state_payload(data: Dictionary) -> Dictionary:
 	if data.has("member"):
 		var member_data: Dictionary = data["member"]
 		member_data["id"] = data["user_id"]
+		member_data["guild_id"] = guild_id
 		member = get_manager().get_or_construct_guild_member(member_data)
 	
 	var parsed_data: Dictionary = {

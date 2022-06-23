@@ -28,7 +28,7 @@ var channel_id: int                  setget __set
 var channel: TextChannel             setget __set
 var member: Guild.Member             setget __set
 var user_id: int                     setget __set, get_user_id
-var user: User                       setget __set
+var user: User                       setget __set, get_user
 var token: String                    setget __set
 var version: int                     setget __set
 var message_id: int                  setget __set
@@ -72,7 +72,62 @@ func get_user_id() -> int:
 	return user_id if not member else member.id
 
 func get_user() -> User:
-	return self.get_container().users.get(user_id)
+	return user if user else member.user
+
+func get_named_option_value(name: String, default = null): # Variant
+	var value = default
+	for option in data.options:
+		if option["name"] == name:
+			value = option["value"]
+			break
+	return value
+
+func get_named_string_option_value(name: String, default: String = "") -> String:
+	return get_named_option_value(name, default) as String
+
+func get_named_integer_option_value(name: String, default: int = 0) -> int:
+	return get_named_option_value(name, default) as int
+
+func get_named_boolean_option_value(name: String, default: bool = false) -> bool:
+	return get_named_option_value(name, default) as bool
+
+func get_named_user_option_value(name: String, default: User = null) -> User:
+	var _user: User = default
+	var _user_id: int = get_named_integer_option_value(name, default.id if default else 0)
+	if data:
+		_user = data.resolved["users"].get(_user_id)
+	return _user
+
+func get_named_channel_option_value(name: String, default: Channel = null) -> Channel:
+	var _channel: Channel = default
+	var _channel_id: int = get_named_integer_option_value(name)
+	if data:
+		_channel = data.resolved["channels"].get(_channel_id, default)
+	return _channel
+
+func get_named_role_option_value(name: String, default: Guild.Role = null) -> Guild.Role:
+	var role: Guild.Role = default
+	var role_id: int = get_named_integer_option_value(name)
+	if data:
+		role = data.resolved["roles"].get(role_id, default)
+	return role
+
+func get_named_mentionable_option_value(name: String, default: MentionableEntity = null) -> MentionableEntity:
+	var entity: MentionableEntity = default
+	var entity_id: int = get_named_integer_option_value(name)
+	if data:
+		entity = data.resolved["mentionables"].get(entity_id, default)
+	return entity
+
+func get_named_number_option_value(name: String, default: float = NAN) -> float:
+	return get_named_option_value(name, default) as float
+
+func get_named_attachment_option_value(index: int, default: MessageAttachment = null) -> MessageAttachment:
+	var attachment: MessageAttachment = default
+	var attachment_id: int = get_integer_option_value(index)
+	if data:
+		attachment = data.resolved["attachments"].get(attachment_id, default)
+	return attachment
 
 func get_option_name(index: int) -> String:
 	return data.options[index]["name"] if has_option(index) else ""
@@ -81,54 +136,62 @@ func get_option_value(index: int, default = null): # Variant
 	return data.options[index]["value"] if has_option(index) else default
 
 func get_string_option_value(index: int, default: String = "") -> String:
-	return get_option_value(index, default)
+	return get_option_value(index, default) as String
 
 func get_integer_option_value(index: int, default: int = 0) -> int:
-	return get_option_value(index, default)
+	return get_option_value(index, default) as int
 
-func get_boolean_option_value(index: int, default: bool = 0) -> bool:
-	return get_option_value(index, default)
+func get_boolean_option_value(index: int, default: bool = false) -> bool:
+	return get_option_value(index, default) as bool
 
 func get_user_option_value(index: int, default: User = null) -> User:
-	var _user: User = null
-	var _user_id: int = get_option_value(index, default.id if _user else 0) as int
+	var _user: User = default
+	var _user_id: int = get_integer_option_value(index)
 	if data:
-		_user = data.resolved["users"].get(_user_id)
+		_user = data.resolved["users"].get("_user_id", default)
 	return _user
 
 func get_channel_option_value(index: int, default: Channel = null) -> Channel:
-	var _channel: Channel = null
-	var _channel_id: int = get_option_value(index, default.id if _channel else 0) as int
+	var _channel: Channel = default
+	var _channel_id: int = get_integer_option_value(index)
 	if data:
-		_channel = data.resolved["channels"].get(_channel_id)
+		_channel = data.resolved["channels"].get(_channel_id, default)
 	return _channel
 
 func get_role_option_value(index: int, default: Guild.Role = null) -> Guild.Role:
-	var role: Guild.Role = null
-	var role_id: int = get_option_value(index, default.id if role else 0) as int
+	var role: Guild.Role = default
+	var role_id: int = get_integer_option_value(index)
 	if data:
-		role = data.resolved["roles"].get(role_id)
+		role = data.resolved["roles"].get(role_id, default)
 	return role
 
 func get_mentionable_option_value(index: int, default: MentionableEntity = null) -> MentionableEntity:
-	var entity: MentionableEntity = null
-	var entity_id: int = get_option_value(index, default.id if entity else 0) as int
+	var entity: MentionableEntity = default
+	var entity_id: int = get_integer_option_value(index)
 	if data:
-		entity = data.resolved["mentionables"].get(entity_id)
+		entity = data.resolved["mentionables"].get(entity_id, default)
 	return entity
 
 func get_number_option_value(index: int, default: float = NAN) -> float:
-	return get_option_value(index, default)
+	return get_option_value(index, default) as float
 
 func get_attachment_option_value(index: int, default: MessageAttachment = null) -> MessageAttachment:
-	var attachment: MessageAttachment = null
-	var attachment_id: int = get_option_value(index, default.id if attachment else 0) as int
+	var attachment: MessageAttachment = default
+	var attachment_id: int = get_integer_option_value(index)
 	if data:
-		attachment = data.resolved["attachments"].get(attachment_id)
+		attachment = data.resolved["attachments"].get(attachment_id, default)
 	return attachment
 
+func has_named_option(name: String) -> bool:
+	var exists: bool = false
+	for option in data.options:
+		if option["name"] == name:
+			exists = true
+			break
+	return exists
+
 func has_option(index: int) -> bool:
-	return data and data.options.size() >= index
+	return data and data.options.size() > index
 
 func is_command() -> bool:
 	return type == Type.APPLICATION_COMMAND

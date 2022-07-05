@@ -100,28 +100,28 @@ func fetch_referenced_message() -> Message:
 	) if referenced_message_id != 0 else Awaiter.submit()
 
 func react(emoji: Emoji) -> bool:
-	return get_rest().request_async(
+	return yield(get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"create_reaction", [channel_id, self.id, emoji]
-	)
+	), "completed")
 
 func unreact(emoji: Emoji) -> bool:
-	return get_rest().request_async(
+	return yield(get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"delete_own_reaction", [channel_id, self.id, emoji]
-	)
+	), "completed")
 
 func remove_reaction(user_id: int, emoji: Emoji) -> bool:
-	return get_rest().request_async(
+	return yield(get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"delete_user_reaction", [channel_id, self.id, emoji, user_id]
-	)
+	), "completed")
 
 func fetch_reactions(emoji: Emoji, after: int = 0, limit: int = 25) -> Array:
-	return get_rest().request_async(
+	return yield(get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"get_reactions", [channel_id, self.id, emoji, after, limit]
-	)
+	), "completed")
 
 func clear_all_reactions() -> void:
 	yield(get_rest().request_async(
@@ -143,14 +143,14 @@ func delete() -> bool:
 		return false
 	return _delete()
 
-func _delete() -> bool:
-	return get_rest().request_async(
-		DiscordREST.CHANNEL,
-		"delete_message", [channel_id, self.id]
-	)
-
 func get_class() -> String:
 	return "Message"
+
+func _delete() -> bool:
+	return yield(get_rest().request_async(
+		DiscordREST.CHANNEL,
+		"delete_message", [channel_id, self.id]
+	), "completed")
 
 func _clone_data() -> Array:
 	return [{

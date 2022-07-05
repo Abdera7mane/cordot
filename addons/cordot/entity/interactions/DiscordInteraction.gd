@@ -338,10 +338,10 @@ func edit_response(message_edit: MessageEditData) -> Message:
 	)
 
 func delete_response() -> bool:
-	return get_rest().request_async(
+	return yield(get_rest().request_async(
 		DiscordREST.INTERACTION,
 		"delete_original_response", [application_id, token]
-	)
+	), "completed")
 
 func fetch_channel() -> TextChannel:
 	channel = yield(get_rest().request_async(

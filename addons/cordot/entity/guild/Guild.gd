@@ -270,10 +270,10 @@ func delete() -> bool:
 	)
 
 func fetch_channels() -> Array:
-	return get_rest().request_async(
+	return yield(get_rest().request_async(
 		DiscordREST.GUILD,
 		"get_guild_channels", [self.id]
-	)
+	), "completed")
 
 func create_channel(data: ChannelCreateData) -> Channel:
 	var bot_id: int = get_container().bot_id
@@ -286,10 +286,10 @@ func create_channel(data: ChannelCreateData) -> Channel:
 	)
 
 func edit_channel_positions(data: ChannelPositionsEditData) -> bool:
-	return get_rest().request_async(
+	return yield(get_rest().request_async(
 		DiscordREST.GUILD,
 		"edit_guild_channel_positions", [self.id, data.to_array()]
-	)
+	), "completed")
 
 func fetch_member(member_id: int) -> Member:
 	return get_rest().request_async(
@@ -319,10 +319,10 @@ func search_members(query: String, limit: int = 1) -> Array:
 
 func add_member(user_id: int, access_token: String) -> Array:
 	# TODO add the rest of parameters of this endpoint
-	return get_rest().request_async(
+	return yield(get_rest().request_async(
 		DiscordREST.GUILD,
 		"add_guild_member", [self.id, user_id, {access_token = access_token}]
-	)
+	), "completed")
 
 func edit_current_member(nickname: String) ->  Guild.Member:
 	var bot_id: int = get_container().bot_id
@@ -360,10 +360,10 @@ func fetch_ban(user_id: int) -> GuildBan:
 	)
 
 func fetch_roles() -> Array:
-	return get_rest().request_async(
+	return yield(get_rest().request_async(
 		DiscordREST.GUILD,
 		"get_guild_roles", [self.id]
-	)
+	), "completed")
 
 func create_role(data: RoleCreateData) -> Role:
 	var bot_id: int = get_container().bot_id
@@ -436,10 +436,10 @@ func begin_prune(days: int = 7, return_count: bool = true, role_ids: PoolStringA
 	)
 
 func fetch_voice_regions() -> Array:
-	return get_rest().request_async(
+	return yield(get_rest().request_async(
 		DiscordREST.GUILD,
 		"get_guild_voice_regions", [self.id]
-	)
+	), "completed")
 
 func fetch_invites() -> Array:
 	var bot_id: int = get_container().bot_id

@@ -1411,7 +1411,7 @@ class GuildEmoji extends Emoji:
 		return self.get_container().users.get(self.user_id)
 	
 	func url_encoded() -> String:
-		return ("%s:%d" % [name, self.id]).http_escape()
+		return ("a:%d" % self.id).percent_encode()
 	
 	func get_class() -> String:
 		return "Guild.GuildEmoji"

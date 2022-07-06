@@ -67,7 +67,7 @@ func crosspost_message(channel_id: int, message_id: int) -> Message:
 			channel_id = channel_id,
 			message_id = message_id
 		})
-	).method_post()
+	).empty_body().method_post()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_message_response(response)
 
@@ -78,7 +78,7 @@ func create_reaction(channel_id: int, message_id: int, emoji: Emoji) -> bool:
 			message_id = message_id,
 			emoji = emoji.url_encoded()
 		})
-	).method_put()
+	).empty_body().method_put()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 

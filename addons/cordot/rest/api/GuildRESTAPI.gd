@@ -34,7 +34,7 @@ func edit_guild(guild_id: int, params: Dictionary = {}) -> Guild:
 func delete_guild(guild_id: int) -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD.format({guild_id = guild_id})
-	).method_get()
+	).method_delete()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
@@ -137,7 +137,7 @@ func add_guild_member_role(guild_id: int, user_id: int, role_id: int) -> bool:
 			user_id = user_id,
 			role_id = role_id
 		})
-	).method_put()
+	).empty_body().method_put()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 

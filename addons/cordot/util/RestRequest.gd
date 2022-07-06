@@ -60,6 +60,9 @@ func json_body(data) -> RestRequest:
 		set_header(HTTPHeaders.CONTENT_TYPE, "application/json")
 	return body(to_json(data).to_utf8())
 
+func empty_body() -> RestRequest:
+	return body([]).set_header(HTTPHeaders.CONTENT_LENGTH, "0")
+
 func get_header(name: String) -> String:
 	var value: String
 	for header in headers:

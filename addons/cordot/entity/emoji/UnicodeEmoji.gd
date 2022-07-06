@@ -7,7 +7,7 @@ func equals(entity: DiscordEntity) -> bool:
 	return .equals(entity) and name == entity.name
 
 func url_encoded() -> String:
-	return name.http_escape()
+	return name.percent_encode()
 
 func get_class() -> String:
 	return "UnicodeEmoji"

@@ -101,5 +101,5 @@ func _handle_message_response(response: HTTPResponse) -> Message:
 	var message: Message = null
 	if response.successful():
 		var message_data: Dictionary = parse_json(response.body.get_string_from_utf8())
-		message = entity_manager.get_or_construct_message(message_data)
+		message = entity_manager.get_or_construct_message(message_data, true)
 	return message

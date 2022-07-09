@@ -41,7 +41,7 @@ func get_messages(channel_id: int, query: Dictionary = {limit = 50}) -> Array:
 	if response.successful():
 		var messages_data: Array = parse_json(response.body.get_string_from_utf8())
 		for message_data in messages_data:
-			messages.append(entity_manager.get_or_construct_message(message_data))
+			messages.append(entity_manager.get_or_construct_message(message_data, true))
 	return messages
 
 func get_message(channel_id: int, message_id: int) -> Message:
@@ -224,5 +224,5 @@ func _handle_message_response(response: HTTPResponse) -> Message:
 	var message: Message = null
 	if response.successful():
 		var message_data: Dictionary = parse_json(response.body.get_string_from_utf8())
-		message = entity_manager.get_or_construct_message(message_data)
+		message = entity_manager.get_or_construct_message(message_data, true)
 	return message

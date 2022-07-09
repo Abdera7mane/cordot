@@ -1339,6 +1339,8 @@ class Role extends MentionableEntity:
 	func _update(data: Dictionary) -> void:
 		name = data.get("name", name)
 		color = data.get("color", color)
+		if color == Color.black:
+			color == Color.transparent
 		hoist = data.get("hoist", hoist)
 		position = data.get("position", position)
 		permissions.flags = data.get("permissions", permissions.flags)

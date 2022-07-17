@@ -6,7 +6,7 @@ var icon_hash: String    setget __set
 var members: Array       setget __set, get_members
 var name: String         setget __set
 var owner_id: int        setget __set
-var owner: Member        setget __set, get_owner
+var owner: TeamMember    setget __set, get_owner
 
 func _init(data: Dictionary).(data["id"]) -> void:
 	icon_hash = data.get("icon_hash", "")
@@ -17,7 +17,7 @@ func _init(data: Dictionary).(data["id"]) -> void:
 func get_members() -> Array:
 	return _members.values()
 
-func get_owner() -> Member:
+func get_owner() -> TeamMember:
 	return _members.get(owner_id)
 
 func get_class() -> String:
@@ -26,7 +26,7 @@ func get_class() -> String:
 func __set(_value) -> void:
 	pass
 
-class Member extends DiscordEntity:
+class TeamMember extends DiscordEntity:
 	enum MembershipState {
 		INVITED  = 1,
 		ACCEPTED = 2
@@ -48,7 +48,7 @@ class Member extends DiscordEntity:
 		return get_container().users.get(user)
 	
 	func get_class() -> String:
-		return "DiscordTeam.Member"
+		return "DiscordTeam.TeamMember"
 		
 	func __set(_value) -> void:
 		pass

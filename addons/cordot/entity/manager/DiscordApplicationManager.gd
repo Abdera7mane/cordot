@@ -41,10 +41,10 @@ func construct_team(data: Dictionary) -> DiscordTeam:
 	
 	return team
 
-func construct_team_member(data: Dictionary) -> DiscordTeam.Member:
+func construct_team_member(data: Dictionary) -> DiscordTeam.TeamMember:
 	var manager: BaseDiscordEntityManager = get_manager()
 	
-	var member: DiscordTeam.Member = DiscordTeam.Member.new(parse_team_member_payload(data))
+	var member := DiscordTeam.TeamMember.new(parse_team_member_payload(data))
 	member.set_meta("container", manager.container)
 	member.set_meta("rest", manager.rest_mediator)
 	
@@ -94,7 +94,7 @@ func parse_application_command_payload(data: Dictionary) -> Dictionary:
 func parse_team_payload(data: Dictionary) -> Dictionary:
 	var members: Dictionary = {}
 	for member_data in data["members"]:
-		var member: DiscordTeam.Member = construct_team_member(member_data)
+		var member: DiscordTeam.TeamMember = construct_team_member(member_data)
 		members[member.id] = member
 	return {
 		id = data["id"] as int,

@@ -15,7 +15,7 @@ func construct_application_command_option_choice(_data: Dictionary) -> DiscordAp
 func construct_team(_data: Dictionary) -> DiscordTeam:
 	return null
 
-func construct_team_member(_data: Dictionary) -> DiscordTeam.Member:
+func construct_team_member(_data: Dictionary) -> DiscordTeam.TeamMember:
 	return null
 
 func construct_interaction(_data: Dictionary) -> DiscordInteraction:

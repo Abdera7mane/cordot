@@ -5,8 +5,8 @@ enum Type {
 	RECIPIENT_ADD,
 	RECIPIENT_REMOVE,
 	CALL,
-	CHANNEL_NAME_CHANGE
-	CHANNEL_ICON_CHANGE
+	CHANNEL_NAME_CHANGE,
+	CHANNEL_ICON_CHANGE,
 	CHANNEL_PINNED_MESSAGE,
 	GUILD_MEMBER_JOIN,
 	GUILD_SUBSCRIPTION,
@@ -37,33 +37,36 @@ enum Flags {
 	LOADING                = 1 << 7,
 }
 
-var author_id: int                      setget __set
-var author: User                        setget __set, get_author
-var timestamp: int                      setget __set
-var type: int                           setget __set
-var content: String                     setget __set
-var edited_timestamp: int               setget __set
-var mentions: Array                     setget __set
-var channel_mentions: Array             setget __set 
-var attachments: Array                  setget __set
-var embeds: Array                       setget __set
-var reactions: Array                    setget __set
-var nonce: String                       setget __set
-var is_pinned: bool                     setget __set
-var webhook_id: int                     setget __set
-var webhook: DiscordWebhook             setget __set
-var activity: MessageActivity           setget __set
-var application_id: int                 setget __set
-var application: DiscordApplication     setget __set
-var message_reference: MessageReference setget __set
-var flags: BitFlag                      setget __set
-var referenced_message_id: int          setget __set
-var referenced_message: Message         setget __set, get_referenced_message
-var interaction: MessageInteraction     setget __set
-var components: Array                   setget __set
-var sticker_items: Array                setget __set
+var author_id: int
+var author: User:
+	get = get_author
+var timestamp: int
+var type: int
+var content: String
+var edited_timestamp: int
+var mentions: Array
+var channel_mentions: Array
+var attachments: Array
+var embeds: Array
+var reactions: Array
+var nonce: String
+var is_pinned: bool
+var webhook_id: int
+var webhook: DiscordWebhook
+var activity: MessageActivity
+var application_id: int
+var application: DiscordApplication
+var message_reference: MessageReference
+var flags: BitFlag
+var referenced_message_id: int
+var referenced_message: Message:
+	get = get_referenced_message
+var interaction: MessageInteraction
+var components: Array
+var sticker_items: Array
 
-func _init(data: Dictionary).(data) -> void:
+func _init(data: Dictionary) -> void:
+	super(data)
 	author_id = data["author_id"]
 	timestamp = data["timestamp"]
 	type = data["type"]
@@ -100,46 +103,46 @@ func fetch_referenced_message() -> Message:
 	) if referenced_message_id != 0 else Awaiter.submit()
 
 func react(emoji: Emoji) -> bool:
-	return yield(get_rest().request_async(
+	return await get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"create_reaction", [channel_id, self.id, emoji]
-	), "completed")
+	)
 
 func unreact(emoji: Emoji) -> bool:
-	return yield(get_rest().request_async(
+	return await get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"delete_own_reaction", [channel_id, self.id, emoji]
-	), "completed")
+	)
 
 func remove_reaction(user_id: int, emoji: Emoji) -> bool:
-	return yield(get_rest().request_async(
+	return await get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"delete_user_reaction", [channel_id, self.id, emoji, user_id]
-	), "completed")
+	)
 
 func fetch_reactions(emoji: Emoji, after: int = 0, limit: int = 25) -> Array:
-	return yield(get_rest().request_async(
+	return await get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"get_reactions", [channel_id, self.id, emoji, after, limit]
-	), "completed")
+	)
 
 func clear_all_reactions() -> void:
-	yield(get_rest().request_async(
+	await get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"delete_all_reactions", [channel_id, self.id]
-	), "completed")
+	)
 
 func clear_emoji_reactions(emoji: Emoji) -> void:
-	yield(get_rest().request_async(
+	await get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"delete_emoji_reactions", [channel_id, self.id, emoji]
-	), "completed")
+	)
 
 func delete() -> bool:
 	var bot_id: int = get_container().bot_id
 	if bot_id != author_id:
 		push_error("Can not delete a message that was not sent by the client")
-		yield(Awaiter.submit(), "completed")
+		await Awaiter.submit()
 		return false
 	return _delete()
 
@@ -147,10 +150,10 @@ func get_class() -> String:
 	return "Message"
 
 func _delete() -> bool:
-	return yield(get_rest().request_async(
+	return await get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"delete_message", [channel_id, self.id]
-	), "completed")
+	)
 
 func _clone_data() -> Array:
 	return [{
@@ -177,7 +180,7 @@ func _clone_data() -> Array:
 	}]
 
 func _update(data: Dictionary) -> void:
-	._update(data)
+	super(data)
 	is_pinned = data.get("is_pinned", is_pinned)
 	content = data.get("content", content)
 	edited_timestamp = data.get("edited_timestamp", edited_timestamp)
@@ -190,5 +193,5 @@ func _update(data: Dictionary) -> void:
 		flags = BitFlag.new(Flags)
 	flags.flags = data.get("flags", flags.flags)
 
-func __set(_value):
-	pass
+#func __set(_value):
+#	pass

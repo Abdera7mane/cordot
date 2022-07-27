@@ -6,7 +6,7 @@ var payload: Dictionary
 func _init(payload: Dictionary = {}) -> void:
 	self.payload = payload
 
-func to_bytes() -> PoolByteArray:
+func to_bytes() -> PackedByteArray:
 	return JSON.print(self.payload).to_utf8()
 
 func get_class() -> String:

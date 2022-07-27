@@ -1,6 +1,6 @@
 class_name MessageEmbedProviderBuilder
 
-var _data: Dictionary setget __set
+var _data: Dictionary 
 
 func set_name(name: String) -> MessageEmbedProviderBuilder:
 	_data["name"] = name

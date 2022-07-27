@@ -1,8 +1,9 @@
 class_name Emoji extends MentionableEntity
 
-var name: String setget __set
+var name: String
 
-func _init(data: Dictionary).(data["id"]):
+func _init(data: Dictionary):
+	super(data["id"])
 	name = data["name"]
 
 func get_mention() -> String:

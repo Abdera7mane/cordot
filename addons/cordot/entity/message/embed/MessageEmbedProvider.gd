@@ -1,7 +1,7 @@
 class_name MessageEmbedProvider
 
-var name: String setget __set
-var url: String  setget __set
+var name: String 
+var url: String  
 
 func _init(_name: String, _url: String) -> void:
 	name = _name

@@ -1,6 +1,6 @@
 class_name MessageEditData
 
-var _data: Dictionary setget __set, to_dict
+var _data: Dictionary , to_dict
 
 func set_content(name: String) -> MessageEditData:
 	_data["content"] = name.strip_edges()

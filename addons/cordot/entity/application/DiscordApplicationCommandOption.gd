@@ -14,16 +14,16 @@ enum Option {
 	ATTACHMENT        = 11
 }
 
-var type: int                   setget __set
-var name: String                setget __set
-var description: String         setget __set
-var required: bool              setget __set
-var choices: Array              setget __set
-var options: Array              setget __set
-var channel_types: PoolIntArray setget __set
-var min_value: float            setget __set
-var max_value: float            setget __set
-var autocomplete: bool          setget __set
+var type: int
+var name: String
+var description: String
+var required: bool
+var choices: Array
+var options: Array
+var channel_types: PackedInt32Array
+var min_value: float
+var max_value: float
+var autocomplete: bool
 
 func _init(data: Dictionary) -> void:
 	type = data["type"]
@@ -40,5 +40,5 @@ func _init(data: Dictionary) -> void:
 func get_class() -> String:
 	return "DiscordApplicationCommandOption"
 
-func __set(_value) -> void:
-	pass
+#func __set(_value) -> void:
+#	pass

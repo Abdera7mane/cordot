@@ -22,7 +22,7 @@ func remove_unvailable_guild(id: int) -> void:
 		check_ready()
 
 func check_ready() -> void:
-	if unavailable_guilds.empty():
+	if unavailable_guilds.is_empty():
 		ready = true
 		var self_user: User = _entity_manager.get_self()
 		self.emit_signal("transmit_event", "client_ready", [self_user])

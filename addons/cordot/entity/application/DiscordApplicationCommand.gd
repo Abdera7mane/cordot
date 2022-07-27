@@ -6,17 +6,19 @@ enum Type {
 	MESSAGE    = 3,
 }
 
-var type: int                setget __set
-var application_id: int      setget __set
-var guild_id: int            setget __set
-var guild: Guild             setget __set, get_guild
-var name: String             setget __set
-var description: String      setget __set
-var options: Array           setget __set
-var default_permission: bool setget __set
-var version: int             setget __set
+var type: int
+var application_id: int
+var guild_id: int
+var guild: Guild:
+	get = get_guild
+var name: String
+var description: String
+var options: Array
+var default_permission: bool
+var version: int
 
-func _init(data: Dictionary).(data["id"]) -> void:
+func _init(data: Dictionary) -> void:
+	super(data["id"])
 	type = data.get("type", Type.CHAT_INPUT)
 	application_id = data["application_id"]
 	guild_id = data.get("guild_id", 0)

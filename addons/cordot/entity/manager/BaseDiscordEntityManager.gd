@@ -23,8 +23,8 @@ var max_messages: int = 1000
 
 func cache_flags_from_intents(intents: BitFlag) -> void:
 	cache_flags.GUILD_MEMBERS = intents.GUILD_MEMBERS
-	cache_flags.MESSAGES = intents.GUILD_MESSAGES or intents.DIRECT_MESSAGES 
-	cache_flags.PRESENCES = intents.GUILD_PRESENCES 
+	cache_flags.MESSAGES = intents.GUILD_MESSAGES or intents.DIRECT_MESSAGES
+	cache_flags.PRESENCES = intents.GUILD_PRESENCES
 
 func reset() -> void:
 	container.applications.clear()
@@ -39,15 +39,15 @@ func reset() -> void:
 func get_or_construct_channel(data: Dictionary, cache: bool = true) -> Channel:
 	var id: int = data["id"] as int
 	var channel: Channel = get_channel(id)
-		
+
 	if channel:
 		channel_manager.update_channel(channel, data)
-	
+
 	else:
 		channel = channel_manager.construct_channel(data)
 		if cache:
 			put_channel(channel)
-	
+
 	return channel
 
 func get_or_construct_emoji(data: Dictionary) -> Emoji:
@@ -56,15 +56,15 @@ func get_or_construct_emoji(data: Dictionary) -> Emoji:
 func get_or_construct_guild(data: Dictionary, cache: bool = true) -> Guild:
 	var id: int = data["id"] as int
 	var guild: Guild = get_guild(id)
-	
+
 	if guild:
 		guild_manager.update_guild(guild, data)
-	
+
 	else:
 		guild = guild_manager.construct_guild(data)
 		if cache:
 			put_guild(guild)
-	
+
 	return guild
 
 func get_or_construct_guild_member(data: Dictionary, cache: bool = false) -> Guild.Member:
@@ -73,57 +73,57 @@ func get_or_construct_guild_member(data: Dictionary, cache: bool = false) -> Gui
 	var member: Guild.Member
 	if guild:
 		member = guild.get_member(id)
-	
+
 	if member:
 		guild_manager.update_guild_member(member, data)
-	
+
 	else:
 		member = guild_manager.construct_guild_member(data)
 		if cache_flags.GUILD_MEMBERS and cache and guild:
 			guild._members[member.id] = member
-	
+
 	return member
 
 func get_or_construct_message(data: Dictionary, cache: bool = false) -> Message:
 	var id: int = data["id"] as int
 	var message: Message = get_message(id)
-	
+
 	if message:
 		message_manager.update_message(message, data)
-	
+
 	else:
 		message = message_manager.construct_message(data)
 		if cache_flags.MESSAGES and cache:
 			put_message(message)
-	
+
 	return message
 
 func get_or_construct_user(data: Dictionary, cache: bool = true) -> User:
 	var id: int = data["id"] as int
 	var user: User = get_user(id)
-	
+
 	if user:
 		user_manager.update_user(user, data)
-	
+
 	else:
 		user = user_manager.construct_user(data)
 		if cache:
 			put_user(user)
-	
+
 	return user
 
 func get_or_construct_presence(data: Dictionary, cache: bool = false) -> Presence:
 	var id: int = data["user"]["id"] as int
 	var presence: Presence = get_presence(id)
-	
+
 	if presence:
 		user_manager.update_presence(presence, data)
-	
+
 	else:
 		presence = user_manager.construct_presence(data)
 		if cache_flags.PRESENCES and cache:
 			put_pesence(presence)
-	
+
 	return presence
 
 func get_or_construct_voice_state(data: Dictionary) -> Guild.VoiceState:
@@ -132,13 +132,13 @@ func get_or_construct_voice_state(data: Dictionary) -> Guild.VoiceState:
 	var state: Guild.VoiceState
 	if guild:
 		state = guild.voice_states.get(id)
-	
+
 	if state:
 		guild_manager.update_voice_state(state, data)
-	
+
 	else:
 		state = guild_manager.construct_voice_state(data)
-	
+
 	return state
 
 func get_self() -> User:
@@ -149,7 +149,7 @@ func get_user(id: int) -> User:
 
 func get_presence(id: int) -> Presence:
 	return self.container.presences.get(id)
- 
+
 func get_guild(id: int) -> Guild:
 	return self.container.guilds.get(id)
 

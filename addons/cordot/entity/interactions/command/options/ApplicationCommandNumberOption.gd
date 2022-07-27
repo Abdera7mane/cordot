@@ -1,9 +1,10 @@
 class_name ApplicationCommandNumberOption extends ApplicationCommandChoicesBuilder
 
-var min_value: float = NAN setget __set
-var max_value: float = NAN setget __set
+var min_value: float = NAN
+var max_value: float = NAN
 
-func _init(option_name: String).(option_name) -> void:
+func _init(option_name: String) -> void:
+	super(option_name)
 	type = DiscordApplicationCommandOption.Option.NUMBER
 
 func add_choice(name: String, value: float) -> ApplicationCommandNumberOption:
@@ -19,7 +20,7 @@ func set_max(value: float) -> ApplicationCommandNumberOption:
 	return self
 
 func build() -> Dictionary:
-	var data: Dictionary = .build()
+	var data: Dictionary = super()
 	if not is_nan(min_value):
 		data["min_value"] = min_value
 	if not is_nan(max_value):

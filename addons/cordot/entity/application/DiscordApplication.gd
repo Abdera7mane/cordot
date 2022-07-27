@@ -11,28 +11,29 @@ enum Flags {
 	GATEWAY_MESSAGE_CONTENT_LIMITED  = 1 << 19
 }
 
-var name: String                 setget __set
-var icon_hash: String            setget __set
-var description: String          setget __set
-var rpc_origins: PoolStringArray setget __set
-var is_bot_public: bool          setget __set
-var bot_require_code_grant: bool setget __set
-var tos_url: String              setget __set
-var privacy_policy_url: String   setget __set
-var owner_id: int                setget __set
-var owner: User                  setget __set, get_owner
-var summary: String              setget __set
-var verify_key: String           setget __set
-var team: DiscordTeam            setget __set
-var guild_id: int                setget __set
-var primary_sku_id: int          setget __set
-var slug: String                 setget __set
-var cover_image_hash: String     setget __set
-var flags: BitFlag               setget __set
+var name: String
+var icon_hash: String
+var description: String
+var rpc_origins: PackedStringArray
+var is_bot_public: bool
+var bot_require_code_grant: bool
+var tos_url: String
+var privacy_policy_url: String
+var owner_id: int
+var owner: User
+var summary: String
+var verify_key: String
+var team: DiscordTeam
+var guild_id: int
+var primary_sku_id: int
+var slug: String
+var cover_image_hash: String
+var flags: BitFlag
 
-func _init(data: Dictionary).(data["id"]) -> void:
+func _init(data: Dictionary) -> void:
+	super(data["id"])
 	flags = BitFlag.new(Flags)
-	
+
 	name = data["name"]
 	description = data.get("description", "")
 	icon_hash = data.get("icon_hash", "")
@@ -52,7 +53,7 @@ func _init(data: Dictionary).(data["id"]) -> void:
 	flags.flags = data.get("flags", 0)
 
 func is_partial() -> bool:
-	return not name.empty()
+	return not name.is_empty()
 
 func get_owner() -> User:
 	return get_container().users.get(owner_id)

@@ -5,7 +5,7 @@ signal invalid_session(may_resume)
 
 const ENCODING: String = "json"
 
-var _connection_state: ConnectionState setget __set
+var _connection_state: ConnectionState 
 
 func _init(connection_state: ConnectionState) -> void:
 	name = "GatewayWebSocketAdapter"
@@ -37,7 +37,7 @@ func _on_packet(packet: DiscordPacket) -> void:
 		GatewayOpcodes.Gateway.HELLO:
 			var pkt: Packet
 			
-			if _connection_state.session_id.empty():
+			if _connection_state.session_id.is_empty():
 				pkt = Packets.IdentifyPacket.new(_connection_state)
 			else:
 				pkt = Packets.ResumePacket.new(_connection_state, last_sequence)
@@ -48,7 +48,7 @@ func _on_packet(packet: DiscordPacket) -> void:
 			var wait_time: int = packet.get_data()["heartbeat_interval"] / 1000
 			_heartbeat_timer.start(wait_time)
 		GatewayOpcodes.Gateway.HEARTBEAT_ACK:
-			latency = OS.get_ticks_msec() - last_beat
+			latency = Time.get_ticks_msec() - last_beat
 		_:
 			push_warning("Unhandled Opcode: %d" % opcode)
 

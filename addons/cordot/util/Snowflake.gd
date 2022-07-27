@@ -6,7 +6,7 @@ const PROCESS_OFFSET: int = 12
 
 const DISCORD_EPOCH: int = 1420070400000
 
-var id: int setget __set
+var id: int
 
 func _init(_id: int) -> void:
 	id = _id
@@ -33,8 +33,9 @@ func __set(_value) -> void:
 	pass
 
 # PoolIntArray can not hold 64-bit integers
-static func snowflakes2integers(snowflakes: PoolStringArray) -> Array:
-	var ints: Array = []
+# but in Godot 4.0, it can, as PackedInt64Array
+static func snowflakes2integers(snowflakes: PackedStringArray) -> PackedInt64Array:
+	var ints: PackedInt64Array = PackedInt64Array()
 	for snowflake in snowflakes:
 		ints.append(snowflake as int)
 	return ints

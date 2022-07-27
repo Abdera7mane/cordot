@@ -1,7 +1,7 @@
 class_name Packets
 
 class IdentifyPacket extends Packet:
-	
+
 	func _init(connection_state: ConnectionState) -> void:
 		payload = {
 			op = GatewayOpcodes.Gateway.IDENTIFY,
@@ -21,7 +21,7 @@ class IdentifyPacket extends Packet:
 		}
 
 class ResumePacket extends Packet:
-	
+
 	func _init(connection_state: ConnectionState, sequence: int) -> void:
 		self.payload = {
 			op = GatewayOpcodes.Gateway.RESUME,
@@ -33,7 +33,7 @@ class ResumePacket extends Packet:
 		}
 
 class HeartBeatPacket extends Packet:
-	
+
 	func _init(sequence: int) -> void:
 		self.payload = {
 			op = GatewayOpcodes.Gateway.HEARTBEAT,
@@ -48,7 +48,7 @@ class RequestGuildMembersPacket extends Packet:
 	var precences: bool
 	var user_ids: Array
 	var nonce: String
-	
+
 	func _init(data: Dictionary) -> void:
 		self.guild_id = data["guild_id"]
 		self.precences = data["precences"]
@@ -56,7 +56,7 @@ class RequestGuildMembersPacket extends Packet:
 		self.query = data.get("query", "")
 		self.user_ids = data.get("user_ids", [])
 		self.nonce = UUID.v4()
-	
+
 	func get_payload() -> Dictionary:
 		var payload: Dictionary = {
 			op = GatewayOpcodes.Gateway.REQUEST_GUILD_MEMBERS,
@@ -66,14 +66,14 @@ class RequestGuildMembersPacket extends Packet:
 				presences = self.precences
 			}
 		}
-		if not nonce.empty():
+		if not nonce.is_empty():
 			payload["nonce"] = nonce
-		if not query.empty():
+		if not query.is_empty():
 			payload["query"] = query
-		elif not user_ids.empty():
+		elif not user_ids.is_empty():
 			var ids_strings = []
 			for user_id in self.user_ids:
 				ids_strings.append(str(user_id))
 			payload["user_ids"] = ids_strings
-			
+
 		return payload

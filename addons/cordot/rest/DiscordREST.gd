@@ -9,13 +9,13 @@ enum {
 	WEBHOOK
 }
 
-const CDN_FILE_FORMATS: PoolStringArray = PoolStringArray([
+const CDN_FILE_FORMATS: Array[String] = [
 	"jpg", "jpeg",
 	"png",
 	"webp",
 	"gif",
 	"json"
-])
+]
 
 const ENDPOINTS: Dictionary = {
 	INVITE = "/invites/{invite_code}",
@@ -24,7 +24,7 @@ const ENDPOINTS: Dictionary = {
 	STAGE_INSTANCES = "/stage-instances",
 	STAGE_INSTANCE = "/stage-instances/{channel_id}",
 	VOICE_REGIONS = "/voice/regions",
-	
+
 	# Channel endpoints
 	CHANNEL = "/channels/{channel_id}",
 	CHANNEL_MESSAGE = "/channels/{channel_id}/messages/{message_id}",
@@ -52,7 +52,7 @@ const ENDPOINTS: Dictionary = {
 	PUBLIC_ARCHIVED_THREADS = "/channels/{channel_id}/threads/archived/public",
 	PRIVATE_ARCHIVED_THREADS = "/channels/{channel_id}/threads/archived/private",
 	JOINED_PRIVATE_ARCHIVED_THREADS = "/channels/{channel_id}/users/@me/threads/archived/private",
-	
+
 	# Guild endpoints
 	GUILDS = "/guilds",
 	GUILD = "/guilds/{guild_id}",
@@ -92,22 +92,22 @@ const ENDPOINTS: Dictionary = {
 	CURRENT_MEMBER = "/guilds/{guild_id}/members/@me",
 	CURRENT_MEMBER_VOICE_STATE = "/guilds/{guild_id}/voice-states/@me",
 	MEMBER_VOICE_STATE = "/guilds/{guild_id}/voice-states/{user_id}",
-	
-	 # User endpoints
+
+	# User endpoints
 	CURRENT_USER = "/users/@me",
 	CURRENT_USER_GUILDS = "/users/@me/guilds",
 	CURRENT_USER_GUILD = "/users/@me/guilds/{guild_id}",
 	CURRENT_USER_CONNECTIONS = "/users/@me/connections",
 	USER = "/users/{user_id}",
 	USER_DM = "/users/@me/channels",
-	
+
 	# Webhook endpoints
 	WEBHOOK = "/webhooks/{webhook_id}",
 	WEBHOOK_WITH_TOKEN = "/webhooks/{webhook_id}/{webhook_token}",
 	WEBHOOK_MESSAGE = "/webhooks/{webhook_id}/{webhook_token}/messages/{message_id}",
 	WEBHOOK_SLACK = "/webhooks/{webhook_id}/{webhook_token}/slack",
 	WEBHOOK_GITHUB = "/webhooks/{webhook_id}/{webhook_token}/github",
-	
+
 	# CDN endpoints
 	CUSTOM_EMOJI = "/emojis/{emoji_id}",
 	GUILD_ICON = "/icons/{guild_id}/{hash}",
@@ -124,13 +124,13 @@ const ENDPOINTS: Dictionary = {
 	TEAM_ICON = "/team-icons/{team_id}/{hash}",
 	STICKER_RESOURCE = "/stickers/{sticker_id}",
 	ROLE_ICON = "/role-icons/{role_id}/{hash}",
-	
+
 	# Application endpoints
 	APPLICATION_COMMANDS = "/applications/{application_id}/commands",
 	APPLICATION_COMMAND = "/applications/{application_id}/commands/{command_id}",
 	GUILD_APPLICATION_COMMANDS = "/applications/{application_id}/guilds/{guild_id}/commands",
 	GUILD_APPLICATION_COMMAND = "/applications/{application_id}/guilds/{guild_id}/commands/{command_id}",
-	
+
 	# Interaction endpoints
 	INTERACTION_CALLBACK = "/interactions/{interaction_id}/{token}/callback",
 	INTERACTION_ORIGINAL_RESPONSE = "/webhooks/{application_id}/{token}/messages/@original",

@@ -64,24 +64,23 @@ signal voice_state_updated(old, new)
 signal voice_server_updated(old, new)
 signal webhooks_updated(old, new)
 
-var _connection_state: ConnectionState         setget __set
-
-var entity_manager: BaseDiscordEntityManager   setget __set
-var rest: DiscordRESTAdapter                   setget __set
-var gateway_websocket: DiscordWebSocketAdapter setget __set
-var voice_websocket: VoiceWebSocketAdapter     setget __set
+var _connection_state: ConnectionState
+var entity_manager: BaseDiscordEntityManager
+var rest: DiscordRESTAdapter
+var gateway_websocket: DiscordWebSocketAdapter
+var voice_websocket: VoiceWebSocketAdapter
 
 var commands_map: Dictionary = {
 	application = {},
 	text = {}
-} setget __set
+}
 
-var use_http_pool: bool
+var use_http_Packed: bool
 
 func _init(token: String, intents: int = GatewayIntents.UNPRIVILEGED) -> void:
 	name = "DiscordClient"
 	pause_mode = PAUSE_MODE_PROCESS
-	
+
 	_connection_state = ConnectionState.new(token, intents)
 
 func login() -> void:
@@ -151,8 +150,8 @@ func register_application_command(
 ) -> DiscordApplicationCommand:
 	if not is_client_connected():
 		push_error("Discord client must be connected in order to register  application commands")
-		return yield(get_tree(), "idle_frame")
-	
+		return await get_tree().process_frame
+
 	var application_id: int = get_client_application().id
 	if guild_id:
 		return rest.application.create_guild_application_command(
@@ -160,7 +159,7 @@ func register_application_command(
 			guild_id,
 			builder.build()
 		)
-	
+
 	return rest.application.create_global_application_command(
 		application_id,
 		builder.build()
@@ -171,7 +170,7 @@ func get_class() -> String:
 
 func _create_gateway_websocket(_entity_manager: BaseDiscordEntityManager) -> DiscordWebSocketAdapter:
 	var adapter: DiscordWebSocketAdapter = DiscordWebSocketAdapter.new(_connection_state)
-	
+
 	adapter.connect("connected", self, "_on_connected")
 	adapter.connect("reconnected", self, "_on_reconnected")
 	adapter.connect("connection_error", self, "_on_connection_error")
@@ -188,11 +187,11 @@ func _create_gateway_websocket(_entity_manager: BaseDiscordEntityManager) -> Dis
 		ReadyPacketHandler.new(_connection_state, _entity_manager),
 		InteractionPacketsHandler.new(_entity_manager)
 	]
-	
+
 	for handler in handlers:
 		adapter.add_handler(handler)
 		handler.connect("transmit_event", self, "_transmit_event")
-	
+
 	return adapter
 
 func _create_voice_websocket() -> VoiceWebSocketAdapter:
@@ -206,12 +205,12 @@ func _setup() -> void:
 	var intents: BitFlag = BitFlag.new(intents_map).put(get_intents())
 	entity_manager.cache_flags_from_intents(intents)
 
-	rest = DiscordRESTAdapter.new(_connection_state.token, entity_manager, use_http_pool)
+	rest = DiscordRESTAdapter.new(_connection_state.token, entity_manager, use_http_Packed)
 	gateway_websocket = _create_gateway_websocket(entity_manager)
 	voice_websocket = _create_voice_websocket()
-	
+
 	entity_manager.rest_mediator = rest.mediator
-	
+
 	self.add_child(rest)
 	self.add_child(gateway_websocket)
 	self.add_child(voice_websocket)

@@ -7,8 +7,8 @@ enum Type {
 	JOIN_REQUEST = 5
 }
 
-var type: int        setget __set
-var party_id: String setget __set
+var type: int        
+var party_id: String 
 
 func _init(data: Dictionary) -> void:
 	type = data["type"]

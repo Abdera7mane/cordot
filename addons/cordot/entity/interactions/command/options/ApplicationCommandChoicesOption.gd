@@ -1,9 +1,10 @@
 class_name ApplicationCommandChoicesBuilder extends ApplicationCommandOptionBuilder
 
-var choices: Array     setget __set
-var autocomplete: bool setget __set
+var choices: Array
+var autocomplete: bool
 
-func _init(option_name: String).(option_name) -> void:
+func _init(option_name: String) -> void:
+	super(option_name)
 	pass
 
 func set_autocomplete(value: bool) -> ApplicationCommandChoicesBuilder:
@@ -23,7 +24,7 @@ func _add_choice(choice: Dictionary) -> void:
 		push_error("Application command choices are limited to a max of 25")
 
 func build() -> Dictionary:
-	var data: Dictionary = .build()
+	var data: Dictionary = super()
 	if choices.size() > 0:
 		data["choices"] = choices
 	else:

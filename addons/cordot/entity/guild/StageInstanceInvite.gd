@@ -1,9 +1,9 @@
 class_name StageInstanceInvite
 
-var members: Array         setget __set
-var participant_count: int setget __set
-var speaker_count: int     setget __set
-var topic: String          setget __set
+var members: Array         
+var participant_count: int 
+var speaker_count: int     
+var topic: String          
 
 func _init(data: Dictionary) -> void:
 	members = data["members"]

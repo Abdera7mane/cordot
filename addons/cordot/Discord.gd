@@ -9,4 +9,4 @@ const VOICE_GATEWAY_VERSION: int = 4
 
 const LIBRARY: String = "cordot"
 const LIBRARY_URL: String = "https://github.com/abdera7mane/cordot"
-const LIBRARY_VERSION: String = "0.1.0"
+const LIBRARY_VERSION: String = "0.1.1"

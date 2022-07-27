@@ -12,9 +12,9 @@ enum Flags {
 	TEAM_PSEUDO_USER      = 1 << 10,
 	BUG_HUNTER_LEVEL2     = 1 << 14,
 	VERIFIED_BOT          = 1 << 16,
-	VERIFIED_DEVELOPER    = 1 << 17
-	CERTIFIED_MODERATOR   = 1 << 18
-	BOT_HTTP_INTERACTIONS = 1 << 19
+	VERIFIED_DEVELOPER    = 1 << 17,
+	CERTIFIED_MODERATOR   = 1 << 18,
+	BOT_HTTP_INTERACTIONS = 1 << 19,
 }
 
 enum PremiumType {
@@ -23,22 +23,23 @@ enum PremiumType {
 	NITRO
 }
 
-var username: String      setget __set
-var discriminator: int    setget __set
-var avatar_hash: String   setget __set
-var email: String         setget __set
-var locale: String        setget __set
-var is_bot: bool          setget __set
-var is_system: bool       setget __set
-var mfa_enabled: bool     setget __set
-var banner_hash: String   setget __set
-var accent: Color         setget __set
-var verified: bool        setget __set
-var premium_type: int     setget __set
-var flags: BitFlag        setget __set
-var public_flags: BitFlag setget __set
+var username: String
+var discriminator: int
+var avatar_hash: String
+var email: String
+var locale: String
+var is_bot: bool
+var is_system: bool
+var mfa_enabled: bool
+var banner_hash: String
+var accent: Color
+var verified: bool
+var premium_type: int
+var flags: BitFlag
+var public_flags: BitFlag
 
-func _init(data: Dictionary).(data["id"]) -> void:
+func _init(data: Dictionary) -> void:
+	super(data["id"])
 	flags = BitFlag.new(Flags)
 	public_flags = BitFlag.new(Flags)
 	_update(data)

@@ -3,9 +3,10 @@
 
 class_name BitFlag
 
-var _current_index: int setget __set
+var _current_index: int
 
-var enum_set: Dictionary setget __set, get_enum
+var enum_set: Dictionary:
+	get = get_enum
 var flags: int
 
 func _init(_enum: Dictionary) -> void:
@@ -45,11 +46,11 @@ func none() -> bool:
 func get_enum() -> Dictionary:
 	return enum_set.duplicate()
 
-func get_keys() -> PoolStringArray:
-	return PoolStringArray(enum_set.keys())
+func get_keys() -> PackedStringArray:
+	return PackedStringArray(enum_set.keys())
 
-func get_values() -> PoolIntArray:
-	return PoolIntArray(enum_set.values())
+func get_values() -> PackedInt32Array:
+	return PackedInt32Array(enum_set.values())
 
 func get_class() -> String:
 	return "Bitflag"
@@ -70,7 +71,7 @@ func disable_all() -> BitFlag:
 func size() -> int:
 	return enum_set.size()
 
-func _set(property: String, value) -> bool:
+func _set(property: StringName, value) -> bool:
 	if enum_set.has(property):
 		if bool(value):
 			# warning-ignore:return_value_discarded
@@ -81,7 +82,7 @@ func _set(property: String, value) -> bool:
 		return true
 	return false
 
-func _get(property: String):
+func _get(property: StringName):
 	if enum_set.has(property):
 		return has(enum_set[property])
 	return null
@@ -113,5 +114,5 @@ func _iter_get(_arg) -> String:
 func _to_string() -> String:
 	return str(enum_set) + ", flags: %d" % flags
 
-func __set(_value) -> void:
-	pass
+#func __set(_value) -> void:
+#	pass

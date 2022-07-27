@@ -1,9 +1,9 @@
 class_name DiscordApplicationCommandOptionChoice
 
-var name: String setget __set
+var name: String 
 
 # Variant
-var value        setget __set
+var value        
 
 func _init(_name: String, _value) -> void:
 	name = _name

@@ -1,10 +1,10 @@
 class_name ApplicationCommandBuilder
 
-var name: String                    setget __set
-var description: String             setget __set
-var options: Array                  setget __set
-var default_permission: bool = true setget __set
-var type: int = 1                   setget __set
+var name: String                    
+var description: String             
+var options: Array                  
+var default_permission: bool = true 
+var type: int = 1                   
 
 func _init(command_name: String) -> void:
 	name = command_name

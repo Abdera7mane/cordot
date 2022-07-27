@@ -10,7 +10,7 @@ func get_manager() -> BaseDiscordEntityManager:
 
 func construct_channel(data: Dictionary) -> Channel:
 	var channel: Channel = null
-	
+
 	var type: int = data["type"] as int
 	match type:
 		Channel.Type.GUILD_TEXT:
@@ -36,12 +36,12 @@ func construct_channel(data: Dictionary) -> Channel:
 			channel = construct_stage_channel(data)
 		_:
 			push_warning("Can not construct channel of type %d. Library outdated ?" % type)
-			
+
 	if channel:
 		var manager: BaseDiscordEntityManager = self.get_manager()
 		channel.set_meta("container", manager.container)
 		channel.set_meta("rest", manager.rest_mediator)
-	
+
 	return channel
 
 func update_channel(channel: Channel, data: Dictionary) -> void:
@@ -138,26 +138,25 @@ func parse_guild_channel_payload(data: Dictionary) -> Dictionary:
 	return parsed_data
 
 func parse_guild_text_channel_payload(data: Dictionary) -> Dictionary:
-	return Dictionaries.merge(
-		parse_guild_channel_payload(data),
-		Dictionaries.merge(
-		parse_text_channel_payload(data),
-		{
+	return parse_guild_channel_payload(data).merge(
+		parse_guild_channel_payload(data).merge(
+			{
 			topic = Dictionaries.get_non_null(data, "topic", ""),
 			rate_limit_per_user = data["rate_limit_per_user"],
 			nsfw = data.get("nsfw", false),
 			auto_archive_duration = data.get("default_auto_archive_duration", 0)
-		})
-	)
+			},
+			true),
+		true)
 
 func parse_guild_voice_channel_payload(data: Dictionary) -> Dictionary:
-	return Dictionaries.merge(
-		parse_guild_channel_payload(data),
+	return parse_guild_channel_payload(data).merge(
 		{
 			bitrate = data["bitrate"],
 			user_limit = data["user_limit"],
 			rtc_region = null
-		}
+		},
+		true
 	)
 
 func parse_category_channel_payload(data: Dictionary) -> Dictionary:
@@ -168,23 +167,23 @@ func parse_dm_channel_payload(data: Dictionary) -> Dictionary:
 	for recipient_data in data["recipients"]:
 		var user: User = self.get_manager().get_or_construct_user(recipient_data)
 		users_ids.append(user.id)
-	
-	return Dictionaries.merge(
-		parse_text_channel_payload(data),
+
+	return parse_text_channel_payload(data).merge(
 		{
 			id = data["id"] as int,
 			users_ids = users_ids
-		}
+		},
+		true
 	)
 
 func parse_group_dm_channel_payload(data: Dictionary) -> Dictionary:
-	return Dictionaries.merge(
-		parse_dm_channel_payload(data),
+	return parse_dm_channel_payload(data).merge(
 		{
 			name = data["name"],
 			icon_hash = Dictionaries.get_non_null(data, "icon", ""),
 			owner_id = data["owner_id"] as int
-		}
+		},
+		true
 	)
 
 func parse_thread_channel_payload(data: Dictionary) -> Dictionary:
@@ -204,11 +203,8 @@ func parse_thread_channel_payload(data: Dictionary) -> Dictionary:
 		parsed_data["member_count"] = data["member_count"]
 	if data.has("thread_metadata"):
 		parsed_data["metadata"] = construct_thread_mdetadata(data["thread_metadata"])
-	
-	return Dictionaries.merge(
-		parse_text_channel_payload(data),
-		parsed_data
-	)
+
+	return parse_text_channel_payload(data).merge(parsed_data, true)
 
 func parse_thread_metadata(data: Dictionary) -> Dictionary:
 	return {

@@ -1,7 +1,7 @@
 class_name ActivityButton
 
-var label: String setget __set
-var url: String   setget __set
+var label: String 
+var url: String   
 
 func _init(data: Dictionary) -> void:
 	label = data["label"]

@@ -2,14 +2,14 @@ class_name DiscordRESTRequester
 
 var limiter: RESTRateLimiter
 
-func _init(use_pool: bool = false) -> void:
-	limiter = RESTRateLimiter.new(use_pool)
+func _init(use_Packed: bool = false) -> void:
+	limiter = RESTRateLimiter.new(use_Packed)
 
 func request_async(request: RestRequest) -> HTTPResponse:
-	var response: HTTPResponse = yield(limiter.queue_request(request), "completed")
-	
+	var response: HTTPResponse = await limiter.queue_request(request)
+
 	var failed: bool = false
-	
+
 	match response.code:
 		HTTPClient.RESPONSE_BAD_REQUEST:
 			failed = true
@@ -34,13 +34,15 @@ func request_async(request: RestRequest) -> HTTPResponse:
 			if failed:
 				print_error("Server error when processing the request", request)
 	if failed:
-		var parse_result := JSON.parse(response.body.get_string_from_utf8().c_unescape())
-		if parse_result.error == OK and parse_result.result is Dictionary:
-			var error_object: Dictionary = parse_result.result
-			if error_object.has("code"):
-				printerr()
-				print_error_object(error_object)
-	
+		var json = JSON.new()
+		var err := json.parse(response.body.get_string_from_utf8().c_unescape())
+		var data: Dictionary
+		if err == OK and json.get_data() is Dictionary:
+			data = json.get_data()
+		else:
+			printerr()
+			print_error_object(data)
+
 	return response
 
 func cdn_download_async(_url: String) -> Resource:
@@ -48,7 +50,7 @@ func cdn_download_async(_url: String) -> Resource:
 	var path: String = url.path.split("?", true, 1)[0]
 	path = path.split("#", true, 1)[0]
 	var format: String = path.get_extension()
-	
+
 	var fail: bool = false
 	if not format in DiscordREST.CDN_FILE_FORMATS:
 		fail = true
@@ -57,11 +59,11 @@ func cdn_download_async(_url: String) -> Resource:
 #		fail = true
 #		push_error("Discord CDN: %d is an invalid size" % size)
 	if fail:
-		return yield(Awaiter.submit(), "completed")
+		return await Awaiter.submit()
 
-	var response: HTTPResponse = yield(request_async(
-		RestRequest.new().url(_url).method_get()
-	), "completed")
+	var response: HTTPResponse = await request_async(
+		RestRequest.new().set_url(_url).method_get()
+	)
 	if not response.successful():
 		return null
 	var error: int = OK
@@ -96,14 +98,14 @@ func print_error_object(object: Dictionary) -> void:
 	printerr("ERROR TRACE START")
 	printerr()
 	printerr("Error: %s (%s)" % [object["code"], object["message"]])
-	
+
 	if not object.has("errors"):
 		printerr()
 		printerr("ERROR TRACE END")
 		return
-	
+
 	printerr("Errors:")
-	
+
 	var stack: Array = [object["errors"]]
 	while stack:
 		var dict: Dictionary = stack.pop_back()
@@ -120,7 +122,7 @@ func print_error_object(object: Dictionary) -> void:
 		if dict.has("_errors"):
 			var path: String = dict.get("path", "")
 			var tabbing: String
-			if not path.empty():
+			if not path.is_empty():
 				tabbing = "\t"
 				printerr("\t%s:" % path)
 			for error in dict["_errors"]:

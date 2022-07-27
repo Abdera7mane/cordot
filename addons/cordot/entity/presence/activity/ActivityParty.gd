@@ -1,7 +1,7 @@
 class_name ActivityParty
 
-var id: String         setget __set
-var size: PoolIntArray setget __set
+var id: String
+var size: PackedInt32Array
 
 func _init(data: Dictionary) -> void:
 	id = data.get("id", "")
@@ -9,7 +9,7 @@ func _init(data: Dictionary) -> void:
 
 func to_dict() -> Dictionary:
 	var data: Dictionary = {}
-	if not id.empty():
+	if not id.is_empty():
 		data["id"] = id
 	var party_size: Array = []
 	if size.size() > 0:
@@ -19,5 +19,5 @@ func to_dict() -> Dictionary:
 	data["size"] = party_size
 	return data
 
-func __set(_value) -> void:
-	pass
+#func __set(_value) -> void:
+#	pass

@@ -35,8 +35,8 @@ func _on_ready(user: User) -> void:
 
 func _on_message(message: Message) -> void:
 	if message.content == "?ping":
-		var start: int = OS.get_ticks_msec()
+		var start: int = Time.get_ticks_msec()
 		var content = "**Gateway ping**: %d" % client.get_ping()
 		var message_sent: Message = yield(message.channel.send_message(content), "completed")
-		content = content + ", **REST ping**: %d" % (OS.get_ticks_msec() - start)
+		content = content + ", **REST ping**: %d" % (Time.get_ticks_msec() - start)
 		yield(message_sent.edit(content), "completed")

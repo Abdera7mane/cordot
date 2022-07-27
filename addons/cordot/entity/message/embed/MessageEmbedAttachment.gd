@@ -1,8 +1,8 @@
 class_name MessageEmbedAttachment
 
-var url: String       setget __set
-var proxy_url: String setget __set
-var size: Vector2     setget __set
+var url: String       
+var proxy_url: String 
+var size: Vector2     
 
 func _init(_url: String, _proxy_url: String, _size: Vector2) -> void:
 	url = _url

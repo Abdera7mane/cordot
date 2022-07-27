@@ -1,8 +1,8 @@
 class_name MessageEmbedField
 
-var name: String  setget __set
-var value: String setget __set
-var inline: bool  setget __set
+var name: String  
+var value: String 
+var inline: bool  
 
 func _init(_name: String, _value: String, _inline: bool) -> void:
 	name = _name

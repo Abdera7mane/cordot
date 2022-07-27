@@ -12,8 +12,9 @@ const DEFAULT_CONTAINER: Dictionary = {
 	application_id = 0
 }
 
-var snowflake: Snowflake setget __set
-var id: int              setget __set, get_id
+var snowflake: Snowflake
+var id: int:
+	get = get_id
 
 func _init(_id: int) -> void:
 	snowflake = Snowflake.new(_id)
@@ -51,5 +52,5 @@ func _clone_data() -> Array:
 func _to_string() -> String:
 	return "[%s<%d>:%d]" % [self.get_class(), self.id, self.get_instance_id()]
 
-func __set(_value) -> void:
-	pass
+#func __set(_value) -> void:
+#	pass

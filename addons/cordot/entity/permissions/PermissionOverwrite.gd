@@ -5,14 +5,15 @@ enum Type {
 	MEMBER
 }
 
-var type: int      setget __set
-var allow: BitFlag setget __set
-var deny: BitFlag  setget __set
+var type: int
+var allow: BitFlag
+var deny: BitFlag
 
-func _init(data: Dictionary).(data["id"]):
+func _init(data: Dictionary):
+	super(data["id"])
 	type = data["type"]
-	allow = BitFlag.new(Permissions.get_script_constant_map()).put(data["allow"])
-	deny = BitFlag.new(Permissions.get_script_constant_map()).put(data["deny"])
+	allow = BitFlag.new((Permissions as Script).get_script_constant_map()).put(data["allow"])
+	deny = BitFlag.new((Permissions as Script).get_script_constant_map()).put(data["deny"])
 
-func __set(_value) -> void:
-	pass
+#func __set(_value) -> void:
+#	pass

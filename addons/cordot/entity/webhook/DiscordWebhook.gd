@@ -6,22 +6,26 @@ enum Type {
 	APPLICATION      = 3
 }
 
-var type: int                      setget __set
-var guild_id: int                  setget __set
-var guild: Guild                   setget __set, get_guild
-var channel_id: int                setget __set
-var channel: Channel               setget __set, get_channel
-var user_id: int                   setget __set
-var user: User                     setget __set, get_user
-var name: String                   setget __set
-var avatar_hash: String            setget __set
-var token: String                  setget __set
-var application_id: int            setget __set
-var source_guild: Guild            setget __set
-var source_channel: PartialChannel setget __set
-var url: String                    setget __set
+var type: int
+var guild_id: int
+var guild: Guild:
+	get = get_guild
+var channel_id: int
+var channel: Channel:
+	get = get_channel
+var user_id: int
+var user: User:
+	get = get_user
+var name: String
+var avatar_hash: String
+var token: String
+var application_id: int
+var source_guild: Guild
+var source_channel: PartialChannel
+var url: String
 
-func _init(data: Dictionary).(data["id"]) -> void:
+func _init(data: Dictionary) -> void:
+	super(data["id"])
 	type = data["type"]
 	guild_id = data.get("guild_id", 0)
 	channel_id = data.get("channel_id", 0)

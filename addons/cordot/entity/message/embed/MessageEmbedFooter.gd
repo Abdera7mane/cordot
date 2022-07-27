@@ -1,8 +1,8 @@
 class_name MessageEmbedFooter
 
-var text: String      setget __set
-var icon_url: String  setget __set
-var proxy_url: String setget __set
+var text: String      
+var icon_url: String  
+var proxy_url: String 
 
 func _init(_text: String, _icon_url: String, _proxy_url: String) -> void:
 	text = _text

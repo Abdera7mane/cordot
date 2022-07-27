@@ -20,25 +20,25 @@ enum Type {
 	COMPETING = 5
 }
 
-var name: String                   setget __set
-var type: int                      setget __set
-var url: String                    setget __set
-var created_at: int                setget __set
-var timestamps: ActivityTimestamps setget __set
-var application_id: int            setget __set
-var details: String                setget __set
-var state: String                  setget __set
-var emoji: Emoji                   setget __set
-var party: ActivityParty           setget __set
-var assets: ActivityAssets         setget __set
-var secrets: ActivitySecrets       setget __set
-var instance: bool                 setget __set
-var flags: BitFlag                 setget __set
-var buttons: Array                 setget __set
+var name: String
+var type: int
+var url: String
+var created_at: int
+var timestamps: ActivityTimestamps
+var application_id: int
+var details: String
+var state: String
+var emoji: Emoji
+var party: ActivityParty
+var assets: ActivityAssets
+var secrets: ActivitySecrets
+var instance: bool
+var flags: BitFlag
+var buttons: Array
 
 func _init(data: Dictionary) -> void:
 	flags = BitFlag.new(Flags)
-	
+
 	name = data["name"]
 	type = data["type"]
 	url = data.get("url", "")
@@ -63,12 +63,12 @@ func to_dict() -> Dictionary:
 		instance = self.instance,
 		flags = self.flags.flags
 	}
-	
-	if not url.empty():
+
+	if not url.is_empty():
 		data["url"] = url
-	if not state.empty():
+	if not state.is_empty():
 		data["state"] = state
-	if not details.empty():
+	if not details.is_empty():
 		data["details"] = details
 	if emoji:
 		data["emoji"] = emoji.to_dict()
@@ -80,7 +80,7 @@ func to_dict() -> Dictionary:
 		data["party"] = party.to_dict()
 	if secrets:
 		data["secrets"] = secrets.to_dict()
-	
+
 	return data
 
 func get_class() -> String:

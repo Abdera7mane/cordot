@@ -1,15 +1,15 @@
 class_name DiscordInteractionData
 
-var command_id: int                          setget __set
-var name: String                             setget __set
-var type: int                                setget __set
-var resolved: DiscordInteractionResolvedData setget __set
-var options: Array                           setget __set
-var custom_id: String                        setget __set
-var component_type: int                      setget __set
-var values: Array                            setget __set
-var target_id: int                           setget __set
-var components: Array                        setget __set
+var command_id: int                          
+var name: String                             
+var type: int                                
+var resolved: DiscordInteractionResolvedData 
+var options: Array                           
+var custom_id: String                        
+var component_type: int                      
+var values: Array                            
+var target_id: int                           
+var components: Array                        
 
 func _init(data: Dictionary) -> void:
 	command_id = data["command_id"]

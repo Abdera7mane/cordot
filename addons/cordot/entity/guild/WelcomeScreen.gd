@@ -1,7 +1,7 @@
 class_name WelcomeScreen extends DiscordEntity
 
-var description: String setget __set
-var channels: Array     setget __set
+var description: String
+var channels: Array
 
-func __set(_value) -> void:
-	pass
+#func __set(_value) -> void:
+#	pass

@@ -1,6 +1,6 @@
 class_name MessageEmbedAuthorBuilder
 
-var _data: Dictionary setget __set
+var _data: Dictionary 
 
 func _init(name: String) -> void:
 	_data["name"] = name

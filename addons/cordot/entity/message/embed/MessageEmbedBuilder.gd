@@ -1,6 +1,6 @@
 class_name MessageEmbedBuilder
 
-var _data: Dictionary setget __set
+var _data: Dictionary 
 
 func set_title(title: String) -> MessageEmbedBuilder:
 	_data["title"] = title

@@ -18,29 +18,34 @@ enum Callback {
 	MODAL                    = 9,
 }
 
-var application_id: int              setget __set
-var application: DiscordApplication  setget __set, get_application
-var type: int                        setget __set
-var data: DiscordInteractionData     setget __set
-var guild_id: int                    setget __set
-var guild: Guild                     setget __set, get_guild
-var channel_id: int                  setget __set
-var channel: TextChannel             setget __set
-var member: Guild.Member             setget __set
-var user_id: int                     setget __set, get_user_id
-var user: User                       setget __set, get_user
-var token: String                    setget __set
-var version: int                     setget __set
-var message_id: int                  setget __set
-var message: Message                 setget __set
-var locale: String                   setget __set
-var guild_locale: String             setget __set
-var replied: bool                    setget __set
-var deferred: bool                   setget __set
-var last_followup_id: int            setget __set
-var followup_ids: Array              setget __set
+var application_id: int
+var application: DiscordApplication:
+	get = get_application
+var type: int
+var data: DiscordInteractionData
+var guild_id: int
+var guild: Guild:
+	get = get_guild
+var channel_id: int
+var channel: TextChannel
+var member: Guild.Member
+var user_id: int:
+	get = get_user_id
+var user: User:
+	get = get_user
+var token: String
+var version: int
+var message_id: int
+var message: Message
+var locale: String
+var guild_locale: String
+var replied: bool
+var deferred: bool
+var last_followup_id: int
+var followup_ids: Array
 
-func _init(_data: Dictionary).(_data["id"]) -> void:
+func _init(_data: Dictionary) -> void:
+	super(_data["id"])
 	application_id = _data["application_id"]
 	type = _data["type"]
 	data = _data.get("data")
@@ -211,16 +216,16 @@ func reply(message_reply: DiscordInteractionMessage) -> bool:
 		push_error("Reply to interaction was deferred")
 		fail = true
 	if fail:
-		yield(Awaiter.submit(), "completed")
+		await Awaiter.submit()
 		return false
 	var params: Dictionary = {
 		type = Callback.CHANNEL_MESSAGE,
 		data = message_reply.to_dict()
 	}
-	replied = yield(get_rest().request_async(
+	replied = await get_rest().request_async(
 		DiscordREST.INTERACTION,
 		"create_response", [self.id, token, params]
-	), "completed")
+	)
 	return replied
 
 func defer_reply(ephemeral: bool = false) -> bool:
@@ -232,17 +237,17 @@ func defer_reply(ephemeral: bool = false) -> bool:
 		push_error("Already deferred interaction")
 		fail = true
 	if fail:
-		yield(Awaiter.submit(), "completed")
+		await Awaiter.submit()
 		return false
 	var params: Dictionary = {
 		type = Callback.DEFERRED_CHANNEL_MESSAGE,
 	}
 	if ephemeral:
 		params["data"] = {flags = Message.Flags.EPHEMERAL}
-	deferred = yield(get_rest().request_async(
+	deferred = await get_rest().request_async(
 		DiscordREST.INTERACTION,
 		"create_response", [self.id, token, params]
-	), "completed")
+	)
 	if deferred and not replied:
 		replied = true
 	return replied
@@ -256,15 +261,15 @@ func defer_update() -> bool:
 		push_error("Already deferred interaction")
 		fail = true
 	if fail:
-		yield(Awaiter.submit(), "completed")
+		await Awaiter.submit()
 		return false
 	var params: Dictionary = {
 		type = Callback.DEFERRED_UPDATE_MESSAGE,
 	}
-	deferred = yield(get_rest().request_async(
+	deferred = await get_rest().request_async(
 		DiscordREST.INTERACTION,
 		"create_response", [self.id, token, params]
-	), "completed")
+	)
 	return replied
 
 func autocomplete(choices: ApplicationCommandChoicesBuilder) -> void:
@@ -272,10 +277,10 @@ func autocomplete(choices: ApplicationCommandChoicesBuilder) -> void:
 		type = Callback.AUTOCOMPLETE_RESULT,
 		data = choices.build()
 	}
-	yield(get_rest().request_async(
+	await get_rest().request_async(
 		DiscordREST.INTERACTION,
 		"create_response", [self.id, token, params]
-	), "completed")
+	)
 
 func create_followup(message_data: DiscordInteractionMessage) -> Message:
 	var fail: bool
@@ -286,11 +291,11 @@ func create_followup(message_data: DiscordInteractionMessage) -> Message:
 		push_error("Can not create interaction followup, did not reply to interaction")
 		fail = true
 	if fail:
-		return Awaiter.submit()
-	var followup: Message = yield(get_rest().request_async(
+		return await Awaiter.submit()
+	var followup: Message = await get_rest().request_async(
 		DiscordREST.INTERACTION,
 		"create_followup_message", [application_id, token, message_data.to_dict()]
-	), "completed")
+	)
 	if followup:
 		last_followup_id = followup.id
 		followup_ids.append(last_followup_id)
@@ -310,19 +315,19 @@ func edit_followup(message_edit: MessageEditData, followup_id: int = last_follow
 
 func delete_followup(followup_id: int = last_followup_id) -> bool:
 	if not followup_id:
-		yield(Awaiter.submit(), "completed")
+		await Awaiter.submit()
 		return false
-		
-	var success: bool = yield(get_rest().request_async(
+
+	var success: bool = await get_rest().request_async(
 		DiscordREST.INTERACTION,
 		"delete_followup_message", [application_id, token, followup_id]
-	), "completed")
-	
+	)
+
 	if success:
 		followup_ids.erase(followup_id)
 		if followup_ids.size() > 0:
 			last_followup_id = followup_ids.back()
-		
+
 	return success
 
 func fetch_response() -> Message:
@@ -338,30 +343,30 @@ func edit_response(message_edit: MessageEditData) -> Message:
 	)
 
 func delete_response() -> bool:
-	return yield(get_rest().request_async(
+	return await get_rest().request_async(
 		DiscordREST.INTERACTION,
 		"delete_original_response", [application_id, token]
-	), "completed")
+	)
 
 func fetch_channel() -> TextChannel:
-	channel = yield(get_rest().request_async(
+	channel = await get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"get_channel", [channel_id]
-	) if channel_id else Awaiter.submit(), "completed")
+	) if channel_id else Awaiter.submit()
 	return channel
 
 func fetch_guild() -> Guild:
-	guild = yield(get_rest().request_async(
+	guild = await get_rest().request_async(
 		DiscordREST.GUILD,
 		"get_guild", [guild_id]
-	) if guild_id else Awaiter.submit(), "completed")
+	) if guild_id else Awaiter.submit()
 	return guild
 
 func fetch_message() -> Message:
-	message = yield(get_rest().request_async(
+	message = await get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"get_message", [message_id]
-	) if message_id else Awaiter.submit(), "completed")
+	) if message_id else Awaiter.submit()
 	return message
 
 func get_class() -> String:

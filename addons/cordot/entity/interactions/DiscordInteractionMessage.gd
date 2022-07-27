@@ -1,12 +1,12 @@
 class_name DiscordInteractionMessage extends DiscordInteractionCallback
 
-var tts: bool                setget __set
-var content: String          setget __set
-var embeds: Array            setget __set
-var allowed_mentuons: Object setget __set
-var flags: BitFlag           setget __set
-var components: Array        setget __set
-var attachments: Array       setget __set
+var tts: bool                
+var content: String          
+var embeds: Array            
+var allowed_mentuons: Object 
+var flags: BitFlag           
+var components: Array        
+var attachments: Array       
 
 func _init() -> void:
 	flags = BitFlag.new(Message.Flags)
@@ -36,7 +36,7 @@ func ephemeral(value: bool) -> DiscordInteractionMessage:
 
 func to_dict() -> Dictionary:
 	var data: Dictionary = {tts = tts}
-	if not content.empty():
+	if not content.is_empty():
 		data["content"] = content
 	if embeds.size() > 0:
 		data["embeds"] = embeds

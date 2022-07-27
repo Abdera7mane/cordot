@@ -1,8 +1,9 @@
 class_name ApplicationCommandSubCommandGroup extends ApplicationCommandOptionBuilder
 
-var options: Array setget __set
+var options: Array
 
-func _init(option_name: String).(option_name) -> void:
+func _init(option_name: String) -> void:
+	super(option_name)
 	type = DiscordApplicationCommandOption.Option.SUB_COMMAND_GROUP
 
 func add_option(option: ApplicationCommandOptionBuilder) -> ApplicationCommandSubCommandGroup:
@@ -15,7 +16,7 @@ func add_subcommand(group_name: String) -> ApplicationCommandSubCommand:
 	return option
 
 func build() -> Dictionary:
-	var data: Dictionary = .build()
+	var data: Dictionary = super()
 	var _options: Array = []
 	for option in options:
 		_options.append(option.build())

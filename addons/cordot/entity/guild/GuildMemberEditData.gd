@@ -2,13 +2,14 @@ class_name GuildMemberEditData
 
 # warning-ignore-all:return_value_discarded
 
-var _data: Dictionary setget __set, to_dict
+var _data: Dictionary:
+	get = to_dict
 
 func set_nickname(nickname: String) -> GuildMemberEditData:
 	_data["nick"] = nickname
 	return self
 
-func set_roles(roles: PoolStringArray) -> GuildMemberEditData:
+func set_roles(roles: PackedStringArray) -> GuildMemberEditData:
 	_data["roles"] = roles
 	return self
 

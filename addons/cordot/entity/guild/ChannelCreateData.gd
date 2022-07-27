@@ -2,14 +2,15 @@ class_name ChannelCreateData
 
 # warning-ignore-all:return_value_discarded
 
-var _data: Dictionary setget __set, to_dict
+var _data: Dictionary:
+	get = to_dict
 
 func _init(name: String) -> void:
 	set_name(name)
 
 func set_name(name: String) -> ChannelCreateData:
 	name = name.strip_edges()
-	if name.empty():
+	if name.is_empty():
 		push_error("Guild name can not be empty")
 	_data["name"] = name
 	return self
@@ -56,5 +57,5 @@ func to_dict() -> Dictionary:
 func get_class() -> String:
 	return "ChannelCreateData"
 
-func __set(_value) -> void:
-	pass
+#func __set(_value) -> void:
+#	pass

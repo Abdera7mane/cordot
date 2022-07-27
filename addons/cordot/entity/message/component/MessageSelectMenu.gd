@@ -1,11 +1,11 @@
 class_name MessageSelectMenu extends MessageComponent
 
-var custom_id: String   setget __set
-var disabled: bool      setget __set
-var options: Array      setget __set
-var placeholder: String setget __set
-var min_values: int     setget __set
-var max_values: int     setget __set
+var custom_id: String   
+var disabled: bool      
+var options: Array      
+var placeholder: String 
+var min_values: int     
+var max_values: int     
 
 func get_class() -> String:
 	return "MessageSticker"

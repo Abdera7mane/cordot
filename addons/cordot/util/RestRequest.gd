@@ -6,13 +6,13 @@ class_name RestRequest
 var url: String
 var headers: Dictionary
 var method: int
-var body: PoolByteArray
+var body: PackedByteArray
 
-func url(_url: String) -> RestRequest:
+func set_url(_url: String) -> RestRequest:
 	url = _url
 	return self
 
-func headers(_headers: Dictionary) -> RestRequest:
+func set_headers(_headers: Dictionary) -> RestRequest:
 	headers = _headers
 	return self
 
@@ -20,53 +20,53 @@ func set_header(name: String, value: String) -> RestRequest:
 	headers[name] = value
 	return self
 
-func method(_method: int) -> RestRequest:
+func set_method(_method: int) -> RestRequest:
 	method = _method
 	return self
 
 func method_get() -> RestRequest:
-	return method(HTTPClient.METHOD_GET)
+	return set_method(HTTPClient.METHOD_GET)
 
 func method_head() -> RestRequest:
-	return method(HTTPClient.METHOD_HEAD)
+	return set_method(HTTPClient.METHOD_HEAD)
 
 func method_post() -> RestRequest:
-	return method(HTTPClient.METHOD_POST)
+	return set_method(HTTPClient.METHOD_POST)
 
 func method_put() -> RestRequest:
-	return method(HTTPClient.METHOD_PUT)
+	return set_method(HTTPClient.METHOD_PUT)
 
 func method_delete() -> RestRequest:
-	return method(HTTPClient.METHOD_DELETE)
+	return set_method(HTTPClient.METHOD_DELETE)
 
 func method_options() -> RestRequest:
-	return method(HTTPClient.METHOD_OPTIONS)
+	return set_method(HTTPClient.METHOD_OPTIONS)
 
 func method_trace() -> RestRequest:
-	return method(HTTPClient.METHOD_TRACE)
+	return set_method(HTTPClient.METHOD_TRACE)
 
 func method_connect() -> RestRequest:
-	return method(HTTPClient.METHOD_CONNECT)
+	return set_method(HTTPClient.METHOD_CONNECT)
 
 func method_patch() -> RestRequest:
-	return method(HTTPClient.METHOD_PATCH)
+	return set_method(HTTPClient.METHOD_PATCH)
 
-func body(data: PoolByteArray) -> RestRequest:
+func set_body(data: PackedByteArray) -> RestRequest:
 	body = data
 	return self
 
 func json_body(data) -> RestRequest:
 	if not has_header(HTTPHeaders.CONTENT_TYPE):
 		set_header(HTTPHeaders.CONTENT_TYPE, "application/json")
-	return body(to_json(data).to_utf8())
+	return set_body(JSON.new().stringify(data).to_utf8_buffer())
 
 func empty_body() -> RestRequest:
-	return body([]).set_header(HTTPHeaders.CONTENT_LENGTH, "0")
+	return set_body([]).set_header(HTTPHeaders.CONTENT_LENGTH, "0")
 
 func get_header(name: String) -> String:
 	var value: String
 	for header in headers:
-		var entry: PoolStringArray = header.split(":", true, 1)
+		var entry: PackedStringArray = header.split(":", true, 1)
 		if entry.size() == 2 and entry[0].strip_edges() == name:
 			value = entry[1].strip_edges()
 			break
@@ -76,7 +76,7 @@ func has_header(name) -> bool:
 	return headers.has(name)
 
 func send_async() -> HTTPResponse:
-	return SimpleHTTPClient.new().request_async(
+	return await SimpleHTTPClient.new().request_async(
 		self.url,
 		self.headers,
 		true,

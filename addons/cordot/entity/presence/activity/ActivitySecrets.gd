@@ -1,8 +1,8 @@
 class_name ActivitySecrets
 
-var join: String            setget __set
-var spectate: String        setget __set
-var instanced_match: String setget __set
+var join: String
+var spectate: String
+var instanced_match: String
 
 func _init(data: Dictionary) -> void:
 	join = data.get("join", "")
@@ -11,13 +11,13 @@ func _init(data: Dictionary) -> void:
 
 func to_dict() -> Dictionary:
 	var data: Dictionary = {}
-	if not join.empty():
+	if not join.is_empty():
 		data["join"] = join
-	if not spectate.empty():
+	if not spectate.is_empty():
 		data["spectate"] = spectate
-	if not instanced_match.empty():
+	if not instanced_match.is_empty():
 		data["instanced_match"] = instanced_match
 	return data
 
-func __set(_value) -> void:
-	pass
+#func __set(_value) -> void:
+#	pass

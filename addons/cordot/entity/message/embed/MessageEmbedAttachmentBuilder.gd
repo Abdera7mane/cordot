@@ -1,6 +1,6 @@
 class_name MessageEmbedAttachmentBuilder
 
-var _data: Dictionary setget __set
+var _data: Dictionary 
 
 func _init(url: String) -> void:
 	_data["url"] = url

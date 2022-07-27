@@ -1,16 +1,17 @@
 class_name MessageAttachment extends DiscordEntity
 
-var filename: String     setget __set
-var description: String  setget __set
-var content_type: String setget __set
-var size: int            setget __set
-var url: String          setget __set
-var proxy_url: String    setget __set
-var height: int          setget __set
-var width: int           setget __set
-var ephemeral: bool      setget __set
+var filename: String
+var description: String
+var content_type: String
+var size: int
+var url: String
+var proxy_url: String
+var height: int
+var width: int
+var ephemeral: bool
 
-func _init(data: Dictionary).(data["id"]) -> void:
+func _init(data: Dictionary) -> void:
+	super(data["id"])
 	filename = data["filename"]
 	description = data.get("description", "")
 	content_type = data.get("content_type", "")
@@ -21,5 +22,5 @@ func _init(data: Dictionary).(data["id"]) -> void:
 	width = data.get("width", 0)
 	ephemeral = data.get("ephemeral", false)
 
-func __set(_value) -> void:
-	pass
+#func __set(_value) -> void:
+#	pass

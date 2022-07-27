@@ -1,9 +1,9 @@
 class_name MessageReference
 
-var message_id: int          setget __set
-var channel_id: int          setget __set
-var guild_id: int            setget __set
-var fail_if_not_exists: bool setget __set
+var message_id: int          
+var channel_id: int          
+var guild_id: int            
+var fail_if_not_exists: bool 
 
 func _init(data: Dictionary) -> void:
 	message_id = data.get("message_id", 0)

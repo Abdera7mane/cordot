@@ -39,7 +39,7 @@ func append_table(table: Table) -> void:
 	break_line()
 
 func horizontal_rule() -> void:
-	text += "_".repeat(16) + "\n" 
+	text += "_".repeat(16) + "\n"
 	break_line()
 
 func break_line() -> void:
@@ -79,15 +79,15 @@ class List:
 	var items: Array
 	var indent_size: int
 	var ordered: bool
-	
+
 	func _init(_ordered: bool) -> void:
 		ordered = _ordered
-	
+
 	func create_item(text: String) -> ListItem:
 		var item := ListItem.new(text, indent_size)
 		items.append(item)
 		return item
-	
+
 	func _to_string() -> String:
 		var text: String = ""
 		for i in items.size():
@@ -99,107 +99,107 @@ class List:
 class ListItem:
 	var text: String
 	var indent_size: int
-	
+
 	func _init(_text: String, _indent_size: int) -> void:
 		text = _text
 		text += "  \n"
-		
+
 	func append_paragraph(paragraph: String) -> void:
 		text += "  \n"
 		text += paragraph.indent("\t".repeat(indent_size + 1))
-	
+
 	func appened_quote(quote: MarkdownDocument) -> void:
 		text += "  \n"
 		text += "> %s\n" % quote.text.replace("\n", "\n> ")
 		text = text.indent("\t".repeat(indent_size))
-	
+
 	func append_list(list: List) -> void:
 		text += "  \n"
 		list.indent_size = indent_size + 1
 		text += list.to_string()
-	
+
 	func append_table(table: Table) -> void:
 		text += "  \n"
 		text += table.to_string()
 		text = text.indent("\t".repeat(indent_size + 1))
 		text += "  \n"
-	
+
 	func horizontal_rule() -> void:
 		text += "  \n"
-		text += "_".repeat(16) + "\n" 
-	
+		text += "_".repeat(16) + "\n"
+
 	func _to_string() -> String:
 		return text
 
 class Table:
 	var data: Array = [[]]
-	
+
 	func resize(rows: int, columns: int) -> void:
 		if rows > rows_size():
 			for i in rows - rows_size():
-				var column := PoolStringArray()
+				var column := PackedStringArray()
 				column.resize(columns)
 				data.append(column)
 		else:
 			data.resize(rows)
-		
+
 		for i in data.size():
-			var row: PoolStringArray = data[i]
+			var row: PackedStringArray = data[i]
 			row.resize(columns)
 			data[i] = row
-	
+
 	func put(string: String, row: int, column: int) -> void:
 		if row >= rows_size():
 			resize(row + 1, columns_size())
 		if column >= columns_size():
 			resize(rows_size(), column + 1)
 		data[row][column] = string
-	
+
 	func retrieve(row: int, column: int) -> String:
 		return data[row][column]
-	
+
 	func rows_size() -> int:
 		return data.size()
-	
+
 	func columns_size() -> int:
 		return data[0].size() if rows_size() > 0 else 0
-	
-	func get_row(row: int) -> PoolStringArray:
+
+	func get_row(row: int) -> PackedStringArray:
 		return data[row]
-	
-	func get_column(column: int) -> PoolStringArray:
-		var values := PoolStringArray()
+
+	func get_column(column: int) -> PackedStringArray:
+		var values := PackedStringArray()
 		for row in data:
 			values.append(row[column])
 		return values
-	
-	func _generate_seperator(column_widths: PoolIntArray) -> String:
+
+	func _generate_seperator(column_widths: PackedInt32Array) -> String:
 		var seperator: String = "|"
 		for width in column_widths:
 			seperator += "-".repeat(width + 2) + "|"
 		return seperator
-	
+
 	func _to_string() -> String:
-		var column_widths := PoolIntArray()
-		
+		var column_widths := PackedInt32Array()
+
 		for i in columns_size():
 			var size: int = 0
 			for text in get_column(i):
 				if text.length() > size:
 					size = text.length()
 			column_widths.append(size)
-		
-		var lines := PoolStringArray()
+
+		var lines := PackedStringArray()
 		for i in rows_size():
-			var row := PoolStringArray()
+			var row := PackedStringArray()
 			for j in columns_size():
 				var column_width: int = column_widths[j]
 				var text: String = retrieve(i, j)
 				if text.length() < column_width:
 					text += " ".repeat(column_width - text.length())
 				row.append(text)
-			lines.append("| %s |" % row.join(" | "))
+			lines.append("| %s |" % " | ".join(row))
 			if i == 0:
 				lines.append(_generate_seperator(column_widths))
-				
-		return lines.join("\n")
+
+		return "\n".join(lines)

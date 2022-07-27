@@ -2,7 +2,8 @@ class_name GuildChannelEditData
 
 # warning-ignore-all:return_value_discarded
 
-var _data: Dictionary setget __set, to_dict
+var _data: Dictionary:
+	get = to_dict
 
 func set_name(name: String) -> GuildChannelEditData:
 	_data["name"] = name

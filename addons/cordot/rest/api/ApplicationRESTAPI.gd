@@ -3,21 +3,22 @@ class_name ApplicationRESTAPI extends DiscordRESTAPI
 func _init(_token: String,
 	_requester: DiscordRESTRequester,
 	_entity_manager: BaseDiscordEntityManager
-).(_token, _requester, _entity_manager) -> void:
+) -> void:
+	super(_token, _requester, _entity_manager)
 	pass
 
 func get_global_application_commands(application_id: int) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.APPLICATION_COMMANDS.format({application_id = application_id})
 	).method_get()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_application_commands_response(response)
 
 func create_global_application_command(application_id: int, params: Dictionary) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.APPLICATION_COMMANDS.format({application_id = application_id})
 	).json_body(params).method_post()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_application_command_response(response)
 
 func get_global_application_command(application_id: int, command_id: int) -> DiscordApplicationCommand:
@@ -27,7 +28,7 @@ func get_global_application_command(application_id: int, command_id: int) -> Dis
 			command_id = command_id
 		})
 	).method_get()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_application_command_response(response)
 
 func edit_global_application_command(application_id: int, command_id: int, params: Dictionary) -> DiscordApplicationCommand:
@@ -37,7 +38,7 @@ func edit_global_application_command(application_id: int, command_id: int, param
 			command_id = command_id
 		})
 	).json_body(params).method_patch()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_application_command_response(response)
 
 
@@ -48,14 +49,14 @@ func delete_global_application_command(application_id: int, command_id: int) -> 
 			command_id = command_id
 		})
 	).method_delete()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
 func bulk_overwrite_global_application_commands(application_id, params: Array) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.APPLICATION_COMMANDS.format({application_id = application_id})
 	).json_body(params).method_put()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_application_commands_response(response)
 
 func get_guild_application_commands(application_id: int, guild_id: int) -> Array:
@@ -65,7 +66,7 @@ func get_guild_application_commands(application_id: int, guild_id: int) -> Array
 			guild_id = guild_id
 		})
 	).method_get()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_application_commands_response(response)
 
 func create_guild_application_command(application_id: int, guild_id: int, params: Dictionary) -> Array:
@@ -75,7 +76,7 @@ func create_guild_application_command(application_id: int, guild_id: int, params
 			guild_id = guild_id
 		})
 	).json_body(params).method_post()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_application_command_response(response)
 
 func get_guild_application_command(application_id: int, guild_id: int, command_id: int) -> DiscordApplicationCommand:
@@ -86,7 +87,7 @@ func get_guild_application_command(application_id: int, guild_id: int, command_i
 			command_id = command_id
 		})
 	).method_get()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_application_command_response(response)
 
 func edit_guild_application_command(application_id: int, guild_id: int, command_id: int, params: Dictionary) -> DiscordApplicationCommand:
@@ -97,7 +98,7 @@ func edit_guild_application_command(application_id: int, guild_id: int, command_
 			command_id = command_id
 		})
 	).json_body(params).method_patch()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_application_command_response(response)
 
 func delete_guild_application_command(application_id: int, guild_id: int, command_id: int) -> bool:
@@ -108,7 +109,7 @@ func delete_guild_application_command(application_id: int, guild_id: int, comman
 			command_id = command_id
 		})
 	).method_delete()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
 func bulk_overwrite_guild_application_commands(application_id, guild_id: int, params: Array) -> Array:
@@ -118,7 +119,7 @@ func bulk_overwrite_guild_application_commands(application_id, guild_id: int, pa
 			guild_id = guild_id
 		})
 	).json_body(params).method_put()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_application_commands_response(response)
 
 func get_guild_application_command_permissions(_application_id, _guild_id: int) -> Array:

@@ -1,8 +1,8 @@
 class_name MessageReaction
 
-var count: int    setget __set
-var reacted: bool setget __set
-var emoji: Emoji  setget __set
+var count: int    
+var reacted: bool 
+var emoji: Emoji  
 
 func _init(_count: int, _reacted: bool, _emoji: Emoji) -> void:
 	count = _count

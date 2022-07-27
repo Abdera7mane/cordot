@@ -1,6 +1,7 @@
 class_name MentionableEntity extends DiscordEntity
 
-func _init(id: int).(id) -> void:
+func _init(id: int) -> void:
+	super(id)
 	pass
 
 func get_mention() -> String:
@@ -11,4 +12,4 @@ func get_class() -> String:
 
 func _to_string() -> String:
 	var mention: String = self.get_mention()
-	return mention if not mention.empty() else ._to_string()
+	return mention if not mention.is_empty() else super()

@@ -1,13 +1,15 @@
 class_name PrivateChannel extends TextChannel
 
-var recipients_ids: Array setget __set
-var recipients: Array     setget __set, get_recipients
+var recipients_ids: Array
+var recipients: Array:
+	get = get_recipients
 
-func _init(data).(data) -> void:
+func _init(data) -> void:
+	super(data)
 	pass
 
 func get_recipients() -> Array:
-	var users: Array = []	
+	var users: Array = []
 	for recipient_id in self.recipients_ids:
 		var user: User = self.get_recipient_by_id(recipient_id)
 		if user:
@@ -24,8 +26,8 @@ func get_class() -> String:
 	return "PrivateChannel"
 
 func _update(data: Dictionary) -> void:
-	._update(data)
+	super(data)
 	recipients_ids = data.get("recipients_ids", recipients_ids)
 
-func __set(_value) -> void:
-	pass
+#func __set(_value) -> void:
+#	pass

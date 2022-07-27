@@ -1,11 +1,11 @@
 class_name DiscordInteractionResolvedData
 
-var users: Dictionary       setget __set
-var members: Dictionary     setget __set
-var roles: Dictionary       setget __set
-var channels: Dictionary    setget __set
-var messages: Dictionary    setget __set
-var attachments: Dictionary setget __set
+var users: Dictionary       
+var members: Dictionary     
+var roles: Dictionary       
+var channels: Dictionary    
+var messages: Dictionary    
+var attachments: Dictionary 
 
 func _init(data: Dictionary = {}) -> void:
 	users = data.get("users", {})

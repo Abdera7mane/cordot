@@ -3,7 +3,8 @@ class_name InteractionRESTAPI extends DiscordRESTAPI
 func _init(_token: String,
 	_requester: DiscordRESTRequester,
 	_entity_manager: BaseDiscordEntityManager
-).(_token, _requester, _entity_manager) -> void:
+) -> void:
+	super(_token, _requester, _entity_manager)
 	pass
 
 func create_response(interaction_id: int, interaction_token: String, params: Dictionary) -> bool:
@@ -14,7 +15,7 @@ func create_response(interaction_id: int, interaction_token: String, params: Dic
 		})
 	).json_body(params).method_post()
 	request.set_meta("skip-global-rate-limit", true)
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return response.successful()
 
 func get_original_response(application_id: int, interaction_token: String) -> Message:
@@ -25,7 +26,7 @@ func get_original_response(application_id: int, interaction_token: String) -> Me
 		})
 	).method_get()
 	request.set_meta("skip-global-rate-limit", true)
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_message_response(response)
 
 func edit_original_response(application_id: int, interaction_token: String, params: Dictionary) -> Message:
@@ -36,7 +37,7 @@ func edit_original_response(application_id: int, interaction_token: String, para
 		})
 	).json_body(params).method_patch()
 	request.set_meta("skip-global-rate-limit", true)
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_message_response(response)
 
 func delete_original_response(application_id: int, interaction_token: String) -> bool:
@@ -47,7 +48,7 @@ func delete_original_response(application_id: int, interaction_token: String) ->
 		})
 	).method_delete()
 	request.set_meta("skip-global-rate-limit", true)
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
 func create_followup_message(application_id: int, interaction_token: String, params: Dictionary) -> Message:
@@ -58,7 +59,7 @@ func create_followup_message(application_id: int, interaction_token: String, par
 		})
 	).json_body(params).method_post()
 	request.set_meta("skip-global-rate-limit", true)
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_message_response(response)
 
 func get_followup_message(application_id: int, interaction_token: String, message_id: int) -> Message:
@@ -70,7 +71,7 @@ func get_followup_message(application_id: int, interaction_token: String, messag
 		})
 	).method_get()
 	request.set_meta("skip-global-rate-limit", true)
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_message_response(response)
 
 func edit_followup_message(application_id: int, interaction_token: String, message_id: int, params: Dictionary) -> Message:
@@ -82,7 +83,7 @@ func edit_followup_message(application_id: int, interaction_token: String, messa
 		})
 	).json_body(params).method_patch()
 	request.set_meta("skip-global-rate-limit", true)
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_message_response(response)
 
 func delete_followup_message(application_id: int, interaction_token: String, message_id: int) -> bool:
@@ -94,7 +95,7 @@ func delete_followup_message(application_id: int, interaction_token: String, mes
 		})
 	).method_delete()
 	request.set_meta("skip-global-rate-limit", true)
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
 func _handle_message_response(response: HTTPResponse) -> Message:

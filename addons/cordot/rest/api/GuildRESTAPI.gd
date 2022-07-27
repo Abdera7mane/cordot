@@ -3,14 +3,15 @@ class_name GuildRESTAPI extends DiscordRESTAPI
 func _init(_token: String,
 	_requester: DiscordRESTRequester,
 	_entity_manager: BaseDiscordEntityManager
-).(_token, _requester, _entity_manager) -> void:
+) -> void:
+	super(_token, _requester, _entity_manager)
 	pass
 
 func create_guild(guild_id: int, params: Dictionary) -> Guild:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILDS.format({guild_id = guild_id})
 	).json_body(params).method_post()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_guild_response(response)
 
 func get_guild(guild_id: int, with_counts: bool = false) -> Guild:
@@ -18,7 +19,7 @@ func get_guild(guild_id: int, with_counts: bool = false) -> Guild:
 		DiscordREST.ENDPOINTS.GUILD.format({guild_id = guild_id})
 		+ "?with_counts=" + str(with_counts)
 	).method_get()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_guild_response(response)
 
 func get_guild_preview(guild_id: int) -> Object:
@@ -28,14 +29,14 @@ func edit_guild(guild_id: int, params: Dictionary = {}) -> Guild:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD.format({guild_id = guild_id})
 	).json_body(params).method_patch()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_guild_response(response)
 
 func delete_guild(guild_id: int) -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD.format({guild_id = guild_id})
 	).method_delete()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
 func get_guild_channels(guild_id: int) -> Array:
@@ -43,7 +44,7 @@ func get_guild_channels(guild_id: int) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_CHANNELS.format({guild_id = guild_id})
 	).method_get()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	if response.successful():
 		var channels_data: Array = parse_json(response.body.get_string_from_utf8())
 		for channel_data in channels_data:
@@ -56,7 +57,7 @@ func create_guild_channel(guild_id: int, params: Dictionary) -> Channel:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_CHANNELS.format({guild_id = guild_id})
 	).json_body(params).method_post()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	if response.successful():
 		var channel_data: Dictionary = parse_json(response.body.get_string_from_utf8())
 		channel = entity_manager.get_or_construct_channel(channel_data)
@@ -66,7 +67,7 @@ func edit_guild_channel_positions(guild_id: int, params: Array) -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_CHANNELS.format({guild_id = guild_id})
 	).json_body(params).method_patch()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
 func get_guild_member(guild_id: int, user_id) -> Guild.Member:
@@ -76,7 +77,7 @@ func get_guild_member(guild_id: int, user_id) -> Guild.Member:
 			user_id = user_id
 		})
 	).method_get()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_guild_member_response(response, guild_id)
 
 func list_guild_members(guild_id: int, limit: int = 1, after: int = 0) -> Array:
@@ -85,7 +86,7 @@ func list_guild_members(guild_id: int, limit: int = 1, after: int = 0) -> Array:
 		+ "?limit=" + str(limit)
 		+ "&after=" + str(after)
 	).method_get()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_guild_members_list_response(response, guild_id)
 
 func search_guild_members(guild_id: int, query: String, limit: int = 1) -> Array:
@@ -94,7 +95,7 @@ func search_guild_members(guild_id: int, query: String, limit: int = 1) -> Array
 		+ "?query=" + query.http_escape()
 		+ "&limit=" + str(limit)
 	).method_get()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_guild_members_list_response(response, guild_id)
 
 func add_guild_member(guild_id: int, user_id: int, params: Dictionary) -> Array:
@@ -104,7 +105,7 @@ func add_guild_member(guild_id: int, user_id: int, params: Dictionary) -> Array:
 			user_id = user_id
 		})
 	).json_body(params).method_put()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	var is_added: bool = response.code == HTTPClient.RESPONSE_CREATED
 	var member: Guild.Member = _handle_guild_member_response(response, guild_id)
 	return [is_added, member]
@@ -116,7 +117,7 @@ func edit_guild_member(guild_id: int, user_id: int, params: Dictionary = {}) -> 
 			user_id = user_id
 		})
 	).json_body(params).method_patch()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	var error: int = OK if response.code == HTTPClient.RESPONSE_OK else FAILED
 	var member: Guild.Member = _handle_guild_member_response(response, guild_id)
 	return [error, member]
@@ -125,7 +126,7 @@ func edit_current_member(guild_id: int, params: Dictionary = {}) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.CURRENT_MEMBER.format({guild_id = guild_id})
 	).json_body(params).method_patch()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	var error: int = OK if response.code == HTTPClient.RESPONSE_OK else FAILED
 	var member: Guild.Member = _handle_guild_member_response(response, guild_id)
 	return [error, member]
@@ -138,7 +139,7 @@ func add_guild_member_role(guild_id: int, user_id: int, role_id: int) -> bool:
 			role_id = role_id
 		})
 	).empty_body().method_put()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
 func remove_guild_member_role(guild_id: int, user_id: int, role_id: int) -> bool:
@@ -149,7 +150,7 @@ func remove_guild_member_role(guild_id: int, user_id: int, role_id: int) -> bool
 			role_id = role_id
 		})
 	).method_delete()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
 func remove_guild_member(guild_id: int, user_id: int) -> bool:
@@ -159,7 +160,7 @@ func remove_guild_member(guild_id: int, user_id: int) -> bool:
 			user_id = user_id
 		})
 	).method_delete()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
 func get_guild_bans(guild_id: int) -> Array:
@@ -167,7 +168,7 @@ func get_guild_bans(guild_id: int) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_BANS.format({guild_id = guild_id})
 	).method_get()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	if response.successful():
 		var bans_data: Array = parse_json(response.body.get_string_from_utf8())
 		for ban_data in bans_data:
@@ -188,7 +189,7 @@ func get_guild_ban(guild_id: int, user_id: int) -> GuildBan:
 			user_id = user_id
 		})
 	).method_get()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	if response.successful():
 		var ban_data: Dictionary = parse_json(response.body.get_string_from_utf8())
 		var user: User = entity_manager.get_user(user_id)
@@ -205,7 +206,7 @@ func create_guild_ban(guild_id: int, user_id: int, params: Dictionary) -> bool:
 			user_id = user_id
 		})
 	).json_body(params).method_put()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
 func remove_guild_ban(guild_id: int, user_id: int) -> bool:
@@ -215,28 +216,28 @@ func remove_guild_ban(guild_id: int, user_id: int) -> bool:
 			user_id = user_id
 		})
 	).method_delete()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
 func get_guild_roles(guild_id: int) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_ROLES.format({guild_id = guild_id})
 	).method_get()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_roles_response(response, guild_id)
 
 func create_guild_role(guild_id: int, params: Dictionary) -> Guild.Role:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_ROLES.format({guild_id = guild_id})
 	).json_body(params).method_post()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_role_response(response, guild_id)
 
 func edit_guild_role_positions(guild_id: int, params: Array) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_ROLES.format({guild_id = guild_id})
 	).json_body(params).method_patch()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_roles_response(response, guild_id)
 
 func edit_guild_role(guild_id: int, role_id: int, params: Dictionary = {}) -> Guild.Role:
@@ -246,7 +247,7 @@ func edit_guild_role(guild_id: int, role_id: int, params: Dictionary = {}) -> Gu
 			role_id = role_id
 		})
 	).json_body(params).method_patch()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return _handle_role_response(response, guild_id)
 
 func delete_guild_role(guild_id: int, role_id: int) -> bool:
@@ -256,16 +257,16 @@ func delete_guild_role(guild_id: int, role_id: int) -> bool:
 			role_id = role_id
 		})
 	).method_delete()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
-func get_guild_prune_count(guild_id: int, days: int = 7, include_roles: PoolStringArray = []) -> int:
+func get_guild_prune_count(guild_id: int, days: int = 7, include_roles: PackedStringArray = []) -> int:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_PRUNE.format({guild_id = guild_id})
 		+ "?days=" + days
 		+ ("&include_roles=" + include_roles.join(",")) if include_roles else ""
 	).method_get()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	if response.successful():
 		var body: Dictionary = parse_json(response.body.get_string_from_utf8())
 		return body["pruned"]
@@ -275,7 +276,7 @@ func begin_guild_prune(guild_id: int, params: Dictionary) -> int:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_PRUNE.format({guild_id = guild_id})
 	).json_body(params).method_post()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	if response.successful():
 		var body: Dictionary = parse_json(response.body.get_string_from_utf8())
 		return Dictionaries.get_non_null(body, "pruned", 0)
@@ -286,7 +287,7 @@ func get_guild_voice_regions(guild_id: int) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_VOICE_REGIONS.format({guild_id = guild_id})
 	).method_get()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	if response.successful():
 		var regions_data: Array = parse_json(response.body.get_string_from_utf8())
 		for region_data in regions_data:
@@ -305,7 +306,7 @@ func get_guild_invites(guild_id: int) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_INVITES.format({guild_id = guild_id})
 	).method_get()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	if response.successful():
 		var invites_data: Array = parse_json(response.body.get_string_from_utf8())
 		for invite_data in invites_data:
@@ -333,7 +334,7 @@ func get_guild_vanity_url(guild_id: int) -> Guild.Invite:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_VANITY_URL.format({guild_id = guild_id})
 	).method_get()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	if response.successful():
 		var invite_data: Dictionary = parse_json(response.body.get_string_from_utf8())
 		if Dictionaries.has_non_null(invite_data, "code"):
@@ -346,7 +347,7 @@ func get_guild_widget_image(guild_id: int, style: String = "shield") -> Texture:
 		DiscordREST.ENDPOINTS.GUILD_WIDGET_IMAGE.format({guild_id = guild_id})
 		+ "?style=" + style.http_escape()
 	).method_get()
-	var response: HTTPResponse = yield(requester.request_async(request), "completed")
+	var response: HTTPResponse = await requester.request_async(request)
 	if response.successful():
 		widget_image = ImageTexture.new()
 		var image: Image = Image.new()

@@ -10,19 +10,19 @@ enum Type {
 	LINK
 }
 
-var title: String                    setget __set
-var type: int                        setget __set
-var description: String              setget __set
-var url: String                      setget __set
-var timestamp: int                   setget __set
-var color: Color                     setget __set
-var footer: MessageEmbedFooter       setget __set
-var image: MessageEmbedImage         setget __set
-var thumbnail: MessageEmbedThumbnail setget __set
-var video: MessageEmbedVideo         setget __set
-var provider: MessageEmbedProvider   setget __set
-var author: MessageEmbedAuthor       setget __set
-var fields: Array                    setget __set
+var title: String                    
+var type: int                        
+var description: String              
+var url: String                      
+var timestamp: int                   
+var color: Color                     
+var footer: MessageEmbedFooter       
+var image: MessageEmbedImage         
+var thumbnail: MessageEmbedThumbnail 
+var video: MessageEmbedVideo         
+var provider: MessageEmbedProvider   
+var author: MessageEmbedAuthor       
+var fields: Array                    
 
 func _init(data: Dictionary) -> void:
 	title = data.get("title", "")

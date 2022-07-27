@@ -38,21 +38,21 @@ enum CloseEventCode {
 }
 
 
-var _websocket_client: WebSocketClient setget __set
-var _heartbeat_timer: Timer            setget __set
-var _packet_handlers: Array            setget __set
-var _start: int                        setget __set
+var _websocket_client: WebSocketClient 
+var _heartbeat_timer: Timer            
+var _packet_handlers: Array            
+var _start: int                        
 
-var timeout_ms: int = 30_000           setget __set
-var last_sequence: int = 0             setget __set
-var last_beat: int                     setget __set
-var latency: int                       setget __set
-var reconnecting: bool                 setget __set
+var timeout_ms: int = 30_000           
+var last_sequence: int = 0             
+var last_beat: int                     
+var latency: int                       
+var reconnecting: bool                 
 var auto_reconnect: bool = true
 
 func setup():
 	if _start != 0:
-		_start = OS.get_ticks_msec()
+		_start = Time.get_ticks_msec()
 	
 	_websocket_client = WebSocketClient.new()
 	
@@ -127,7 +127,7 @@ func get_url() -> String:
 
 func _beat() -> void:
 	send_packet(Packets.HeartBeatPacket.new(last_sequence))
-	last_beat = OS.get_ticks_msec()
+	last_beat = Time.get_ticks_msec()
 
 func _process(_delta: float) -> void:
 	if not _websocket_client:
@@ -138,7 +138,7 @@ func _process(_delta: float) -> void:
 		_websocket_client.poll()
 
 func _on_data() -> void:
-	var bytes: PoolByteArray = _websocket_client.get_peer(NetworkedMultiplayerPeer.TARGET_PEER_SERVER).get_packet()
+	var bytes: PackedByteArray = _websocket_client.get_peer(NetworkedMultiplayerPeer.TARGET_PEER_SERVER).get_packet()
 	var parse_result: JSONParseResult = JSON.parse(bytes.get_string_from_utf8())
 	if parse_result.error != OK:
 		var error_message: String = "Could not parse packet, error at json string line %d\n:" % parse_result.error_line

@@ -1,12 +1,12 @@
 class_name DiscordInteractionDataOption
 
-var name: String   setget __set
+var name: String   
 var type: int
 
 # Variant
-var value          setget __set
-var options: Array setget __set
-var focused: bool  setget __set
+var value          
+var options: Array 
+var focused: bool  
 
 func _init(data: Dictionary) -> void:
 	name = data["name"]

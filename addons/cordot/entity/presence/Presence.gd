@@ -14,11 +14,12 @@ enum Platforms {
 	WEB     = 1 << 2
 }
 
-var status: int        setget __set
-var activities: Array  setget __set
-var platforms: BitFlag setget __set
+var status: int
+var activities: Array
+var platforms: BitFlag
 
-func _init(data: Dictionary).(data["id"]) -> void:
+func _init(data: Dictionary) -> void:
+	super(data["id"])
 	activities = data["activities"]
 	status = data["status"]
 	platforms = data["platforms"]
@@ -36,8 +37,8 @@ func on_web() -> bool:
 func get_class() -> String:
 	return "Presence"
 
-func __set(_value) -> void:
-	pass
+#func __set(_value) -> void:
+#	pass
 
 # warning-ignore:shadowed_variable
 static func status_to_string(status: int) -> String:
@@ -56,9 +57,9 @@ static func create_activity(name: String, type: int, stream_url: String = "") ->
 	var data: Dictionary = {
 		"name": name,
 		"type": type,
-		"created_at": OS.get_unix_time()
+		"created_at": Time.get_unix_time_from_system()
 	}
-	
+
 	if type == DiscordActivity.Type.STREAMING:
 		data["url"] = stream_url
 	return DiscordActivity.new(data)

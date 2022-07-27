@@ -1,6 +1,7 @@
 class_name ApplicationCommandUserOption extends ApplicationCommandOptionBuilder
 
-func _init(option_name: String).(option_name) -> void:
+func _init(option_name: String) -> void:
+	super(option_name)
 	type = DiscordApplicationCommandOption.Option.USER
 
 func get_class() -> String:

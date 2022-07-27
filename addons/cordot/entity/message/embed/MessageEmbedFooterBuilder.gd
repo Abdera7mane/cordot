@@ -1,6 +1,6 @@
 class_name MessageEmbedFooterBuilder
 
-var _data: Dictionary setget __set
+var _data: Dictionary 
 
 func _init(text: String) -> void:
 	_data["text"] = text

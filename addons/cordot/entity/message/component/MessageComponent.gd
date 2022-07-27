@@ -6,7 +6,7 @@ enum Type {
 	SELECT_MENU
 }
 
-var type: int setget __set
+var type: int 
 
 func get_class() -> String:
 	return "MessageComponent"

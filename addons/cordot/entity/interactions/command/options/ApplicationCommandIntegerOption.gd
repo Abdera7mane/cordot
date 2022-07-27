@@ -1,12 +1,13 @@
 class_name ApplicationCommandIntegerOption extends ApplicationCommandChoicesBuilder
 
-var _enable_max: bool setget __set
-var _enable_min: bool setget __set
+var _enable_max: bool
+var _enable_min: bool
 
-var min_value: int    setget __set
-var max_value: int    setget __set
+var min_value: int
+var max_value: int
 
-func _init(option_name: String).(option_name) -> void:
+func _init(option_name: String) -> void:
+	super(option_name)
 	type = DiscordApplicationCommandOption.Option.INTEGER
 
 func add_choice(name: String, value: int) -> ApplicationCommandIntegerOption:
@@ -24,7 +25,7 @@ func set_max(value: int) -> ApplicationCommandIntegerOption:
 	return self
 
 func build() -> Dictionary:
-	var data: Dictionary = .build()
+	var data: Dictionary = super()
 	if _enable_min:
 		data["min_value"] = min_value
 	if _enable_max:

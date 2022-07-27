@@ -5,9 +5,10 @@ enum VideoQualityModes {
 	FULL
 }
 
-var bitrate: int setget __set
+var bitrate: int
 
-func _init(data: Dictionary).(data["id"]) -> void:
+func _init(data: Dictionary) -> void:
+	super(data["id"])
 	_update(data)
 
 func get_class() -> String:
@@ -22,5 +23,5 @@ func _clone_data() -> Array:
 		bitrate = self.bitrate
 	}]
 
-func __set(_value) -> void:
-	pass
+#func __set(_value) -> void:
+#	pass

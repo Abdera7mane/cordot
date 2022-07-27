@@ -1,6 +1,6 @@
 class_name MessageActionRow extends MessageComponent
 
-var components: Array setget __set
+var components: Array 
 
 func _init(child_components: Array) -> void:
 	components = child_components

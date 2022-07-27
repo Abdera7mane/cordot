@@ -6,7 +6,7 @@ func news(value: bool) -> GuildTextChannelEditData:
 
 func set_topic(topic: String) -> GuildTextChannelEditData:
 	topic = topic.strip_edges()
-	if topic.empty():
+	if topic.is_empty():
 		_data["topic"] = null
 	else:
 		_data["topic"] = topic

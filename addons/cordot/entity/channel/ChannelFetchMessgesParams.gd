@@ -2,7 +2,8 @@ class_name ChannelFetchMessgesParams
 
 # warning-ignore-all:return_value_discarded
 
-var _data: Dictionary setget __set, to_dict
+var _data: Dictionary:
+	get = to_dict
 
 func around(message_id: int) -> ChannelFetchMessgesParams:
 	if not (has("before") or has("after")):

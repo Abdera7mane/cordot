@@ -2,7 +2,7 @@ class_name GroupDMEditData
 
 # warning-ignore-all:return_value_discarded
 
-var _data: Dictionary setget __set, to_dict
+var _data: Dictionary , to_dict
 
 func set_name(name: String) -> GroupDMEditData:
 	_data["name"] = name

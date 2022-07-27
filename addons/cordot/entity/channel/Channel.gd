@@ -12,12 +12,13 @@ enum Type {
 	GUILD_NEWS_THREAD    = 10,
 	GUILD_PUBLIC_THREAD  = 11,
 	GUILD_PRIVATE_THREAD = 12,
-	GUILD_STAGE_VOICE    = 13
+	GUILD_STAGE_VOICE    = 13,
 }
 
-var type: int setget __set
+var type: int
 
-func _init(id: int).(id) -> void:
+func _init(id: int) -> void:
+	super(id)
 	pass
 
 func fetch() -> Channel:
@@ -48,5 +49,5 @@ func get_class() -> String:
 func _update(_data: Dictionary) -> void:
 	pass
 
-func __set(_value) -> void:
-	pass
+#func __set(_value) -> void:
+#	pass

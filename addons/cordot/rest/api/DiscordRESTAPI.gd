@@ -1,15 +1,15 @@
 class_name DiscordRESTAPI
 
-var token: String                            setget __set
-var requester: DiscordRESTRequester          setget __set
-var rest_headers: Dictionary                 setget __set
-var entity_manager: BaseDiscordEntityManager setget __set
+var token: String
+var requester: DiscordRESTRequester
+var rest_headers: Dictionary
+var entity_manager: BaseDiscordEntityManager
 
 func _init(_token: String, _requester: DiscordRESTRequester, _entity_manager: BaseDiscordEntityManager) -> void:
 	token = _token
 	requester = _requester
 	entity_manager = _entity_manager
-		
+
 	rest_headers = {
 		HTTPHeaders.AUTHORIZATION: "Bot %s" % token,
 		HTTPHeaders.USER_AGENT: "%s (%s, %s)" % [

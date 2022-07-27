@@ -1,9 +1,9 @@
 class_name MessageEmbedAuthor
 
-var name: String           setget __set
-var url: String            setget __set
-var icon_url: String       setget __set
-var proxy_icon_url: String setget __set
+var name: String           
+var url: String            
+var icon_url: String       
+var proxy_icon_url: String 
 
 func _init(_name: String, _url: String, _icon_url: String, _proxy_icon_url: String) -> void:
 	name = _name

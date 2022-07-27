@@ -3,7 +3,8 @@ class_name GuildEditData
 # warning-ignore-all:return_value_discarded
 # warning-ignore-all:incompatible_ternary
 
-var _data: Dictionary setget __set, to_dict
+var _data: Dictionary:
+	get = to_dict
 
 func set_name(name: String) -> GuildEditData:
 	_data["name"] = name.strip_edges()
@@ -69,7 +70,7 @@ func set_preferred_locale(local: String) -> GuildEditData:
 	_data["preferred_locale"] = local
 	return self
 
-func set_features(features: PoolStringArray) -> GuildEditData:
+func set_features(features: PackedStringArray) -> GuildEditData:
 	_data["features"] = features
 	return self
 

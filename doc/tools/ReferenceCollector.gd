@@ -27,7 +27,7 @@ class ReferenceCollector:
 	var save_path := "res://reference.json"
 	
 	func collect_api_reference(refresh_cache: bool = false) -> Dictionary:
-		var files := PoolStringArray()
+		var files := PackedStringArray()
 		for dir_path in directories:
 			files.append_array(collector.find_files(dir_path, patterns, is_recursive))
 		return collector.get_reference(files, refresh_cache)

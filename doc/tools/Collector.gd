@@ -23,9 +23,9 @@ func _init() -> void:
 # - is_recursive: if `true`, walks over subdirectories recursively, returning all
 #   files in the tree.
 func find_files(
-	dirpath := "", patterns := PoolStringArray(), is_recursive := false, do_skip_hidden := true
-) -> PoolStringArray:
-	var file_paths := PoolStringArray()
+	dirpath := "", patterns := PackedStringArray(), is_recursive := false, do_skip_hidden := true
+) -> PackedStringArray:
+	var file_paths := PackedStringArray()
 	var directory := Directory.new()
 
 	if not directory.dir_exists(dirpath):
@@ -37,7 +37,7 @@ func find_files(
 
 	directory.list_dir_begin(true, do_skip_hidden)
 	var file_name := directory.get_next()
-	var subdirectories := PoolStringArray()
+	var subdirectories := PackedStringArray()
 	while file_name != "":
 		if directory.current_is_dir() and is_recursive:
 			var subdirectory := dirpath.plus_file(file_name)
@@ -78,7 +78,7 @@ func save_text(path := "", content := "") -> void:
 # code reference data.
 #
 # If `refresh_cache` is true, will refresh Godot's cache and get fresh symbols.
-func get_reference(files := PoolStringArray(), refresh_cache := false) -> Dictionary:
+func get_reference(files := PackedStringArray(), refresh_cache := false) -> Dictionary:
 	var version := "n/a"
 	if ProjectSettings.has_setting("application/config/version"):
 		version = ProjectSettings.get_setting("application/config/version")  
@@ -95,7 +95,7 @@ func get_reference(files := PoolStringArray(), refresh_cache := false) -> Dictio
 		if refresh_cache:
 			workspace.parse_local_script(file)
 		var symbols: Dictionary = workspace.generate_script_api(file)
-		if symbols.empty():
+		if symbols.is_empty():
 			printerr('Failed generating api reference for "%s"' % file)
 			continue
 		if symbols.has("name") and symbols["name"] == "":
@@ -119,7 +119,7 @@ func remove_warning_comments(symbols: Dictionary) -> void:
 
 func remove_warnings_from_description(description: String) -> String:
 	var lines := description.strip_edges().split("\n")
-	var clean_lines := PoolStringArray()
+	var clean_lines := PackedStringArray()
 	for line in lines:
 		if not warnings_regex.search(line):
 			clean_lines.append(line)

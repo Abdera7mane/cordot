@@ -1,9 +1,9 @@
 class_name ApplicationCommandOptionBuilder
 
-var type: int           setget __set
-var name: String        setget __set
-var description: String setget __set
-var required: bool      setget __set
+var type: int           
+var name: String        
+var description: String 
+var required: bool      
 
 func _init(option_name: String) -> void:
 	name = option_name

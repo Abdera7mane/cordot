@@ -7,7 +7,7 @@ var _data: Dictionary = {
 	activities = [],
 	status = "online",
 	afk = false
-} setget __set, to_dict
+} , to_dict
 
 func since(unix_timestamp: int) -> PresenceUpdate:
 	_data["since"] = unix_timestamp

@@ -1,13 +1,14 @@
 class_name PartialThreadChannel extends PartialChannel
 
-var parent_id: int             setget __set
-var archived: bool             setget __set
-var auto_archive_duration: int setget __set
-var archive_timestamp: int     setget __set
-var locked: bool               setget __set
-var invitable: bool            setget __set
+var parent_id: int
+var archived: bool
+var auto_archive_duration: int
+var archive_timestamp: int
+var locked: bool
+var invitable: bool
 
-func _init(data: Dictionary).(data) -> void:
+func _init(data: Dictionary) -> void:
+	super(data)
 	parent_id = data["parent_id"]
 	archived = data["archived"]
 	auto_archive_duration = data["auto_archive_duration"]
@@ -18,5 +19,5 @@ func _init(data: Dictionary).(data) -> void:
 func get_class() -> String:
 	return "PartialThreadChannel"
 
-func __set(_value) -> void:
-	pass
+#func __set(_value) -> void:
+#	pass

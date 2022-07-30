@@ -1,10 +1,6 @@
 class_name GuildEditData
 
-# warning-ignore-all:return_value_discarded
-# warning-ignore-all:incompatible_ternary
-
-var _data: Dictionary:
-	get = to_dict
+var _data: Dictionary
 
 func set_name(name: String) -> GuildEditData:
 	_data["name"] = name.strip_edges()
@@ -30,6 +26,7 @@ func set_afk_timeout(seconds: int) -> GuildEditData:
 	_data["afk_timeout"] = seconds
 	return self
 
+@warning_ignore(incompatible_ternary)
 func set_icon(image: Image) -> GuildEditData:
 	_data["icon"] = Marshalls.raw_to_base64(image.get_data()) if image else null
 	return self
@@ -38,9 +35,11 @@ func set_owner(id: int) -> GuildEditData:
 	_data["owner_id"] = str(id)
 	return self
 
+@warning_ignore(incompatible_ternary)
 func set_splash(image: Image) -> GuildEditData:
 	_data["splash"] = Marshalls.raw_to_base64(image.get_data()) if image else null
 	return self
+
 
 func set_discovery_splash(image: Image) -> GuildEditData:
 	_data["discovery_splash"] = Marshalls.raw_to_base64(image.get_data()) if image else null
@@ -106,6 +105,3 @@ func to_dict() -> Dictionary:
 
 func get_class() -> String:
 	return "GuildEditData"
-
-func __set(_value) -> void:
-	pass

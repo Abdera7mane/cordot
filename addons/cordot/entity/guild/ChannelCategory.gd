@@ -1,8 +1,9 @@
 class_name ChannelCategory extends Channel
+
 var name: String
 var guild_id: int
-var guild: Guild: # Make this variable of type `Guild`
-	get = get_guild
+var guild: Guild:
+	get: return get_container().guilds.get(guild_id)
 var position: int
 var overwrites: Dictionary
 
@@ -11,13 +12,10 @@ func _init(data: Dictionary) -> void:
 	guild_id = data["guild_id"]
 	_update(data)
 
-func get_guild() -> Guild:
-	return self.get_container().guilds.get(guild_id)
-
 func edit(data: GuildChannelEditData) -> ChannelCategory:
 	var bot_id: int = get_container().bot_id
 	var self_permissions: BitFlag = self.guild.get_member(bot_id).permissions_in(self.id)
-
+	
 	var fail: bool = false
 	if not self_permissions.MANAGE_CHANNELS:
 		push_error("Can not edit channel, missing MANAGE_CHANNELS permission")
@@ -27,7 +25,7 @@ func edit(data: GuildChannelEditData) -> ChannelCategory:
 		fail = true
 	if fail:
 		return await Awaiter.submit()
-	return get_rest().request_async(
+	return await get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"edit_channel", [self.id, data.to_dict()]
 	)
@@ -49,6 +47,3 @@ func _clone_data() -> Array:
 		position = self.position,
 		overwrites = self.overwrites.duplicate()
 	}]
-
-#	func __set(_value) -> void:
-#		pass

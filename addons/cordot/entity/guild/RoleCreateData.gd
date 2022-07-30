@@ -1,9 +1,6 @@
 class_name RoleCreateData
 
-# warning-ignore-all:return_value_discarded
-
-var _data: Dictionary:
-	get = to_dict
+var _data: Dictionary
 
 func set_name(name: String) -> RoleCreateData:
 	_data["name"] = name
@@ -22,8 +19,8 @@ func set_hoist(value: bool) -> RoleCreateData:
 	_data["set_hoist"] = value
 	return self
 
+@warning_ignore(incompatible_ternary)
 func set_icon(image: Image) -> RoleCreateData:
-	# warning-ignore:incompatible_ternary
 	_data["icon"] = Marshalls.raw_to_base64(image.get_data()) if image else null
 	return self
 
@@ -43,6 +40,3 @@ func to_dict() -> Dictionary:
 
 func get_class() -> String:
 	return "RoleCreateData"
-
-func __set(_value) -> void:
-	pass

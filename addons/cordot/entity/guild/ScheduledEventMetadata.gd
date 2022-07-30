@@ -7,6 +7,3 @@ func _init(_location) -> void:
 
 func get_class() -> String:
 	return "ScheduledEventMetadata"
-
-#	func __set(_value) -> void:
-#		pass

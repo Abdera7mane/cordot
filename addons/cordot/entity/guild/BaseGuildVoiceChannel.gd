@@ -1,25 +1,18 @@
 class_name BaseGuildVoiceChannel extends VoiceChannel
 
-
 var name: String
 var guild_id: int
 var guild: Guild:
-	get = get_guild
+	get: return get_container().guilds.get(guild_id)
 var position: int
 var parent_id: int
 var parent: ChannelCategory:
-	get = get_parent
+	get: return get_container().channels.get(parent_id)
 var overwrites: Array
 
 func _init(data: Dictionary) -> void:
 	super(data)
 	guild_id = data["guild_id"]
-
-func get_guild() -> Guild:
-	return Guild
-
-func get_parent() -> ChannelCategory:
-	return self.get_container().channels.get(self.parent_id) if self.parent_id != 0 else null
 
 func edit(data: GuildVoiceChannelEditData) -> BaseGuildVoiceChannel:
 	var bot_id: int = get_container().bot_id
@@ -34,7 +27,7 @@ func edit(data: GuildVoiceChannelEditData) -> BaseGuildVoiceChannel:
 		fail = true
 	if fail:
 		return await Awaiter.submit()
-	return get_rest().request_async(
+	return await get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"edit_channel", [self.id, data.to_dict()]
 	)
@@ -51,15 +44,12 @@ func _update(data: Dictionary) -> void:
 
 func _clone_data() -> Array:
 	var data: Array = super()
-
+	
 	var arguments: Dictionary = data[0]
 	arguments["name"] = self.name
 	arguments["guild_id"] = self.guild_id
 	arguments["position"] = self.position
 	arguments["parent_id"] = self.parent_id
 	arguments["overwrites"] = self.overwrites.duplicate()
-
+	
 	return data
-
-#	func __set(_value) -> void:
-#		pass

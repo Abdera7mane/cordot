@@ -80,43 +80,44 @@ var name: String
 var description: String
 var owner_id: int
 var owner: Member:
-	get = get_owner
+	get: return get_member(owner_id)
 var icon_hash: String
 var splash_hash: String
 var discovery_splash_hash: String
 var afk_channel_id: int
 var afk_channel: GuildVoiceChannel:
-	get = get_afk_channel
+	get: return get_channel(afk_channel_id)
 var afk_timeout: int
 var widget_enabled: bool
 var widget_channel_id: int
 var widget_channel: Channel:
-	get = get_widget_channel
+	get: return get_channel(widget_channel_id)
 var verification_level: int
 var default_message_notifications: int
 var explicit_content_filter: int
-var roles: Array: get = get_roles
-var emojis: Array:
-	get = get_emojis
+var roles: Array[Role]:
+	get: return _roles.values()
+var emojis: Array[GuildEmoji]:
+	get: return _emojis.values()
 var features: PackedInt32Array
 var mfa_level: int
 var application_id: int
 var system_channel_id: int
 var system_channel: GuildTextChannel:
-	get = get_system_channel
+	get: return get_channel(system_channel_id)
 var system_channel_flags: BitFlag
 var rules_channel_id: int
 var rules_channel: GuildTextChannel:
-	get = get_rules_channel
+	get: return get_channel(rules_channel_id)
 var is_large: bool
 var unavailable: bool
 var member_count: int
 var voice_states: Dictionary
-var members: Array
-var channels_ids: Array
-var threads_ids: Array
-var channels: Array:
-	get = get_channels
+var members: Array[Member]
+var channels_ids: Array[int]
+var threads_ids: Array[int]
+var channels: Array[Channel]:
+	get: return get_channels()
 var max_presences: int
 var max_members: int
 var vanity_url_code: String
@@ -126,18 +127,18 @@ var premium_subscription_count: int
 var preferred_locale: String
 var public_updates_channel_id: int
 var public_updates_channel: GuildTextChannel:
-	get = get_public_updates_channel
+	get: return get_channel(public_updates_channel_id)
 var max_video_channel_users: int
 var welcome_screen: WelcomeScreen
 var nsfw_level: int
-var threads: Array:
+var threads: Array[ThreadChannel]:
 	get = get_threads
-var stage_instances: Array:
-	get = get_stage_instances
+var stage_instances: Array[StageInstance]:
+	get: return _stage_instances.values()
 var stickers: Array:
-	get = get_stickers
-var scheduled_events: Array:
-	get = get_scheduled_events
+	get: return _stickers.values()
+var scheduled_events: Array[GuildScheduledEvent]:
+	get: return _scheduled_events.values()
 var progress_bar_enabled: bool
 
 func _init(data: Dictionary) -> void:
@@ -167,32 +168,11 @@ func get_channels(sort: bool = false) -> Array:
 
 	return _channels
 
-func get_afk_channel() -> GuildVoiceChannel:
-	return get_channel(afk_channel_id) as GuildVoiceChannel
-
-func get_widget_channel() -> Channel:
-	return get_channel(widget_channel_id)
-
-func get_system_channel() -> GuildTextChannel:
-	return get_channel(system_channel_id) as GuildTextChannel
-
-func get_rules_channel() -> GuildTextChannel:
-	return get_channel(rules_channel_id) as GuildTextChannel
-
-func get_public_updates_channel() -> GuildTextChannel:
-	return get_channel(public_updates_channel_id) as GuildTextChannel
-
 func get_member(member_id: int) -> Member:
 	return self._members.get(member_id)
 
 func get_members() -> Array:
 	return self._members.values()
-
-func get_owner() -> Member:
-	return self.get_member(owner_id)
-
-func get_roles() -> Array:
-	return self._roles.values()
 
 func get_role(role_id: int) -> Role:
 	return self._roles.get(role_id)
@@ -200,35 +180,23 @@ func get_role(role_id: int) -> Role:
 func get_default_role() -> Role:
 	return get_role(self.id)
 
-func get_emojis() -> Array:
-	return self._emojis.values()
-
 func get_emoji(emoji_id: int) -> GuildEmoji:
 	return self._emojis.get(emoji_id)
 
-func get_threads() -> Array:
-	var _threads: Array = []
-	for id in threads_ids:
-		_threads.append(get_thread(id))
+func get_threads() -> Array[ThreadChannel]:
+	var _threads: Array[ThreadChannel]
+	for thread_id in threads_ids:
+		_threads.append(get_thread(thread_id))
 	return _threads
 
 func get_thread(thread_id: int) -> ThreadChannel:
 	return get_channel(thread_id) as ThreadChannel
 
-func get_stage_instances() -> Array:
-	return _stage_instances.values()
-
 func get_stage_instance(stage_id: int) -> StageInstance:
 	return _stage_instances.get(stage_id)
 
-func get_stickers() -> Array:
-	return _stickers.values()
-
 func get_sticker(sticker_id: int) -> Object:
 	return _stickers.get(sticker_id)
-
-func get_scheduled_events() -> Array:
-	return _scheduled_events.values()
 
 func get_scheduled_event(event_id: int) -> GuildScheduledEvent:
 	return _scheduled_events.get(event_id)
@@ -265,7 +233,7 @@ func edit(data: GuildEditData) -> Guild:
 		push_error("Can not edit banner image, guild is missing BANNER feature")
 	if fail:
 		return await Awaiter.submit()
-	return get_rest().request_async(
+	return await get_rest().request_async(
 		DiscordREST.GUILD,
 		"edit_guild", [self.id, data.to_dict()]
 	)
@@ -292,7 +260,7 @@ func create_channel(data: ChannelCreateData) -> Channel:
 	var self_permissions: BitFlag = get_member(bot_id).get_permissions()
 	if not self_permissions.MANAGE_CHANNELS:
 		return await Awaiter.submit()
-	return get_rest().request_async(
+	return await get_rest().request_async(
 		DiscordREST.GUILD,
 		"create_guild_channel", [self.id, data.to_dict()]
 	)
@@ -304,7 +272,7 @@ func edit_channel_positions(data: ChannelPositionsEditData) -> bool:
 	)
 
 func fetch_member(member_id: int) -> Member:
-	return get_rest().request_async(
+	return await get_rest().request_async(
 		DiscordREST.GUILD,
 		"get_guild_member", [self.id, member_id]
 	)
@@ -342,7 +310,7 @@ func edit_current_member(nickname: String) ->  Member:
 	if not self_permissions.CHANGE_NICKNAME:
 		push_error("Can not edit nickname, missing CHANGE_NICKNAME permission")
 		return await Awaiter.submit()
-	return get_rest().request_async(
+	return await get_rest().request_async(
 		DiscordREST.GUILD,
 		"edit_current_member", [self.id, {nick = nickname}]
 	)
@@ -366,7 +334,7 @@ func fetch_ban(user_id: int) -> GuildBan:
 		push_error("Can not fetch guild ban, missing BAN_MEMBERS permission")
 		await Awaiter.submit()
 		return
-	return get_rest().request_async(
+	return await get_rest().request_async(
 		DiscordREST.GUILD,
 		"get_guild_ban", [self.id, user_id]
 	)
@@ -389,7 +357,7 @@ func create_role(data: RoleCreateData) -> Role:
 		fail = true
 	if fail:
 		return await Awaiter.submit()
-	return get_rest().request_async(
+	return await get_rest().request_async(
 		DiscordREST.GUILD,
 		"create_guild_role", [self.id, data.to_dict()]
 	)
@@ -470,13 +438,13 @@ func fetch_vanity_url() -> Invite:
 	if not self_permissions.MANAGE_GUILD:
 		push_error("Can not get vanity url, missing MANAGE_GUILD permission")
 		return await Awaiter.submit()
-	return get_rest().request_async(
+	return await get_rest().request_async(
 		DiscordREST.GUILD,
 		"get_guild_vanity_url", [self.id]
 	)
 
 func fetch_widget_image(style: String = "shield") -> Texture:
-	return get_rest().request_async(
+	return await get_rest().request_async(
 		DiscordREST.GUILD,
 		"get_guild_widget_image", [self.id, style]
 	)
@@ -518,7 +486,7 @@ func _update(data: Dictionary) -> void:
 	system_channel_flags.flags = data.get("system_channel_flags", system_channel_flags.flags)
 	preferred_locale = data.get("preferred_locale", preferred_locale)
 	nsfw_level = data.get("nsfw_level", nsfw_level)
-
+	
 	is_large = data.get("is_large", is_large)
 	unavailable = data.get("unavailable", unavailable)
 	member_count = data.get("member_count", member_count)
@@ -527,21 +495,21 @@ func _update(data: Dictionary) -> void:
 	max_presences = data.get("max_presences", max_presences)
 	max_video_channel_users = data.get("max_video_channel_users", max_video_channel_users)
 	voice_states = data.get("voice_states", voice_states)
-
+	
 	_members = data.get("members", _members)
 	_roles = data.get("roles", _roles)
 	_emojis = data.get("emojis", _emojis)
 	channels_ids = data.get("channels_ids", channels_ids)
 	threads_ids = data.get("threads_ids", threads_ids)
-
+	
 	afk_channel_id = data.get("afk_channel_id", afk_channel_id)
 	widget_channel_id = data.get("widget_channel_id", widget_channel_id)
 	system_channel_id = data.get("system_channel_id", system_channel_id)
 	rules_channel_id = data.get("rules_channel_id", rules_channel_id)
 	public_updates_channel_id = data.get("public_updates_channel_id", public_updates_channel_id)
-
+	
 	welcome_screen = data.get("welcome_screen", welcome_screen)
-
+	
 	_stage_instances = data.get("stage_instances", _stage_instances)
 	_stickers = data.get("stickers", _stickers)
 	_scheduled_events = data.get("scheduled_events", _scheduled_events)
@@ -583,20 +551,17 @@ func _clone_data() -> Array:
 		public_updates_channel_id = self.public_updates_channel_id,
 		max_video_channel_users = self.max_video_channel_users,
 		nsfw_level = self.nsfw_level,
-
+		
 		channels_ids = self.channels_ids.duplicate(),
 		members = self._members.duplicate(),
 		roles = self._roles.duplicate(),
 		emojis = self._emojis.duplicate(),
-
+		
 		welcome_screen = self.welcome_screen,
-
+		
 		threads = self._threads.duplicate(),
 		stage_instances = self._stage_instances.duplicate(),
 		stickers = self._stickers.duplicate(),
 		scheduled_events = self._scheduled_events.duplicate(),
 		progress_bar_enabled = self.progress_bar_enabled
 	}]
-
-#func __set(_value) -> void:
-#	pass

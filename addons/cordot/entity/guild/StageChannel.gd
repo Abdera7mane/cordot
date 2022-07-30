@@ -1,6 +1,5 @@
 class_name StageChannel extends BaseGuildVoiceChannel
 
-
 var topic: String
 var instance: StageInstance
 
@@ -17,12 +16,9 @@ func _update(data: Dictionary) -> void:
 
 func _clone_data() -> Array:
 	var data: Array = super()
-
+	
 	var arguments: Dictionary = data[0]
 	arguments["topic"] = self.topic
 	arguments["instance"] = self.instance
-
+	
 	return data
-
-#	func __set(_value) -> void:
-#		pass

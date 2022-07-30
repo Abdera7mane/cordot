@@ -1,6 +1,5 @@
 class_name GuildVoiceChannel extends BaseGuildVoiceChannel
 
-
 var user_limit: int
 var video_quality: int
 
@@ -17,12 +16,9 @@ func _update(data: Dictionary) -> void:
 
 func _clone_data() -> Array:
 	var data: Array = super()
-
+	
 	var arguments: Dictionary = data[0]
 	arguments["user_limit"] = self.user_limit
 	arguments["video_quality"] = self.video_quality
-
+	
 	return data
-
-#	func __set(_value) -> void:
-#		pass

@@ -13,6 +13,3 @@ func _init(data: Dictionary) -> void:
 
 func get_class() -> String:
 	return "StageInstanceInvite"
-
-func __set(_value) -> void:
-	pass

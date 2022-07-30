@@ -1,14 +1,14 @@
 class_name GuildEmoji extends Emoji
 
-
 var guild_id: int
 var guild: Guild:
-	get = get_guild
+	get: return get_container().guilds.get(guild_id)
 var roles_ids: Array
-var roles: Array      :get = get_roles
+var roles: Array:
+	get = get_roles
 var user_id: int
 var user: User:
-	get = get_user
+	get: return get_container().users.get(user_id)
 var is_managed: bool
 var is_animated: bool
 var available: bool
@@ -24,9 +24,6 @@ func _init(data: Dictionary) -> void:
 func get_mention() -> String:
 	return ("<a:%s:%d>" if self.is_animated else "<:%s:%d>") % [self.name, self.id]
 
-func get_guild() -> Guild:
-	return self.get_container().guilds.get(self.guild_id)
-
 func get_roles() -> Array:
 	var _roles: Array
 	for role_id in self.roles_ids:
@@ -35,11 +32,8 @@ func get_roles() -> Array:
 			_roles.append(role)
 	return _roles
 
-func get_user() -> User:
-	return self.get_container().users.get(self.user_id)
-
 func url_encoded() -> String:
-	return ("a:%d" % self.id).percent_encode()
+	return ("a:%d" % self.id).uri_encode()
 
 func get_class() -> String:
 	return "Guild.GuildEmoji"

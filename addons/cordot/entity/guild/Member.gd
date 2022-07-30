@@ -1,20 +1,19 @@
 class_name Member extends MentionableEntity
 
-
-var user: User: # Make this variable of type `User`
-	get = get_user
+var user: User:
+	get: return get_container().users.get(id)
 var nickname: String:
 	get = get_nickname
 var avatar_hash: String:
 	get = get_avatar_hash
 var guild_id: int
-var guild: Guild: # Make this variable of type `Guild`
-	get = get_guild
+var guild: Guild:
+	get: return get_container().guilds.get(guild_id)
 var roles_ids: Array
 var roles: Array:
 	get = get_roles
-var presence: Presence: # Make this variable of type `Presence`
-	get = get_presence
+var presence: Presence:
+	get: return get_container().presences.get(id)
 var join_date: int
 var premium_since: int
 var is_deafened: bool
@@ -27,14 +26,8 @@ func _init(data: Dictionary) -> void:
 	join_date = data["join_date"]
 	_update(data)
 
-func get_guild() -> Guild:
-	return self.get_container().guilds.get(guild_id)
-
 func get_mention() -> String:
 	return self.user.get_mention()
-
-func get_nickname_mention() -> String:
-	return self.user.get_nickname_mention()
 
 func get_nickname() -> String:
 	return self.user.username if nickname.is_empty() else nickname
@@ -49,12 +42,6 @@ func get_roles() -> Array:
 		if role:
 			_roles.append(role)
 	return _roles
-
-func get_user() -> User:
-	return (self.get_container().users.get(self.id))
-
-func get_presence() -> Presence:
-	return self.get_container().presences.get(self.id)
 
 func get_partial_voice_state() -> VoiceState:
 	var state: VoiceState = VoiceState.new({

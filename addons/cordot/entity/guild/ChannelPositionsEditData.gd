@@ -1,9 +1,6 @@
 class_name ChannelPositionsEditData
 
-# warning-ignore-all:return_value_discarded
-
-var _data: Array:
-	get = to_array
+var _data: Array
 
 func add_channel(id: int) -> ChannelPosition:
 	var channel_position: ChannelPosition = ChannelPosition.new(id)
@@ -19,33 +16,26 @@ func to_array() -> Array:
 func get_class() -> String:
 	return "ChannelPositionsEditData"
 
-func __set(_value) -> void:
-	pass
-
 class ChannelPosition:
-	var _data: Dictionary:
-		get = to_dict
-
+	var _data: Dictionary
+	
 	func _init(id: int) -> void:
 		_data["id"] = str(id)
-
+	
 	func set_position(position: int) -> ChannelPosition:
 		_data["position"] = position
 		return self
-
+	
 	func syncs_permissions(value: bool) -> ChannelPosition:
 		_data["lock_permissions"] = value
 		return self
-
+	
 	func set_parent(id: int) -> ChannelPosition:
 		_data["parent_id"] = str(id)
 		return self
-
+	
 	func get_class() -> String:
 		return "ChannelPositionsEditData.ChannelPosition"
-
+	
 	func to_dict() -> Dictionary:
 		return _data.duplicate()
-
-	func __set(_value) -> void:
-		pass

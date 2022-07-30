@@ -1,14 +1,13 @@
 class_name GuildStoreChannel extends Channel
 
-
 var name: String
 var guild_id: int
 var guild: Guild:
-	get = get_guild
+	get: return get_container().guilds.get(guild_id)
 var position: int
 var parent_id: int
 var parent: ChannelCategory:
-	get = get_parent
+	get: return get_container().channels.get(parent_id)
 var overwrites: Dictionary
 
 func _init(data: Dictionary) -> void:
@@ -16,12 +15,6 @@ func _init(data: Dictionary) -> void:
 	type = Channel.Type.GUILD_STORE
 	guild_id = data["guild_id"]
 	_update(data)
-
-func get_guild() -> Guild:
-	return self.get_container().guilds.get(guild_id) as Guild
-
-func get_parent() -> ChannelCategory:
-	return self.get_container().channels.get(self.parent_id) if self.parent_id != 0 else null
 
 func get_class() -> String:
 	return "Guild.GuildStoreChannel"
@@ -42,6 +35,3 @@ func _clone_data() -> Array:
 		parent_id = self.parent_id,
 		overwrites = self.overwrites.duplicate()
 	}]
-
-#	func __set(_value) -> void:
-#		pass

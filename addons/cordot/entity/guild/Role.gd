@@ -1,6 +1,5 @@
 class_name Role extends MentionableEntity
 
-
 var name: String
 var color: Color
 var hoist: bool
@@ -11,16 +10,13 @@ var mentionable: bool
 var tags: Tags
 var guild_id: int
 var guild: Guild:
-	get = get_guild
+	get: return get_container().guilds.get(guild_id)
 
 func _init(data: Dictionary) -> void:
 	super(data["id"])
 	guild_id = data["guild_id"]
 	permissions = BitFlag.new((Permissions as Script).get_script_constant_map())
 	_update(data)
-
-func get_guild() -> Guild:
-	return self.get_container().guilds.get(guild_id)
 
 func get_mention() -> String:
 	return "<@&%d>" % self.get_id()

@@ -1,9 +1,6 @@
 class_name ChannelCreateData
 
-# warning-ignore-all:return_value_discarded
-
-var _data: Dictionary:
-	get = to_dict
+var _data: Dictionary
 
 func _init(name: String) -> void:
 	set_name(name)
@@ -56,6 +53,3 @@ func to_dict() -> Dictionary:
 
 func get_class() -> String:
 	return "ChannelCreateData"
-
-#func __set(_value) -> void:
-#	pass

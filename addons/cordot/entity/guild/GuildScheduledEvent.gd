@@ -1,6 +1,5 @@
 class_name GuildScheduledEvent extends DiscordEntity
 
-
 enum PrivacyLevel {
 	GUILD_ONLY = 2
 }

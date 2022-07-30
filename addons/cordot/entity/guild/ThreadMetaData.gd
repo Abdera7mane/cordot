@@ -1,6 +1,5 @@
 class_name ThreadMetaData
 
-
 var archived: bool
 var auto_archive_duration: int
 var archive_timestamp: int
@@ -31,6 +30,3 @@ func _update(data: Dictionary) -> void:
 	locked = data.get("locked", locked)
 	invitable = data.get("invitable", invitable)
 	create_timestamp = data.get("create_timestamp", create_timestamp)
-
-#	func __set(_value) -> void:
-#		pass

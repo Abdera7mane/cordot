@@ -1,16 +1,15 @@
 class_name VoiceState extends DiscordEntity
 
-
 var guild_id: int
 var guild: Guild:
-	get = get_guild
+	get: return get_container().guilds.get(guild_id)
 var channel_id: int
 var channel: GuildVoiceChannel:
-	get = get_channel
+	get: return guild.get_channel(channel_id)
 var user: User:
-	get = get_user
+	get: return get_container().users.get(id)
 var member: Member:
-	get = get_member
+	get: return member if member else guild.get_member(id)
 var session_id: String
 var is_deafened: bool
 var is_muted: bool
@@ -27,20 +26,8 @@ func _init(data: Dictionary) -> void:
 	member = data.get("member")
 	_update(data)
 
-func get_guild() -> Guild:
-	return get_container().guilds.get(guild_id)
-
-func get_channel() -> GuildVoiceChannel:
-	return self.guild.get_channel(channel_id) as GuildVoiceChannel
-
-func get_user() -> User:
-	return get_container().users.get(self.id)
-
 func get_class() -> String:
 	return "Guild.VoiceState"
-
-func get_member() -> Member:
-	return member if member else self.guild.get_member(self.id)
 
 func _update(data: Dictionary) -> void:
 	channel_id = data.get("channel_id", channel_id)

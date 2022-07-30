@@ -1,9 +1,6 @@
 class_name GuildMemberEditData
 
-# warning-ignore-all:return_value_discarded
-
-var _data: Dictionary:
-	get = to_dict
+var _data: Dictionary
 
 func set_nickname(nickname: String) -> GuildMemberEditData:
 	_data["nick"] = nickname
@@ -48,6 +45,3 @@ func to_dict() -> Dictionary:
 
 func get_class() -> String:
 	return "GuildMemberEditData"
-
-func __set(_value) -> void:
-	pass

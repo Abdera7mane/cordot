@@ -1,6 +1,5 @@
 class_name Widget
 
-
 var enabled: bool
 var channel_id: int
 

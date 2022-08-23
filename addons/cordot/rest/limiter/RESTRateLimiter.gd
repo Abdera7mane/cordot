@@ -1,28 +1,60 @@
+# Discord REST API rate limits implementation. The current implementation only
+# catches some of the most common rate limits, and needs more testing.
 class_name RESTRateLimiter
 
+# doc-hide
 const LIMIT_HEADER: String = "X-RateLimit-Limit"
+
+# doc-hide
 const REMAINING_HEADER: String = "X-RateLimit-Remaining"
+
+# doc-hide
 const RESET_HEADER: String = "X-RateLimit-Reset"
+
+# doc-hide
 const RESET_AFTER_HEADER: String = "X-RateLimit-Reset-After"
+
+# doc-hide
 const BUCKET_HEADER: String = "X-RateLimit-Bucket"
+
+# doc-hide
 const GLOBAL_HEADER: String = "X-RateLimit-Global"
+
+# doc-hide
 const RETRY_AFTER_HEADER: String = "Retry-After"
 
+# doc-hide
 var route_regex: RegEx = RegEx.new()
+
+# doc-hide
 var webhook_regex: RegEx = RegEx.new()
+
+# doc-hide
 var reactions_regex: RegEx = RegEx.new()
 
+# doc-hide
 var buckets: Dictionary # bucket_hash: String, bucket: RESTRateLimitBucket
+
+# doc-hide
 var routes: Dictionary  # route: String, bucket_hash: String
 
+# Whether we got a global rate limit.
 var global: bool
+
+
 var retry_after: int
+
+# The time in engine ticks millisecond when the global rate limit resets.
+# Irrelevant if `global` is `false`.
 var global_reset: int
 
 var last_latency_ms: int
 
+# HTTP connection pool reference if enabled.
 var pool: HTTPConnectionPool
 
+# Constructs a new rate limiter. `use_pool` enables the use of HTTP connection
+# pool (experimental unstable feature).
 func _init(use_pool: bool = false) -> void:
 	if use_pool:
 		pool = HTTPConnectionPool.new(5, 50)
@@ -39,6 +71,7 @@ func _init(use_pool: bool = false) -> void:
 	global_bucket.auto_reset = true
 	add_bucket(global_bucket)
 
+# doc-hide
 func request_async(request: RestRequest) -> HTTPResponse:
 	return pool.request_async(
 		request.url,
@@ -48,9 +81,11 @@ func request_async(request: RestRequest) -> HTTPResponse:
 		request.body
 	) if pool else request.send_async()
 
+# doc-hide
 func add_bucket(bucket: RESTRateLimitBucket) -> void:
 	buckets[bucket.key] = bucket
 
+# doc-hide
 func parse_route(endpoint: String, method: int) -> String: 
 	var route: String = endpoint
 	
@@ -60,6 +95,7 @@ func parse_route(endpoint: String, method: int) -> String:
 	
 	return _stringify_method(method) + route
 
+# doc-hide
 func get_bucket(request: RestRequest) -> Array:
 	var url: Dictionary = URL.parse_url(request.url)
 	var path: String = url.path.split("?", true, 1)[0]
@@ -75,6 +111,10 @@ func get_bucket(request: RestRequest) -> Array:
 		bucket = RESTRateLimitBucket.new("", 1, 1)
 	return [bucket, route]
 
+# Queue a request for rate limiting.
+#
+# doc-qualifiers:coroutine
+# doc-override-return:HTTPResponse
 func queue_request(request: RestRequest) -> HTTPResponse:
 	var global_bucket: RESTRateLimitBucket = buckets["global"]
 	var bucket_info: Array = get_bucket(request)

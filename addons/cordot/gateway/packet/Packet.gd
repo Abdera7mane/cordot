@@ -1,3 +1,4 @@
+# doc-hide
 class_name Packet
 
 var payload: Dictionary

@@ -1,5 +1,7 @@
+# Discord REST API constants
 class_name DiscordREST
 
+# Discord REST API types.
 enum {
 	APPLICATION,
 	CHANNEL,
@@ -9,6 +11,7 @@ enum {
 	WEBHOOK
 }
 
+# Discord CDN file formats.
 const CDN_FILE_FORMATS: PoolStringArray = PoolStringArray([
 	"jpg", "jpeg",
 	"png",
@@ -17,6 +20,7 @@ const CDN_FILE_FORMATS: PoolStringArray = PoolStringArray([
 	"json"
 ])
 
+# Discord REST API endpoints.
 const ENDPOINTS: Dictionary = {
 	INVITE = "/invites/{invite_code}",
 	STICKER = "/stickers/{sticker_id}",

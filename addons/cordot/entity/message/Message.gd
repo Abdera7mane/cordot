@@ -1,5 +1,7 @@
+# Represents a message sent in a channel within Discord.
 class_name Message extends TextChannel.BaseMessage
 
+# Message types.
 enum Type {
 	DEFAULT,
 	RECIPIENT_ADD,
@@ -26,6 +28,7 @@ enum Type {
 	CONTEXT_MENU_COMMAND                         = 23
 }
 
+# Message flags.
 enum Flags {
 	CROSSPOSTED            = 1 << 0,
 	IS_CROSSPOST           = 1 << 1,
@@ -37,20 +40,48 @@ enum Flags {
 	LOADING                = 1 << 7,
 }
 
+# The author's id of this message.
 var author_id: int                      setget __set
+
+# The author of this message.
 var author: User                        setget __set, get_author
+
+# When this message was sent in unix time in seconds.
 var timestamp: int                      setget __set
+
+# Type of message.
 var type: int                           setget __set
+
+# Contents of the message.
 var content: String                     setget __set
+
+# When this message was edited (or `0` if never).
 var edited_timestamp: int               setget __set
+
+# Users mentioned in the message.
 var mentions: Array                     setget __set
+
+# Channels mentioned in this message.
 var channel_mentions: Array             setget __set 
+
+# Attached files to this message.
 var attachments: Array                  setget __set
+
+# Embedded content.
 var embeds: Array                       setget __set
+
+# Reactions to the message.
 var reactions: Array                    setget __set
+
 var nonce: String                       setget __set
+
+# Whether this message is pinned.
 var is_pinned: bool                     setget __set
+
+# Webhook's id if the message is from a webhook.
 var webhook_id: int                     setget __set
+
+# Webhook object reference if the message is fro ma webhook.
 var webhook: DiscordWebhook             setget __set
 var activity: MessageActivity           setget __set
 var application_id: int                 setget __set
@@ -63,6 +94,7 @@ var interaction: MessageInteraction     setget __set
 var components: Array                   setget __set
 var sticker_items: Array                setget __set
 
+# doc-hide
 func _init(data: Dictionary).(data) -> void:
 	author_id = data["author_id"]
 	timestamp = data["timestamp"]
@@ -75,66 +107,84 @@ func _init(data: Dictionary).(data) -> void:
 	message_reference = data.get("message_reference")
 	referenced_message_id = data.get("referenced_message_id", 0)
 
+# `author` getter.
 func get_author() -> User:
 	return get_container().users.get(author_id)
 
+# `referenced_message` getter.
 func get_referenced_message() -> Message:
 	return get_container().messages.get(referenced_message_id)
 
+# Edits the message, the messge author must be same bot user.
 func edit(message_edit: MessageEditData) -> Message:
 	return get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"edit_message", [channel_id, self.id, message_edit.to_dict()]
 	)
 
+# Fetches the message from Discord API.
 func fetch_message() -> Message:
 	return get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"get_message", [channel_id, self.id]
 	)
 
+# Fetches the referenced message if there is any from Discord API.
 func fetch_referenced_message() -> Message:
 	return get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"get_message", [channel_id, referenced_message_id]
 	) if referenced_message_id != 0 else Awaiter.submit()
 
+# Reacts to the message with `emoji`.
+# Requires bot to have `ADD_REACTIONS` permission in guild channels.
 func react(emoji: Emoji) -> bool:
 	return yield(get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"create_reaction", [channel_id, self.id, emoji]
 	), "completed")
 
+# Removes the `emoji` reaction from the message.
 func unreact(emoji: Emoji) -> bool:
 	return yield(get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"delete_own_reaction", [channel_id, self.id, emoji]
 	), "completed")
 
+# Removes a user reactions from the message.
+# Requires the bot to have `MANAGE_MESSAGES` permission.
 func remove_reaction(user_id: int, emoji: Emoji) -> bool:
 	return yield(get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"delete_user_reaction", [channel_id, self.id, emoji, user_id]
 	), "completed")
 
+# Fetches the `emoji` reactions from Discord API.
+# Requires the bot to have `MANAGE_MESSAGES` permission
 func fetch_reactions(emoji: Emoji, after: int = 0, limit: int = 25) -> Array:
 	return yield(get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"get_reactions", [channel_id, self.id, emoji, after, limit]
 	), "completed")
 
+# Removes all reactions from the message.
+# Requires the bot to have `MANAGE_MESSAGES` permission
 func clear_all_reactions() -> void:
 	yield(get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"delete_all_reactions", [channel_id, self.id]
 	), "completed")
 
+# Removes all `emoji` reactions from the message.
 func clear_emoji_reactions(emoji: Emoji) -> void:
 	yield(get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"delete_emoji_reactions", [channel_id, self.id, emoji]
 	), "completed")
 
+# Deletes the message if the author is the same bot user. If the message
+# is inside a guild channel, the bot must have `MANAGE_MESSAGES` permission
+# to delete other members messages.
 func delete() -> bool:
 	var bot_id: int = get_container().bot_id
 	if bot_id != author_id:
@@ -143,6 +193,7 @@ func delete() -> bool:
 		return false
 	return _delete()
 
+# doc-hide
 func get_class() -> String:
 	return "Message"
 

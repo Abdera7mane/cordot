@@ -1,3 +1,4 @@
+# doc-hide
 class_name Packets
 
 class IdentifyPacket extends Packet:

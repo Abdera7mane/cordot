@@ -1,3 +1,4 @@
+# doc-hide
 class_name DiscordPacket extends Packet
 	
 # warning-ignore:shadowed_variable

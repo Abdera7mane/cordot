@@ -1,3 +1,4 @@
+# doc-hide
 class_name ChannelPacketsHandler extends PacketHandler
 
 const PACKETS: Dictionary = {

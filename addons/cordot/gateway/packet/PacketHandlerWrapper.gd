@@ -1,3 +1,4 @@
+# doc-hide
 class_name PacketHandlerWrapper extends PacketHandler
 var _packets: Dictionary
 var _instance: Object

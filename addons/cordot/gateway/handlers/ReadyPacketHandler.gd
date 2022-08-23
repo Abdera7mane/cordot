@@ -1,3 +1,4 @@
+# doc-hide
 class_name ReadyPacketHandler extends PacketHandler
 
 const PACKETS: Dictionary = {

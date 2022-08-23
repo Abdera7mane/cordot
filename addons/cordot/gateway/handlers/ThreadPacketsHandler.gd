@@ -1,3 +1,4 @@
+# doc-hide
 class_name ThreadPacketsHandler extends PacketHandler
 
 const PACKETS: Dictionary = {

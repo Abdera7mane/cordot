@@ -1,3 +1,4 @@
+# doc-hide
 class_name MessagePacketsHandler extends PacketHandler
 
 const PACKETS: Dictionary = {

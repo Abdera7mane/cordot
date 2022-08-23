@@ -1,3 +1,4 @@
+# doc-hide
 class_name InteractionPacketsHandler extends PacketHandler
 
 const PACKETS: Dictionary = {

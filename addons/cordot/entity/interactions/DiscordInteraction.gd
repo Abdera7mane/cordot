@@ -1,3 +1,4 @@
+# Represents a Interaction with Discord such as Slash Commands and User Commands.
 class_name DiscordInteraction extends DiscordEntity
 
 enum Type {

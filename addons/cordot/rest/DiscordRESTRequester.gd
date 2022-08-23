@@ -1,10 +1,20 @@
+# Discord REST API requester, uses a rate limiter to queue requests. 
 class_name DiscordRESTRequester
 
+# Rate limiter for this requester instance.
 var limiter: RESTRateLimiter
 
+# Constructs a new `DiscordRESTRequester`. `use_pool` specifies whether to use
+# an HTTP connection pool (experimental unstable feature).
 func _init(use_pool: bool = false) -> void:
 	limiter = RESTRateLimiter.new(use_pool)
 
+# Sends a request to the Discord REST API asynchronously and returns an
+# `HTTPResponse` object.
+# Prints a human-readable error message in case of failure.
+#
+# doc-qualifiers:coroutine
+# doc-override-return:HTTPResponse
 func request_async(request: RestRequest) -> HTTPResponse:
 	var response: HTTPResponse = yield(limiter.queue_request(request), "completed")
 	
@@ -43,6 +53,10 @@ func request_async(request: RestRequest) -> HTTPResponse:
 	
 	return response
 
+# Downloads a resource from the Discord REST API asynchronously.
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Resource
 func cdn_download_async(_url: String) -> Resource:
 	var url: Dictionary = URL.parse_url(_url)
 	var path: String = url.path.split("?", true, 1)[0]
@@ -81,9 +95,11 @@ func cdn_download_async(_url: String) -> Resource:
 	texture.create_from_image(image)
 	return texture
 
+# Gets the last request latency in milliseconds.
 func get_last_latency_ms() -> int:
 	return limiter.last_latency_ms
 
+# doc-hide
 func print_error(message: String, request: RestRequest) -> void:
 	push_error("Discord REST: "+ message)
 	printerr("Discord REST Error")
@@ -92,6 +108,7 @@ func print_error(message: String, request: RestRequest) -> void:
 	printerr("Method: ", limiter._stringify_method(request.method))
 	printerr("Body length: ", request.body.size())
 
+# doc-hide
 func print_error_object(object: Dictionary) -> void:
 	printerr("ERROR TRACE START")
 	printerr()

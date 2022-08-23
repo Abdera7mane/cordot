@@ -1,18 +1,30 @@
+# Guild REST API implementation.
 class_name GuildRESTAPI extends DiscordRESTAPI
 
+# Constructs a new `GuildRESTAPI` object.
 func _init(_token: String,
 	_requester: DiscordRESTRequester,
 	_entity_manager: BaseDiscordEntityManager
 ).(_token, _requester, _entity_manager) -> void:
 	pass
 
-func create_guild(guild_id: int, params: Dictionary) -> Guild:
+# Creates a new guild.  
+# <https://discord.com/developers/docs/resources/guild#create-guild>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Guild
+func create_guild(params: Dictionary) -> Guild:
 	var request: RestRequest = rest_request(
-		DiscordREST.ENDPOINTS.GUILDS.format({guild_id = guild_id})
+		DiscordREST.ENDPOINTS.GUILDS
 	).json_body(params).method_post()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_guild_response(response)
 
+# Returns the guild object for the given `guild_id`.  
+# <https://discord.com/developers/docs/resources/guild#get-guild>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Guild
 func get_guild(guild_id: int, with_counts: bool = false) -> Guild:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD.format({guild_id = guild_id})
@@ -24,6 +36,11 @@ func get_guild(guild_id: int, with_counts: bool = false) -> Guild:
 func get_guild_preview(guild_id: int) -> Object:
 	return null
 
+# Modifies a guild's settings. Returns the updated guild object.  
+# <https://discord.com/developers/docs/resources/guild#modify-guild>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Guild
 func edit_guild(guild_id: int, params: Dictionary = {}) -> Guild:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD.format({guild_id = guild_id})
@@ -31,6 +48,11 @@ func edit_guild(guild_id: int, params: Dictionary = {}) -> Guild:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_guild_response(response)
 
+# Delete a guild permanently. User must be owner. Returns `true` on success.  
+# <https://discord.com/developers/docs/resources/guild#delete-guild>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:bool
 func delete_guild(guild_id: int) -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD.format({guild_id = guild_id})
@@ -38,6 +60,11 @@ func delete_guild(guild_id: int) -> bool:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
+# Returns a list of guild channel. Does not include threads.  
+# <https://discord.com/developers/docs/resources/guild#get-guild-channels>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Array
 func get_guild_channels(guild_id: int) -> Array:
 	var channels: Array = []
 	var request: RestRequest = rest_request(
@@ -51,6 +78,11 @@ func get_guild_channels(guild_id: int) -> Array:
 			channels.append(channel)
 	return channels
 
+# Creates a new channel for the guild.  
+# <https://discord.com/developers/docs/resources/guild#create-guild-channel>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Channel
 func create_guild_channel(guild_id: int, params: Dictionary) -> Channel:
 	var channel: Channel = null
 	var request: RestRequest = rest_request(
@@ -62,6 +94,12 @@ func create_guild_channel(guild_id: int, params: Dictionary) -> Channel:
 		channel = entity_manager.get_or_construct_channel(channel_data)
 	return channel
 
+# Modify the positions of a set of channel for the guild.
+# Returns `true` on success.  
+# <https://discord.com/developers/docs/resources/guild#modify-guild-channel-positions>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:bool
 func edit_guild_channel_positions(guild_id: int, params: Array) -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_CHANNELS.format({guild_id = guild_id})
@@ -69,6 +107,11 @@ func edit_guild_channel_positions(guild_id: int, params: Array) -> bool:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
+# Returns a `Guild.Member` object for the specified `user_id`.  
+# <https://discord.com/developers/docs/resources/guild#get-guild-member>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Member
 func get_guild_member(guild_id: int, user_id) -> Guild.Member:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_MEMBER.format({
@@ -79,6 +122,11 @@ func get_guild_member(guild_id: int, user_id) -> Guild.Member:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_guild_member_response(response, guild_id)
 
+# Returns a list of `Guild.Member` objects that are members of the guild.  
+# <https://discord.com/developers/docs/resources/guild#list-guild-members>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Array
 func list_guild_members(guild_id: int, limit: int = 1, after: int = 0) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_MEMBERS.format({guild_id = guild_id})
@@ -88,6 +136,12 @@ func list_guild_members(guild_id: int, limit: int = 1, after: int = 0) -> Array:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_guild_members_list_response(response, guild_id)
 
+# Returns a list of `Guild.Member` objects whose username or nickname starts
+# with a provided `query` string.  
+# <https://discord.com/developers/docs/resources/guild#search-guild-members>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Array
 func search_guild_members(guild_id: int, query: String, limit: int = 1) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_MEMBERS_SEARCH.format({guild_id = guild_id})
@@ -97,6 +151,12 @@ func search_guild_members(guild_id: int, query: String, limit: int = 1) -> Array
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_guild_members_list_response(response, guild_id)
 
+# Adds a user to the guild, provided you have a valid oauth2 access token for
+# the user with the guilds.join scope.  
+# <https://discord.com/developers/docs/resources/guild#add-guild-member>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Array
 func add_guild_member(guild_id: int, user_id: int, params: Dictionary) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_MEMBER.format({
@@ -109,6 +169,11 @@ func add_guild_member(guild_id: int, user_id: int, params: Dictionary) -> Array:
 	var member: Guild.Member = _handle_guild_member_response(response, guild_id)
 	return [is_added, member]
 
+# Modify attributes of a guild member.  
+# <https://discord.com/developers/docs/resources/guild#modify-guild-member>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Array
 func edit_guild_member(guild_id: int, user_id: int, params: Dictionary = {}) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_MEMBER.format({
@@ -121,6 +186,11 @@ func edit_guild_member(guild_id: int, user_id: int, params: Dictionary = {}) -> 
 	var member: Guild.Member = _handle_guild_member_response(response, guild_id)
 	return [error, member]
 
+# Modifies the current member in a guild.  
+# <https://discord.com/developers/docs/resources/guild#modify-current-member>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Array
 func edit_current_member(guild_id: int, params: Dictionary = {}) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.CURRENT_MEMBER.format({guild_id = guild_id})
@@ -130,6 +200,11 @@ func edit_current_member(guild_id: int, params: Dictionary = {}) -> Array:
 	var member: Guild.Member = _handle_guild_member_response(response, guild_id)
 	return [error, member]
 
+# Adds a role to a guild member. Returns `true` on success.  
+# <https://discord.com/developers/docs/resources/guild#add-guild-member-role>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:bool
 func add_guild_member_role(guild_id: int, user_id: int, role_id: int) -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_MEMBER_ROLE.format({
@@ -141,6 +216,11 @@ func add_guild_member_role(guild_id: int, user_id: int, role_id: int) -> bool:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
+# Removes a role from a guild member. Returns `true` on success.  
+# <https://discord.com/developers/docs/resources/guild#remove-guild-member-role>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:bool
 func remove_guild_member_role(guild_id: int, user_id: int, role_id: int) -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_MEMBER_ROLE.format({
@@ -152,6 +232,11 @@ func remove_guild_member_role(guild_id: int, user_id: int, role_id: int) -> bool
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
+# Removes a member from a guild. Returns `true` on success.  
+# <https://discord.com/developers/docs/resources/guild#remove-guild-member>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:bool
 func remove_guild_member(guild_id: int, user_id: int) -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_MEMBER.format({
@@ -162,6 +247,11 @@ func remove_guild_member(guild_id: int, user_id: int) -> bool:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
+# Returns a list of `GuildBan` objects for the users banned from a guild.  
+# <https://discord.com/developers/docs/resources/guild#get-guild-bans>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Array
 func get_guild_bans(guild_id: int) -> Array:
 	var bans: Array = []
 	var request: RestRequest = rest_request(
@@ -180,6 +270,11 @@ func get_guild_bans(guild_id: int) -> Array:
 			bans.append(ban)
 	return bans
 
+# Returns a `GuildBan` object for the given `user_id`.  
+# <https://discord.com/developers/docs/resources/guild#get-guild-ban>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:GuildBan
 func get_guild_ban(guild_id: int, user_id: int) -> GuildBan:
 	var ban: GuildBan = null
 	var request: RestRequest = rest_request(
@@ -198,6 +293,12 @@ func get_guild_ban(guild_id: int, user_id: int) -> GuildBan:
 		ban = GuildBan.new(reason, user)
 	return ban
 
+# Creates a guild ban, and optionally delete previous messages sent by the 
+# banned user. Returns `true` on success.  
+# <https://discord.com/developers/docs/resources/guild#create-guild-ban>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:bool
 func create_guild_ban(guild_id: int, user_id: int, params: Dictionary) -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_BAN.format({
@@ -208,6 +309,11 @@ func create_guild_ban(guild_id: int, user_id: int, params: Dictionary) -> bool:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
+# Removes the ban for a user. Returns `true` on success.  
+# <https://discord.com/developers/docs/resources/guild#remove-guild-ban>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:bool
 func remove_guild_ban(guild_id: int, user_id: int) -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_BAN.format({
@@ -218,6 +324,11 @@ func remove_guild_ban(guild_id: int, user_id: int) -> bool:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
+# Returns a list of `Guild.Role` objects for the guild.  
+# <https://discord.com/developers/docs/resources/guild#get-guild-roles>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Array
 func get_guild_roles(guild_id: int) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_ROLES.format({guild_id = guild_id})
@@ -225,6 +336,11 @@ func get_guild_roles(guild_id: int) -> Array:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_roles_response(response, guild_id)
 
+# Create a new role for the guild.  
+# <https://discord.com/developers/docs/resources/guild#create-guild-role>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Role
 func create_guild_role(guild_id: int, params: Dictionary) -> Guild.Role:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_ROLES.format({guild_id = guild_id})
@@ -232,6 +348,12 @@ func create_guild_role(guild_id: int, params: Dictionary) -> Guild.Role:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_role_response(response, guild_id)
 
+# Modifies the positions of the guild roles. Returns a list of all of the
+# guild's role objects on success.  
+# <https://discord.com/developers/docs/resources/guild#modify-guild-role-positions>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Array
 func edit_guild_role_positions(guild_id: int, params: Array) -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_ROLES.format({guild_id = guild_id})
@@ -239,6 +361,11 @@ func edit_guild_role_positions(guild_id: int, params: Array) -> Array:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_roles_response(response, guild_id)
 
+# Modifies the properties of a role. Returns the updated role on success.
+# <https://discord.com/developers/docs/resources/guild#modify-guild-role>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Role
 func edit_guild_role(guild_id: int, role_id: int, params: Dictionary = {}) -> Guild.Role:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_ROLE.format({
@@ -249,6 +376,11 @@ func edit_guild_role(guild_id: int, role_id: int, params: Dictionary = {}) -> Gu
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_role_response(response, guild_id)
 
+# Deletes a guild role. Returns `true` on success.
+# <https://discord.com/developers/docs/resources/guild#delete-guild-role>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:bool
 func delete_guild_role(guild_id: int, role_id: int) -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_ROLE.format({
@@ -259,6 +391,12 @@ func delete_guild_role(guild_id: int, role_id: int) -> bool:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
 
+# Returns the guild prune count indicating the number of members that would be
+# removed in a prune operation.  
+# <https://discord.com/developers/docs/resources/guild#get-guild-prune-count>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:int
 func get_guild_prune_count(guild_id: int, days: int = 7, include_roles: PoolStringArray = []) -> int:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_PRUNE.format({guild_id = guild_id})
@@ -271,6 +409,11 @@ func get_guild_prune_count(guild_id: int, days: int = 7, include_roles: PoolStri
 		return body["pruned"]
 	return -1
 
+# Begin a prune operation.
+# <https://discord.com/developers/docs/resources/guild#begin-guild-prune>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:int
 func begin_guild_prune(guild_id: int, params: Dictionary) -> int:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_PRUNE.format({guild_id = guild_id})
@@ -281,6 +424,11 @@ func begin_guild_prune(guild_id: int, params: Dictionary) -> int:
 		return Dictionaries.get_non_null(body, "pruned", 0)
 	return -1
 
+# Returns a list of `DiscordVoiceRegion` objects for the guild.
+# <https://discord.com/developers/docs/resources/guild#get-guild-voice-regions>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Array
 func get_guild_voice_regions(guild_id: int) -> Array:
 	var regions: Array = []
 	var request: RestRequest = rest_request(
@@ -300,6 +448,11 @@ func get_guild_voice_regions(guild_id: int) -> Array:
 			regions.append(region)
 	return regions
 
+# Returns a list of `Guild.Invite` objects for the guild.  
+# <https://discord.com/developers/docs/resources/guild#get-guild-invites>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Array
 func get_guild_invites(guild_id: int) -> Array:
 	var invites: Array = []
 	var request: RestRequest = rest_request(
@@ -328,6 +481,11 @@ func edit_guild_widget_settings(guild_id: int, params: Dictionary) -> Object:
 func get_guild_widget(guild_id: int) -> Object:
 	return null
 
+# Returns a partial `Guild.Invite` object for guilds with that feature enabled.  
+# <https://discord.com/developers/docs/resources/guild#get-guild-vanity-url>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Invite
 func get_guild_vanity_url(guild_id: int) -> Guild.Invite:
 	var invite: Guild.Invite = null
 	var request: RestRequest = rest_request(
@@ -340,6 +498,11 @@ func get_guild_vanity_url(guild_id: int) -> Guild.Invite:
 			invite = entity_manager.guild_manager.construct_invite(invite_data)
 	return invite
 
+# Returns a PNG image widget for the guild.
+# <https://discord.com/developers/docs/resources/guild#get-guild-widget-image>
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Texture
 func get_guild_widget_image(guild_id: int, style: String = "shield") -> Texture:
 	var widget_image: Texture = null
 	var request: RestRequest = rest_request(

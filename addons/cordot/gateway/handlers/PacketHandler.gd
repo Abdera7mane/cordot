@@ -1,3 +1,4 @@
+# doc-hide
 class_name PacketHandler
 
 # warning-ignore:unused_signal

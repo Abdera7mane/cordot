@@ -1,3 +1,4 @@
+# doc-hide
 class_name GuildPacketsHandler extends PacketHandler
 
 const PACKETS: Dictionary = {

@@ -1,10 +1,19 @@
+# Represents a group direct message channel on Discord.
 class_name GroupDMChannel extends PrivateChannel
 
+# Group name.
 var name: String      setget __set
+
+# The icon hash of the group channel.
 var icon_hash: String setget __set
+
+# The owner id of the group channel.
 var owner_id: int     setget __set
+
+# The owner of the group channel.
 var owner: User       setget __set, get_owner
 
+# doc-hide
 func _init(data: Dictionary).(data) -> void:
 	type = Type.GROUP_DM
 	
@@ -12,15 +21,20 @@ func _init(data: Dictionary).(data) -> void:
 	owner_id = data["owner_id"]
 	icon_hash = data.get("icon_hash", "")
 
+# Updates the group channel settings.
+#
+# doc-qualifiers:coroutine
 func edit(data: GroupDMEditData) -> GroupDMChannel:
 	return get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"edit_channel", [data.to_dict()]
 	)
 
+# `owner` getter.
 func get_owner() -> User:
 	return self.get_recipient_by_id(owner_id)
 
+# doc-hide
 func get_class() -> String:
 	return "GroupDMChannel"
 

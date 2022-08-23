@@ -1,25 +1,43 @@
+# Represents a message sent in a guild channel within Discord.
 class_name GuildMessage extends Message
 
+# The id of the guild.
 var guild_id: int          setget __set
+
+# The guild in which the message was sent.
 var guild: Guild           setget __set, get_guild
+
+# The guild member who sent the message.
 var member: Guild.Member   setget __set
+
+# Roles that were mentioned in the message.
 var role_mentions: Array   setget __set
+
+# Whether the message mentions everyone.
 var mention_everyone: bool setget __set
+
+# Wether the message is a TTS message.
 var is_tts: bool           setget __set
 
+# doc-hide
 func _init(data: Dictionary).(data) -> void:
 	guild_id = data["guild_id"]
 	is_tts = data.get("tts", false)
 	member = data["member"]
 
+# `guild` getter.
 func get_guild() -> Guild:
 	return get_container().guilds.get(guild_id)
 
+# doc-hide
 func get_channel() -> TextChannel:
 	return self.get_container().channels.get(
 		channel_id, self.guild.get_thread(channel_id)
 	)
 
+# Cross-post a message in a `Guild.GuildNewsChannel` to following channels.
+# Requires the `SEND_MESSAGES` permission, if the current user sent the message,
+# or additionally the `MANAGE_MESSAGES` permission, for all other users' messages.
 func crosspost() -> GuildMessage:
 	if self.channel.type != Channel.Type.GUILD_NEWS:
 		push_error("Can not crosspost a message in a non-news channel")
@@ -29,6 +47,7 @@ func crosspost() -> GuildMessage:
 		"crosspost_message", [channel_id, self.id]
 	)
 
+# doc-hide
 func get_class() -> String:
 	return "GuildMessage"
 

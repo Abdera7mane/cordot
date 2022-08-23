@@ -11,6 +11,25 @@ extends EditorScript
 
 
 func _run() -> void:
+#	var annotations: PoolStringArray = [
+#		"warnings-disable",
+#		"doc-hide"
+#	]
+#	var annotations_with_value: PoolStringArray = [
+#		"warning-ignore(-all)?",
+#		"doc-override-return",
+#		"doc-override-param-default",
+#		"doc-qualifiers"
+#	]
+#	var pattern := "(^|\\n)(?<annotation>(%s)|(%s):\\w+)\\s*($|\\n)" % [
+#		annotations.join("|"),
+#		annotations_with_value.join("|")
+#	]
+#	var annotations_regex := RegEx.new()
+#	var error := annotations_regex.compile(pattern)
+#
+#	print(annotations_regex.sub("   Registers an application command with the help of a command `builder` object\n If a `guild_id` is provided the command will only be registered on that guild,\n otherwise the command will be registered globally. The method should be called\n one time only in the whole bot life cycle, calling this with an already\n registered command will override its configuration.\n\n doc-qualifiers:coroutine\n doc-jide:d".dedent(), "\n"))
+#	return
 	ReferenceCollector.new().generate_api_reference()
 
 class ReferenceCollector:

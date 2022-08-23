@@ -8,33 +8,36 @@ class MarkdownGenerator:
 	const ReferenceCollector: Script = preload("./ReferenceCollector.gd").ReferenceCollector
 	
 	const GODOT_CLASS_DOC: String = "https://docs.godotengine.org/en/{version}/classes/class_{name}.html"
-
+	
 	var _classes: Dictionary
 	var _sub_classes: Dictionary
-
+	
 	var collector = ReferenceCollector.new()
-
+	
 	var godot_docs_version: String
 	var output: String = "res://doc/classes"
-
+	
 	func _init() -> void:
 		var info: Dictionary = Engine.get_version_info()
 		godot_docs_version = "%s.%s" % [info.major, info.minor]
-
+	
 	func generate_markdown(refresh_cache: bool = false) -> void:
 		print("Generating Markdown files")
 		
 		var directory := Directory.new()
 		
 		if not directory.dir_exists(output):
-		# warning-ignore:return_value_discarded
+			# warning-ignore:return_value_discarded
 			directory.make_dir_recursive(output)
 		
 		var api_reference: Dictionary = collector.collect_api_reference(refresh_cache)
-		var classes: Array = api_reference["classes"]
+		var classes: Array = []
 		
-		for class_reference in classes:
+		for class_reference in api_reference["classes"]:
+			if class_reference.get("hidden", false):
+				continue
 			var name: String = class_reference["name"]
+			classes.append(class_reference)
 			_classes[name] = class_reference
 		
 		for class_reference in classes:
@@ -45,7 +48,7 @@ class MarkdownGenerator:
 			var path: String = output.plus_file("class_%s.md" % name.to_lower())
 			create_document(class_reference).save(path)
 		print("Completed !")
-
+	
 	func create_document(class_reference: Dictionary) -> MarkdownDocument:
 		var clazz_name: String = class_reference["name"]
 		var description: String = class_reference["description"].strip_edges()
@@ -56,17 +59,17 @@ class MarkdownGenerator:
 		var sub_classes: Array = class_reference["sub_classes"]
 		
 		var parents: PoolStringArray = _get_class_parents(class_reference)
-		var inheriters: Array = _get_class_inheriters(class_reference)
+		var inheritors: Array = _get_class_inheritors(class_reference)
 		# sort() method is only available in 3.5+ for Pool Arrays
-		inheriters.sort()
+		inheritors.sort()
 		
 		var formatted_parents := PoolStringArray()
-		var formatted_inheriters := PoolStringArray()
+		var formatted_inheritors := PoolStringArray()
 		
 		for parent in parents:
 			formatted_parents.append(_get_type_link(parent))
-		for inheriter in inheriters:
-			formatted_inheriters.append(_get_type_link(inheriter))
+		for inheritor in inheritors:
+			formatted_inheritors.append(_get_type_link(inheritor))
 		
 		var skip_properties_description = true
 		var skip_methods_description = true
@@ -80,8 +83,8 @@ class MarkdownGenerator:
 		
 		document.append_paragraph("**Inherits:** " + formatted_parents.join(" < "))
 		document.break_line()
-		if inheriters.size() > 0:
-			document.append_paragraph("**Inherited By:** " + formatted_inheriters.join(", "))
+		if inheritors.size() > 0:
+			document.append_paragraph("**Inherited By:** " + formatted_inheritors.join(", "))
 		
 		# Description section
 		if not description.empty():
@@ -95,14 +98,19 @@ class MarkdownGenerator:
 			properties_table.put("name", 0, 1)
 			for property in properties:
 				var name: String = property["name"]
-				if name.begins_with("_"):
+				if name.begins_with("_") or property.get("hidden", false):
 					continue
 				var type: String = property["data_type"]
 				var default_value = property["default_value"]
 				
+				var format: String = "[%s](#property-%s)"
+				if property.get("deprecated", false):
+					format = "~~[%s](#property-%s)~~"
+				
 				var index: int = properties_table.rows_size()
 				properties_table.put(_get_type_link(type), index, 0)
-				properties_table.put("[%s](#property-%s)" % [ 
+				properties_table.put(
+					format % [ 
 					MarkdownDocument.escape_md(name),
 					name.replace("_", "-")
 				], index, 1)
@@ -130,20 +138,22 @@ class MarkdownGenerator:
 				if name == "_init":
 					method["name"] = clazz_name
 					method["return_type"] = clazz_name
-				elif name.begins_with("_"):
+				elif name.begins_with("_") or method.get("hidden", false):
 					continue
 				var return_type: String = method["return_type"]
-				var index: int = methods_table.rows_size()
-				methods_table.put(_get_type_link(return_type), index, 0)
-				methods_table.put(
-					_get_method_signature(
+				
+				var signature: String = _get_method_signature(
 						method,
 						true, 
 						method.get("is_static", false)
-					),
-					index, 
-					1
-				)
+					)
+				
+				if method.get("deprecated", false):
+					signature = "~~%s~~" % signature
+				
+				var index: int = methods_table.rows_size()
+				methods_table.put(_get_type_link(return_type), index, 0)
+				methods_table.put(signature, index, 1)
 				
 			if methods_table.rows_size() > 1:
 				skip_methods_description = false
@@ -156,10 +166,15 @@ class MarkdownGenerator:
 			var signals_list := MarkdownDocument.List.new(false)
 			for _signal in signals:
 				var name: String = _signal["name"]
-				if name.begins_with("_"):
+				if name.begins_with("_") or _signal.get("hidden", false):
 					continue
+				
+				var format: String = "%s%s"
+				if _signal.get("deprecated", false):
+					format = "%s***deprecated*** %s"
+				
 				var item := signals_list.create_item(
-					"%s%s" % [
+					format % [
 						MarkdownDocument.anchor("signal-" + name.replace("_", "-")),
 						_get_signal_signature(_signal)
 					]
@@ -177,14 +192,19 @@ class MarkdownGenerator:
 			var constants_list := MarkdownDocument.List.new(false)
 			for constant in constants:
 				var name: String = constant["name"]
-				if name.begins_with("_"):
+				if name.begins_with("_") or constant.get("hidden", false):
 					continue
 				var type: String = constant["data_type"]
 				var value = constant["value"]
 				var item: MarkdownDocument.ListItem
+				
+				var format: String = "%s **%s**"
+				if constant.get("deprecated", false):
+					format = "%s ~~**%s**~~"
+				
 				if value is Dictionary:
 					item = constants_list.create_item(
-						"%s **%s**" % [
+						format % [
 							_get_type_link("Dictionary"),
 							MarkdownDocument.escape_md(name)
 						]
@@ -218,11 +238,16 @@ class MarkdownGenerator:
 			var properties_list := MarkdownDocument.List.new(false)
 			for property in properties:
 				var name: String = property["name"]
-				if name.begins_with("_"):
+				if name.begins_with("_") or property.get("hidden", false):
 					continue
 				var type: String = property["data_type"]
+				
+				var format: String = "%s%s **%s**"
+				if property.get("deprecated", false):
+					format = "%s***deprecated*** %s **%s**"
+				
 				var item := properties_list.create_item(
-					"%s%s **%s**" % [
+					format % [
 						MarkdownDocument.anchor("property-" + name.replace("_", "-")),
 						_get_type_link(type),
 						name
@@ -261,11 +286,17 @@ class MarkdownGenerator:
 				if name == "_init":
 					method["name"] = clazz_name
 					method["return_type"] = clazz_name
-				elif name.begins_with("_"):
+				elif name.begins_with("_") or method.get("hidden", false):
 					continue
+				
+				var format: String = "%s%s %s"
+				
+				if method.get("deprecated", false):
+					format = "%s***deprecated*** %s %s"
+				
 				var return_type: String = method["return_type"]
 				var item := methods_list.create_item(
-					"%s%s %s" % [
+					format % [
 						MarkdownDocument.anchor("method-" + name.replace("_", "-")),
 						_get_type_link(return_type),
 						_get_method_signature(
@@ -285,6 +316,8 @@ class MarkdownGenerator:
 		if sub_classes.size() > 0:
 			document.append_header("Sub Classes", MarkdownDocument.H2)
 			for sub_class in class_reference["sub_classes"]:
+				if sub_class.get("hidden", false):
+					continue
 				sub_class["is_sub_class"] = true
 				document.horizontal_rule()
 				document.text += create_document(sub_class).text
@@ -309,38 +342,40 @@ class MarkdownGenerator:
 					parents.append_array(_get_class_parents(_sub_classes[parent]))
 			
 		return parents
-
-	func _get_class_inheriters(class_reference: Dictionary) -> PoolStringArray:
+	
+	func _get_class_inheritors(class_reference: Dictionary) -> PoolStringArray:
 		var name: String = class_reference["name"]
-		var inheriters := PoolStringArray()
+		var inheritors := PoolStringArray()
 		for _class in _classes.values():
 			var extends_class: PoolStringArray = _class["extends_class"]
 			if extends_class.size() > 0 and extends_class[0] == name:
-				inheriters.append(_class["name"])
+				inheritors.append(_class["name"])
 		for _class in _sub_classes.values():
 			var extends_class: PoolStringArray = _class["extends_class"]
 			if extends_class.size() > 0 and extends_class[0] == name:
-				inheriters.append(_class["name"])
-		return inheriters
-
+				inheritors.append(_class["name"])
+		return inheritors
+	
 	func _get_sub_classes(class_reference: Dictionary, _sub_classes: Dictionary = {}) -> void:
 		var sub_path: String = class_reference.get("sub_path", class_reference["name"])
 		var origin: String = class_reference.get("origin", class_reference["name"])
 		class_reference["sub_path"] = sub_path
 		for sub_class in class_reference["sub_classes"]:
+			if sub_class.get("hidden", false):
+				continue
 			var name: String = sub_class["name"]
 			sub_class["origin"] = origin
 			sub_class["sub_path"] = sub_path + "." + name
 			_sub_classes[name] = sub_class
 			_get_sub_classes(sub_class, _sub_classes)
-
+	
 	func _get_description(description: String, of: String) -> String:
 		description = description.strip_edges()
 		return "> *There is currently no description for this %s.*" % of\
 			if description.empty()\
 			else description
 		
-
+	
 	func _get_type_link(type: String) -> String:
 		var local: bool = _sub_classes.has(type)
 		match type:
@@ -373,7 +408,7 @@ class MarkdownGenerator:
 				}) if builtin else "./class_%s.md" % type.to_lower()
 			]
 		return link
-
+	
 	func _get_method_signature(method_reference: Dictionary, with_link: bool = true, is_static: bool = false) -> String:
 		var name: String = method_reference["name"]
 		var parameters := PoolStringArray()
@@ -394,14 +429,22 @@ class MarkdownGenerator:
 				+ MarkdownDocument.escape_md(parameter["name"])
 				+ ("=" + default_value if has_default else "")
 			)
+		var qualifiers: PoolStringArray = []
+		for qualifier in method_reference.get("qualifiers", []):
+			qualifiers.append("<u>_%s_</u>" % qualifier)
 		
-		return ("**static** " if is_static else "") +\
-			(("[%s](#method-%s)" if with_link else "**%s**%s") + " **(** %s **)**") % [
+		var signature: String =  ("**static** " if is_static else "") + (
+				("[%s](#method-%s)" if with_link else "**%s**%s")
+				+ " **(** %s **)** %s"
+			) % [
 				MarkdownDocument.escape_md(name),
 				name.replace("_", "-") if with_link else "",
-				parameters.join(", ")
+				parameters.join(", "),
+				qualifiers.join(", ")
 		]
-
+		
+		return signature.strip_edges()
+	
 	func _get_signal_signature(signal_reference: Dictionary) -> String:
 		var name: String = signal_reference["name"]
 		var parameters: PoolStringArray = signal_reference["arguments"]
@@ -424,7 +467,7 @@ class MarkdownGenerator:
 		elif value == null:
 			return "null"
 		return str(value)
-
+	
 	static func _get_default_value(type: String) -> String:
 		match type:
 			"AABB":
@@ -472,7 +515,7 @@ class MarkdownGenerator:
 				return "0"
 			_:
 				return "null"
-
+	
 	static func _is_builtin_type(type: String) -> bool:
 		return ClassDB.class_exists(type) or type in [
 			"AABB",
@@ -486,7 +529,6 @@ class MarkdownGenerator:
 			"PoolColorArray",
 			"PoolIntArray",
 			"PoolRealArray",
-			"PoolStringArray",
 			"PoolVector2Array",
 			"PoolVector3Array",
 			"Quat",

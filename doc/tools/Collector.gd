@@ -1,12 +1,34 @@
 # Finds and generates a code reference from gdscript files.
 tool
 
-var warnings_regex := RegEx.new()
+const QUALIFIERS := PoolStringArray([
+	"coroutine"
+])
 
+var annotations_regex := RegEx.new()
 
 func _init() -> void:
-	var pattern := "^\\s?(warning-ignore(-all|):\\w+|warnings-disable)\\s*$"
-	var error := warnings_regex.compile(pattern)
+	var annotations: PoolStringArray = [
+		"warnings-disable",
+		"doc-hide",
+		"doc-deprecated"
+	]
+	var annotations_with_value: PoolStringArray = [
+		"warning-ignore(-all)?",
+		"doc-override-return",
+		"doc-override-param-default",
+		"doc-qualifiers"
+	]
+	var pattern := (
+		  "(?m)(^|\\n)"
+		+ "(?<annotation>(%s)|(%s):(\\w+|\\(.+\\)))\\s*"
+		+ "($|\\n)"
+	) % [
+			annotations.join("|"),
+			annotations_with_value.join("|")
+	]
+	
+	var error := annotations_regex.compile(pattern)
 	if error != OK:
 		printerr("Failed to compile '%s' to a regex pattern." % pattern)
 
@@ -100,31 +122,69 @@ func get_reference(files := PoolStringArray(), refresh_cache := false) -> Dictio
 			continue
 		if symbols.has("name") and symbols["name"] == "":
 			symbols["name"] = file.get_file()
-		remove_warning_comments(symbols)
+		parse_annotations(symbols)
 		data["classes"].append(symbols)
 	return data
 
+# parse annotations to add extra metadata to the symbols then exclude them from
+# the description string.
+func parse_annotations(symbols: Dictionary) -> void:
+	var description: String = (" " + symbols["description"]).dedent()
+	
+	for regex_match in annotations_regex.search_all(description):
+		handle_annotation(symbols, regex_match.get_string("annotation"))
 
-# Directly removes 'warning-ignore', 'warning-ignore-all', and 'warning-disable'
-# comments from all symbols in the `symbols` dictionary passed to the function.
-func remove_warning_comments(symbols: Dictionary) -> void:
-	symbols["description"] = remove_warnings_from_description(symbols["description"])
+	symbols["description"] = remove_annotations(description)
+	
 	for meta in ["constants", "members", "signals", "methods", "static_functions"]:
 		for metadata in symbols[meta]:
-			metadata["description"] = remove_warnings_from_description(metadata["description"])
+			var meta_description: String = (" " + metadata["description"]).dedent()
+			for regex_match in annotations_regex.search_all(meta_description):
+				handle_annotation(metadata, regex_match.get_string("annotation"))
+			metadata["description"] = remove_annotations(meta_description)
 	
 	for sub_class in symbols["sub_classes"]:
-		remove_warning_comments(sub_class)
+		parse_annotations(sub_class)
 
+func remove_annotations(description: String) -> String:
+	return annotations_regex.sub(description, "\n", true).strip_edges()
 
-func remove_warnings_from_description(description: String) -> String:
-	var lines := description.strip_edges().split("\n")
-	var clean_lines := PoolStringArray()
-	for line in lines:
-		if not warnings_regex.search(line):
-			clean_lines.append(line)
-	return clean_lines.join("\n")
-
+func handle_annotation(symbols: Dictionary, annotation: String) -> void:
+	var entry: PoolStringArray = annotation.split(":", true, 1)
+	var name: String = entry[0]
+	var value: String = entry[1] if entry.size() > 1 else ""
+	value = value.trim_prefix("(").trim_suffix(")")
+	
+	match name:
+		"doc-hide":
+			symbols["hidden"] = true
+		"doc-deprecated":
+			symbols["deprecated"] = true
+		"doc-override-return":
+			symbols["return_type"] = value
+		"doc-override-param-default":
+			var parameter_entry: PoolStringArray = value.split(";", true, 1)
+			var index: int = int(parameter_entry[0])
+			var default_value: String = parameter_entry[1]
+			symbols["arguments"][index]["default_value"] = ArgumentDefault.new(default_value)
+		"doc-qualifiers":
+			symbols["qualifiers"] = []
+			var qualifiers = value.split(",", false)
+			for qualifier in qualifiers:
+				qualifier = qualifier.to_lower()
+				if qualifier in QUALIFIERS:
+					symbols["qualifiers"].append(qualifier)
+				else:
+					printerr("'%s' is not a valid method qualifier" % qualifier)
 
 func print_pretty_json(reference: Dictionary) -> String:
 	return JSON.print(reference, "  ")
+
+class ArgumentDefault:
+	
+	var default: String
+	func _init(default_value: String) -> void:
+		default = default_value
+	
+	func _to_string() -> String:
+		return default

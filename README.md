@@ -64,7 +64,7 @@ func _on_message(message: Message) -> void:
 
 
 ```
-git clone --recursive https://github/Abdera7mane/cordot.git
+git clone --recursive https://github.com/Abdera7mane/cordot
 cd cordot
 git submodule update --init --recursive
 ```
@@ -72,7 +72,8 @@ Open the folder as a Godot project or copy the `addons` directory to an existing
 
 ## Documentation
 
-Not available, there will be one after publishing a usable release of the library
+The documentation is hosted on [ReadTheDocs](https://cordot.readthedocs.io/).  
+Contributions to [cordot-docs](https://github.com/Abdera7mane/cordot-docs) are welcomed.
 
 ## Usage
 

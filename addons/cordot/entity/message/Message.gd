@@ -58,19 +58,19 @@ var content: String                     setget __set
 # When this message was edited (or `0` if never).
 var edited_timestamp: int               setget __set
 
-# Users mentioned in the message.
+# List of `User`s mentioned in the message.
 var mentions: Array                     setget __set
 
-# Channels mentioned in this message.
+# List of `ChannelMention` objects in this message.
 var channel_mentions: Array             setget __set 
 
-# Attached files to this message.
+# List of `MessageAttachment` objects.
 var attachments: Array                  setget __set
 
-# Embedded content.
+# List of `MessageEmbed` objects.
 var embeds: Array                       setget __set
 
-# Reactions to the message.
+# List of `MessageReaction` objects attached to the message.
 var reactions: Array                    setget __set
 
 var nonce: String                       setget __set
@@ -83,15 +83,35 @@ var webhook_id: int                     setget __set
 
 # Webhook object reference if the message is fro ma webhook.
 var webhook: DiscordWebhook             setget __set
+
+# Present with Rich Presence-related chat embeds.
 var activity: MessageActivity           setget __set
-var application_id: int                 setget __set
+
+# Present with Rich Presence-related chat embeds.
 var application: DiscordApplication     setget __set
-var message_reference: MessageReference setget __set
+
+# The id of the application, if  the message is an interaction
+# or application-owned webhook.
+var application_id: int                 setget __set
+
+# The message `Flags`.
 var flags: BitFlag                      setget __set
+
+# Contains information on the referenced message such in replies and cross posts.
+var message_reference: MessageReference setget __set
+
+# The `reference_message` id.
 var referenced_message_id: int          setget __set
+
+# The message associated with the `message_reference`.
 var referenced_message: Message         setget __set, get_referenced_message
+
 var interaction: MessageInteraction     setget __set
+
+# List of `MessageComponent` objects attached to the message.
 var components: Array                   setget __set
+
+# List of `MessageSticker` objects attached to the message.
 var sticker_items: Array                setget __set
 
 # doc-hide

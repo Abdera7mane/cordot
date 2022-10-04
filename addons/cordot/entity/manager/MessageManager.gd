@@ -121,7 +121,6 @@ func construct_message_reference(data: Dictionary) -> MessageReference:
 		message_id = data.get("message_id", 0) as int,
 		channel_id = data.get("channel_id", 0) as int,
 		guild_id = data.get("guild_id", 0) as int,
-		fail_if_not_exists = data.get("fail_if_not_exists", true)
 	})
 
 func construct_channel_mention(data: Dictionary) -> ChannelMention:
@@ -138,6 +137,39 @@ func construct_reaction(data: Dictionary) -> MessageReaction:
 		data["me"],
 		get_manager().get_or_construct_emoji(data["emoji"])
 	)
+
+func construct_action_row(data: Dictionary) -> MessageActionRow:
+	var components: Array = []
+	for component_data in data["components"]:
+		components.append(construct_message_component(component_data))
+	return MessageActionRow.new(components)
+
+func construct_button(data: Dictionary) -> MessageButton:
+	var emoji: Emoji = null
+	if data.has("emoji"):
+		emoji = get_manager().get_or_construct_emoji(data["emoji"])
+	var parsed_data: Dictionary = data.duplicate()
+	parsed_data["emoji"] = emoji
+	return MessageButton.new(parsed_data)
+
+func construct_select_menu(data: Dictionary) -> MessageSelectMenu:
+	var options: Array = []
+	for option_data in data["options"]:
+		options.append(construct_select_option(option_data))
+	var parsed_data: Dictionary = data.duplicate()
+	parsed_data["options"] = options
+	return MessageSelectMenu.new(data)
+
+func construct_select_option(data: Dictionary) -> MessageSelectOption:
+	var emoji: Emoji = null
+	if data.has("emoji"):
+		emoji = get_manager().get_or_construct_emoji(data["emoji"])
+	var parsed_data: Dictionary = data.duplicate()
+	parsed_data["emoji"] = emoji
+	return MessageSelectOption.new(parsed_data)
+
+func construct_text_input(data: Dictionary) -> MessageTextInput:
+	return MessageTextInput.new(data)
 
 func update_message(message: Message, data: Dictionary) -> void:
 	message._update(parse_message_data(data))
@@ -235,6 +267,13 @@ func parse_message_data(data: Dictionary) -> Dictionary:
 		member_data["guild_id"] = parsed_data["guild_id"]
 		var member: Guild.Member = manager.get_or_construct_guild_member(data["member"])
 		parsed_data["member"] = member
+	
+	if data.has("components"):
+		var components: Array = []
+		for component_data in data["components"]:
+			var component: MessageComponent = construct_message_component(component_data)
+			components.append(component)
+		data["components"] = components
 	
 	return parsed_data
 

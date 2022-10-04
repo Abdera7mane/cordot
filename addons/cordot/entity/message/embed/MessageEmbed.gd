@@ -1,5 +1,7 @@
+# Represents an embeded content within a message.
 class_name MessageEmbed
 
+# Message embed types.
 enum Type {
 	UNKNOWN,
 	RICH,
@@ -10,20 +12,46 @@ enum Type {
 	LINK
 }
 
+# Title of embed.
 var title: String                    setget __set
+
+# Type of embed.
 var type: int                        setget __set
+
+# Description of embed
 var description: String              setget __set
+
+# Url of embed.
 var url: String                      setget __set
+
+# Unix timestamp of embed content.
 var timestamp: int                   setget __set
+
+# Color of embed.
 var color: Color                     setget __set
+
+# Footer information.
 var footer: MessageEmbedFooter       setget __set
+
+# Image information.
 var image: MessageEmbedImage         setget __set
+
+# Tumbnail information.
 var thumbnail: MessageEmbedThumbnail setget __set
+
+# Video information.
 var video: MessageEmbedVideo         setget __set
+
+# Provider information.
 var provider: MessageEmbedProvider   setget __set
+
+# Author information.
 var author: MessageEmbedAuthor       setget __set
+
+# List of `MessageEmbedField`s.
 var fields: Array                    setget __set
 
+# doc-hide
 func _init(data: Dictionary) -> void:
 	title = data.get("title", "")
 	type = data.get("type", Type.UNKNOWN)

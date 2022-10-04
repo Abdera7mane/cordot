@@ -10,13 +10,13 @@ var guild: Guild           setget __set, get_guild
 # The guild member who sent the message.
 var member: Guild.Member   setget __set
 
-# Roles that were mentioned in the message.
+# List of `Guild.Role`s mentioned in the message.
 var role_mentions: Array   setget __set
 
 # Whether the message mentions everyone.
 var mention_everyone: bool setget __set
 
-# Wether the message is a TTS message.
+# Whether the message is a TTS message.
 var is_tts: bool           setget __set
 
 # doc-hide

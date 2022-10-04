@@ -7,8 +7,8 @@ static func get_non_null(dict: Dictionary, key, default):
 	var value = dict.get(key)
 	return value if value != null else default
 
-static func merge(a: Dictionary, b: Dictionary) -> Dictionary:
-	var dict: Dictionary = a.duplicate()
+static func merge(a: Dictionary, b: Dictionary, overwrite = false) -> void:
 	for key in b:
-		dict[key] = b[key]
-	return dict
+		if a.has(key) and not overwrite:
+			continue
+		a[key] = b[key]

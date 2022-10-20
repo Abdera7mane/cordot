@@ -387,31 +387,8 @@ func get_icon(format: String = "png", size: int = 128) -> Texture:
 	, "completed") as Texture
 
 # Modify a guild's settings. Requires the `MANAGE_GUILD` permission.
-# Returns the updated guild object on success.
-#
-# doc-qualifiers:coroutine
-func edit(data: GuildEditData) -> Guild:
-	var bot_id: int = get_container().bot_id
-	var self_permissions: BitFlag = get_member(bot_id).get_permissions()
-	var fail: bool = false
-	if not self_permissions.MANAGE_GUILD:
-		fail = true
-		push_error("Can not edit guild, missing MANAGE_GUILD permission")
-	if data.has("splash") and not has_feature(Features.INVITE_SPLASH):
-		fail = true
-		push_error("Can not edit splash image, guild is missing INVITE_SPLASH feature")
-	if data.has("discovery_splash") and not has_feature(Features.DISCOVERABLE):
-		fail = true
-		push_error("Can not edit discovery splash image, guild is missing DISCOVERABLE feature")
-	if data.has("banner") and not has_feature(Features.BANNER):
-		fail = true
-		push_error("Can not edit banner image, guild is missing BANNER feature")
-	if fail:
-		return Awaiter.submit()
-	return get_rest().request_async(
-		DiscordREST.GUILD,
-		"edit_guild", [self.id, data.to_dict()]
-	)
+func edit() -> GuildEditAction:
+	return GuildEditAction.new(get_rest(), self.id)
 
 # Deletes the guild permanently. User must be the owner.
 # Returns `true` on success.
@@ -429,6 +406,15 @@ func delete() -> bool:
 		"delete_guild", [self.id]
 	)
 
+# Fethes the guild.
+#
+# doc-qualifiers:coroutine
+func fetch() -> Guild:
+	return get_rest().request_async(
+		DiscordREST.GUILD,
+		"get_guild", [self.id]
+	)
+
 # Fetches the guild channels from Discord API.
 #
 # doc-qualifiers:coroutine
@@ -439,28 +425,21 @@ func fetch_channels() -> Array:
 		"get_guild_channels", [self.id]
 	), "completed")
 
-# Creates a new channel in the guild.
-#
-# doc-qualifiers:coroutine
-func create_channel(data: ChannelCreateData) -> Channel:
-	var bot_id: int = get_container().bot_id
-	var self_permissions: BitFlag = get_member(bot_id).get_permissions()
-	if not self_permissions.MANAGE_CHANNELS:
-		return Awaiter.submit()
-	return get_rest().request_async(
-		DiscordREST.GUILD,
-		"create_guild_channel", [self.id, data.to_dict()]
-	)
+# Creates a new channel category in the guild.
+func create_category() -> ChannelCategoryCreateAction:
+	return ChannelCategoryCreateAction.new(get_rest(), self.id)
+
+# Creates a new text channel in the guild.
+func create_text_channel() -> TextChannelCreateAction:
+	return TextChannelCreateAction.new(get_rest(), self.id)
+
+# Creates a new text channel in the guild.
+func create_voice_channel() -> VoiceChannelCreateAction:
+	return VoiceChannelCreateAction.new(get_rest(), self.id)
 
 # Edits channel positions.
-#
-# doc-qualifiers:coroutine
-# doc-override-return:bool
-func edit_channel_positions(data: ChannelPositionsEditData) -> bool:
-	return yield(get_rest().request_async(
-		DiscordREST.GUILD,
-		"edit_guild_channel_positions", [self.id, data.to_array()]
-	), "completed")
+func edit_channel_positions() -> ChannelEditPositionsAction:
+	return ChannelEditPositionsAction.new(get_rest(), self.id)
 
 # Fetches a guild member by `member_id` from Discord API.
 #
@@ -517,18 +496,8 @@ func add_member(user_id: int, access_token: String) -> Array:
 	), "completed")
 
 # Edits the current member in the guild.
-#
-# doc-qualifiers:coroutine
-func edit_current_member(nickname: String) ->  Guild.Member:
-	var bot_id: int = get_container().bot_id
-	var self_permissions: BitFlag = get_member(bot_id).get_permissions()
-	if not self_permissions.CHANGE_NICKNAME:
-		push_error("Can not edit nickname, missing CHANGE_NICKNAME permission")
-		return Awaiter.submit()
-	return get_rest().request_async(
-		DiscordREST.GUILD,
-		"edit_current_member", [self.id, {nick = nickname}]
-	)
+func edit_current_member() -> CurrentMemberEditAction:
+	return CurrentMemberEditAction.new(get_rest(), self.id)
 
 # Fetches the ban list of the guild. Returns an array of `GuildBan` objects.
 #
@@ -573,41 +542,15 @@ func fetch_roles() -> Array:
 	), "completed")
 
 # Creates a role in the guild.
-#
-# doc-qualifiers:coroutine
-# doc-override-return:Role
-func create_role(data: RoleCreateData) -> Role:
-	var bot_id: int = get_container().bot_id
-	var self_permissions: BitFlag = get_member(bot_id).get_permissions()
-	var fail: bool = false
-	if not self_permissions.MANAGE_ROLES:
-		push_error("Can not create role, missing MANAGE_ROLES permission")
-		fail = true
-	if data.has("icon") or data.has("unicode_emoji") and not has_feature(Features.ROLE_ICONS):
-		push_error("Can not edit role icon, guild is missing ROLE_ICONS feature")
-		fail = true
-	if fail:
-		return Awaiter.submit()
-	return get_rest().request_async(
-		DiscordREST.GUILD,
-		"create_guild_role", [self.id, data.to_dict()]
-	)
+func create_role() -> RoleCreateAction:
+	return RoleCreateAction.new(get_rest(), self.id)
 
 # Edits role positions in the guild.
 # 
 # doc-qualifiers:coroutine
 # doc-override-return:Array
-func edit_role_positions(data: RolePositionsEditData) -> Array:
-	var bot_id: int = get_container().bot_id
-	var self_permissions: BitFlag = get_member(bot_id).get_permissions()
-	if not self_permissions.MANAGE_ROLES:
-		push_error("Can not create role, missing MANAGE_ROLES permission")
-		yield(Awaiter.submit(), "completed")
-		return []
-	return get_rest().request_async(
-		DiscordREST.GUILD,
-		"edit_guild_role_positions", [self.id, data.to_array()]
-	)
+func edit_role_positions() -> RoleEditPositionsAction:
+	return RoleEditPositionsAction.new(get_rest(), self.id)
 
 # Fetches the prune count which indicates the number of members that would be 
 # removed by a prune operation. Requires the `KICK_MEMBERS` permission.
@@ -893,7 +836,7 @@ class Member extends MentionableEntity:
 	var is_muted: bool      setget __set
 	
 	# Whether the user has not yet passed the guild's Membership Screening 
-	# Requirements
+	# Requirements.
 	var pending: bool       setget __set
 	
 	# doc-hide
@@ -1027,38 +970,8 @@ class Member extends MentionableEntity:
 		return role_id in roles_ids
 	
 	# Modify attributes of a guild member.
-	#
-	# doc-qualifiers:coroutine
-	func edit(data: GuildMemberEditData) -> Member:
-		var bot_id: int = get_container().bot_id
-		var self_permissions: BitFlag = self.guild.get_member(bot_id).get_permissions()
-		
-		var fail: bool = false
-		if data.has("nick") and not self_permissions.MANAGE_NICKNAMES:
-			push_error("Can not edit member nickname, missing MANAGE_NICKNAMES permission")
-			fail = true
-		if data.has("roles") and not self_permissions.MANAGE_ROLES:
-			push_error("Can not edit member roles, missing MANAGE_ROLES permission")
-			fail = true
-		if data.has("mute") and not self_permissions.MUTE_MEMBERS:
-			push_error("Can not mute member, missing MUTE_MEMBERS permission")
-			fail = true
-		if data.has("deaf") and not self_permissions.DEAFEN_MEMBERS:
-			push_error("Can not deafen member, missing DEAFEN_MEMBERS permission")
-			fail = true
-		if data.has("channel_id") and not self_permissions.MOVE_MEMBERS:
-			push_error("Can not move member, missing MOVE_MEMBERS permission")
-			fail = true
-		if data.has("communication_disabled_until") and not self_permissions.MODERATE_MEMBERS:
-			push_error("Can not timeout member, missing MODERATE_MEMBERS permission")
-			fail = true
-		if fail:
-			return Awaiter.submit()
-		
-		return get_rest().request_async(
-			DiscordREST.GUILD,
-			"edit_guild_member", [guild_id, self.id, data.to_dict()]
-		)
+	func edit() -> GuildMemberEditAction:
+		return GuildMemberEditAction.new(get_rest(), guild_id, self.id)
 	
 	# Assigns a role to the member. Requires the `MANAGE_ROLES` permission.
 	# Returns `true` on success.
@@ -1213,30 +1126,13 @@ class ChannelCategory extends Channel:
 	func get_guild() -> Guild:
 		return self.get_container().guilds.get(guild_id)
 	
-	# Update a channel's settings. 
-	#
-	# doc-qualifiers:coroutine
-	func edit(data: GuildChannelEditData) -> ChannelCategory:
-		var bot_id: int = get_container().bot_id
-		var self_permissions: BitFlag = self.guild.get_member(bot_id).permissions_in(self.id)
-		
-		var fail: bool = false
-		if not self_permissions.MANAGE_CHANNELS:
-			push_error("Can not edit channel, missing MANAGE_CHANNELS permission")
-			fail = true
-		elif data.has("permission_overwrites") and not self_permissions.MANAGE_ROLES:
-			push_error("Can not edit permission overwrites, missing MANAGE_ROLES permission")
-			fail = true
-		if fail:
-			return Awaiter.submit()
-		return get_rest().request_async(
-			DiscordREST.CHANNEL,
-			"edit_channel", [self.id, data.to_dict()]
-		)
+	# Updates the category's settings. 
+	func edit() -> ChannelCategoryEditAction:
+		return ChannelCategoryEditAction.new(get_rest(), self.id)
 	
 	# doc-hide
 	func get_class() -> String:
-		return "ChannelCategory"
+		return "Guild.ChannelCategory"
 	
 	func _update(data: Dictionary) -> void:
 		._update(data)
@@ -1345,29 +1241,9 @@ class GuildTextChannel extends BaseGuildTextChannel:
 	func get_class() -> String:
 		return "Guild.GuildTextChannel"
 	
-	# Update a channel's settings.
-	#
-	# doc-qualifiers:coroutine
-	func edit(data: GuildTextChannelEditData) -> GuildTextChannel:
-		var bot_id: int = get_container().bot_id
-		var self_permissions: BitFlag = self.guild.get_member(bot_id).permissions_in(self.id)
-		
-		var fail: bool = false
-		if not self_permissions.MANAGE_CHANNELS:
-			fail = true
-			push_error("Can not edit channel, missing MANAGE_CHANNELS permission")
-		elif data.has("permission_overwrites") and not self_permissions.MANAGE_ROLES:
-			fail = true
-			push_error("Can not edit permission overwrites, missing MANAGE_ROLES permission")
-		elif data.has("type") and not self.guild.has_feature(Features.NEWS):
-			fail = true
-			push_error("Can not convert to news channel, guild is missing NEWS feature")
-		if fail:
-			return Awaiter.submit()
-		return get_rest().request_async(
-			DiscordREST.CHANNEL,
-			"edit_channel", [self.id, data.to_dict()]
-		)
+	# Update the hannel's settings.
+	func edit() -> TextChannelEditAction:
+		return TextChannelEditAction.new(get_rest(), self.id)
 	
 	func _update(data: Dictionary) -> void:
 		._update(data)
@@ -1621,26 +1497,9 @@ class BaseGuildVoiceChannel extends VoiceChannel:
 	func get_parent() -> ChannelCategory:
 		return self.get_container().channels.get(self.parent_id) if self.parent_id != 0 else null
 	
-	# Update a channel's settings.
-	#
-	# doc-qualifiers:coroutine
-	func edit(data: GuildVoiceChannelEditData) -> BaseGuildVoiceChannel:
-		var bot_id: int = get_container().bot_id
-		var self_permissions: BitFlag = self.guild.get_member(bot_id).permissions_in(self.id)
-		
-		var fail: bool = false
-		if not self_permissions.MANAGE_CHANNELS:
-			push_error("Can not edit channel, missing MANAGE_CHANNELS permission")
-			fail = true
-		elif data.has("permission_overwrites") and not self_permissions.MANAGE_ROLES:
-			push_error("Can not edit permission overwrites, missing MANAGE_ROLES permission")
-			fail = true
-		if fail:
-			return Awaiter.submit()
-		return get_rest().request_async(
-			DiscordREST.CHANNEL,
-			"edit_channel", [self.id, data.to_dict()]
-		)
+	# Update the channel's settings.
+	func edit() -> VoiceChannelEditAction:
+		return VoiceChannelEditAction.new(get_rest(), self.id)
 	
 	# doc-hide
 	func get_class() -> String:
@@ -1827,18 +1686,8 @@ class Role extends MentionableEntity:
 		return "<@&%d>" % self.get_id()
 	
 	# Modify the role. Requires the `MANAGE_ROLES` permission.
-	#
-	# doc-qualifiers:coroutine
-	func edit(data: RoleEditData) -> Role:
-		var bot_id: int = get_container().bot_id
-		var self_permissions: BitFlag = self.guild.get_member(bot_id).get_permissions()
-		if not self_permissions.MANAGE_ROLES:
-			push_error("Can not edit role, missing MANAGE_ROLES permission")
-			return Awaiter.submit()
-		return get_rest().request_async(
-			DiscordREST.GUILD,
-			"edit_guild_role", [guild_id, self.id, data.to_dict()]
-		)
+	func edit() -> RoleEditAction:
+		return RoleEditAction.new(get_rest(), guild_id, self.id)
 	
 	# Delete the role. Requires the `MANAGE_ROLES` permission.
 	func delete() -> bool:
@@ -2277,3 +2126,4 @@ class ScheduledEventMetadata:
 	
 	func __set(_value) -> void:
 		pass
+

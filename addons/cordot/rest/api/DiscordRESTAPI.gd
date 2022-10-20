@@ -29,10 +29,15 @@ func _init(_token: String, _requester: DiscordRESTRequester, _entity_manager: Ba
 	}
 
 # Creates a `RestRequest` object for `endpoint` and pass the default headers.
-func rest_request(endpoint: String) -> RestRequest:
-	return RestRequest.new().url(
-			rest_url(endpoint)
-		).headers(rest_headers.duplicate(true))
+func rest_request(endpoint: String, reason: String = "") -> RestRequest:
+	var request: RestRequest = RestRequest.new().url(
+		rest_url(endpoint)
+	).headers(rest_headers.duplicate(true))
+	reason = reason.strip_edges()
+	if not reason.empty():
+		# warning-ignore:return_value_discarded
+		request.set_header("X-Audit-Log-Reason", reason)
+	return request
 
 func __set(_value) -> void:
 	pass

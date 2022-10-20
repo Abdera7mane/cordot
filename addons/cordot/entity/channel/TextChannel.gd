@@ -31,6 +31,11 @@ func send_message(content: String, tts: bool = false, embeds: Array = []) -> Bas
 		"create_message", [self.id, params]
 	)
 
+func create_message(content: String = "") -> MessageCreateAction:
+	return MessageCreateAction.new(
+		get_rest(), self.id
+	).set_content(content) as MessageCreateAction
+
 # Fetches messages sent in this channel.
 # 
 # doc-qualifiers:coroutine

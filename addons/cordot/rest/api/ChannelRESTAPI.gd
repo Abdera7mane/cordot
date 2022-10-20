@@ -25,9 +25,10 @@ func get_channel(channel_id: int) -> Channel:
 # 
 # doc-qualifiers:coroutine
 # doc-override-return:Channel
-func edit_channel(channel_id: int, params: Dictionary = {}) -> Channel:
+func edit_channel(channel_id: int, params: Dictionary = {}, reason: String = "") -> Channel:
 	var request: RestRequest = rest_request(
-		DiscordREST.ENDPOINTS.CHANNEL.format({channel_id = channel_id})
+		DiscordREST.ENDPOINTS.CHANNEL.format({channel_id = channel_id}),
+		reason
 	).json_body(params).method_patch()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_channel_response(response)
@@ -37,9 +38,10 @@ func edit_channel(channel_id: int, params: Dictionary = {}) -> Channel:
 #
 # doc-qualifiers:coroutine
 # doc-override-return:Channel
-func delete_channel(channel_id: int) -> Channel:
+func delete_channel(channel_id: int, reason: String = "") -> Channel:
 	var request: RestRequest = rest_request(
-		DiscordREST.ENDPOINTS.CHANNEL.format({channel_id = channel_id})
+		DiscordREST.ENDPOINTS.CHANNEL.format({channel_id = channel_id}),
+		reason
 	).method_delete()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_channel_response(response)
@@ -231,12 +233,13 @@ func edit_message(channel_id: int, message_id: int, params: Dictionary) -> Messa
 #
 # doc-qualifiers:coroutine
 # doc-override-return:bool
-func delete_message(channel_id: int, message_id: int) -> bool:
+func delete_message(channel_id: int, message_id: int, reason: String = "") -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.CHANNEL_MESSAGE.format({
 			channel_id = channel_id,
 			message_id = message_id
-		})
+		}),
+		reason
 	).method_delete()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
@@ -246,9 +249,10 @@ func delete_message(channel_id: int, message_id: int) -> bool:
 #
 # doc-qualifiers:coroutine
 # doc-override-return:bool
-func bulk_delete_messages(channel_id: int, messages_ids: PoolStringArray) -> bool:
+func bulk_delete_messages(channel_id: int, messages_ids: PoolStringArray, reason: String = "") -> bool:
 	var request: RestRequest = rest_request(
-		DiscordREST.ENDPOINTS.MESSAGE_BULK_DELETE.format({channel_id = channel_id,})
+		DiscordREST.ENDPOINTS.MESSAGE_BULK_DELETE.format({channel_id = channel_id,}),
+		reason
 	).json_body({messages = messages_ids}).method_delete()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
@@ -259,12 +263,13 @@ func bulk_delete_messages(channel_id: int, messages_ids: PoolStringArray) -> boo
 #
 # doc-qualifiers:coroutine
 # doc-override-return:bool
-func edit_channel_permissions(channel_id: int, overwrite_id: int, params: Dictionary) -> bool:
+func edit_channel_permissions(channel_id: int, overwrite_id: int, params: Dictionary, reason: String) -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.CHANNEL_PERMISSIONS.format({
 			channel_id = channel_id,
 			overwrite_id = overwrite_id
-		})
+		}),
+		reason
 	).json_body(params).method_put()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
@@ -291,10 +296,11 @@ func get_channel_invites(channel_id: int) -> Array:
 #
 # doc-qualifiers:coroutine
 # doc-override-return:Invite
-func create_channel_invite(channel_id: int, params: Dictionary = {}) -> Guild.Invite:
+func create_channel_invite(channel_id: int, params: Dictionary = {}, reason: String = "") -> Guild.Invite:
 	var invite: Guild.Invite = null
 	var request: RestRequest = rest_request(
-		DiscordREST.ENDPOINTS.CHANNEL_INVITES.format({channel_id = channel_id})
+		DiscordREST.ENDPOINTS.CHANNEL_INVITES.format({channel_id = channel_id}),
+		reason
 	).json_body(params).method_post()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	if response.successful():
@@ -308,12 +314,13 @@ func create_channel_invite(channel_id: int, params: Dictionary = {}) -> Guild.In
 # 
 # doc-qualifiers:coroutine
 # doc-override-return:bool
-func delete_channel_permission(channel_id: int, overwrite_id: int) -> bool:
+func delete_channel_permission(channel_id: int, overwrite_id: int, reason: String) -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.CHANNEL_PERMISSIONS.format({
 			channel_id = channel_id,
 			overwrite_id = overwrite_id
-		})
+		}),
+		reason
 	).method_delete()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT

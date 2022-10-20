@@ -22,13 +22,8 @@ func _init(data: Dictionary).(data) -> void:
 	icon_hash = data.get("icon_hash", "")
 
 # Updates the group channel settings.
-#
-# doc-qualifiers:coroutine
-func edit(data: GroupDMEditData) -> GroupDMChannel:
-	return get_rest().request_async(
-		DiscordREST.CHANNEL,
-		"edit_channel", [data.to_dict()]
-	)
+func edit() -> GroupDMEditAction:
+	return GroupDMEditAction.new(get_rest(), self.id)
 
 # `owner` getter.
 func get_owner() -> User:

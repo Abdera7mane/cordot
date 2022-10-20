@@ -136,28 +136,40 @@ func get_referenced_message() -> Message:
 	return get_container().messages.get(referenced_message_id)
 
 # Edits the message, the messge author must be same bot user.
-func edit(message_edit: MessageEditData) -> Message:
-	return get_rest().request_async(
-		DiscordREST.CHANNEL,
-		"edit_message", [channel_id, self.id, message_edit.to_dict()]
-	)
+func edit() -> MessageEditAction:
+	return MessageEditAction.new(get_rest(), channel_id, self.id)
 
 # Fetches the message from Discord API.
-func fetch_message() -> Message:
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Message
+func fetch() -> Message:
 	return get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"get_message", [channel_id, self.id]
 	)
 
 # Fetches the referenced message if there is any from Discord API.
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Message
 func fetch_referenced_message() -> Message:
 	return get_rest().request_async(
 		DiscordREST.CHANNEL,
 		"get_message", [channel_id, referenced_message_id]
 	) if referenced_message_id != 0 else Awaiter.submit()
 
+# Create a reply to this message.
+func reply(with_content: String = "") -> MessageCreateAction:
+	return MessageCreateAction.new(
+		get_rest(), channel_id
+	).set_content(with_content).reply_to(self.id)
+
 # Reacts to the message with `emoji`.
 # Requires bot to have `ADD_REACTIONS` permission in guild channels.
+#
+# doc-qualifiers:coroutine
+# doc-override-return:bool
 func react(emoji: Emoji) -> bool:
 	return yield(get_rest().request_async(
 		DiscordREST.CHANNEL,
@@ -165,6 +177,9 @@ func react(emoji: Emoji) -> bool:
 	), "completed")
 
 # Removes the `emoji` reaction from the message.
+#
+# doc-qualifiers:coroutine
+# doc-override-return:bool
 func unreact(emoji: Emoji) -> bool:
 	return yield(get_rest().request_async(
 		DiscordREST.CHANNEL,
@@ -173,6 +188,9 @@ func unreact(emoji: Emoji) -> bool:
 
 # Removes a user reactions from the message.
 # Requires the bot to have `MANAGE_MESSAGES` permission.
+#
+# doc-qualifiers:coroutine
+# doc-override-return:bool
 func remove_reaction(user_id: int, emoji: Emoji) -> bool:
 	return yield(get_rest().request_async(
 		DiscordREST.CHANNEL,
@@ -181,6 +199,9 @@ func remove_reaction(user_id: int, emoji: Emoji) -> bool:
 
 # Fetches the `emoji` reactions from Discord API.
 # Requires the bot to have `MANAGE_MESSAGES` permission
+#
+# doc-qualifiers:coroutine
+# doc-override-return:Array
 func fetch_reactions(emoji: Emoji, after: int = 0, limit: int = 25) -> Array:
 	return yield(get_rest().request_async(
 		DiscordREST.CHANNEL,
@@ -189,6 +210,9 @@ func fetch_reactions(emoji: Emoji, after: int = 0, limit: int = 25) -> Array:
 
 # Removes all reactions from the message.
 # Requires the bot to have `MANAGE_MESSAGES` permission
+#
+# doc-qualifiers:coroutine
+# doc-override-return:void
 func clear_all_reactions() -> void:
 	yield(get_rest().request_async(
 		DiscordREST.CHANNEL,
@@ -196,6 +220,9 @@ func clear_all_reactions() -> void:
 	), "completed")
 
 # Removes all `emoji` reactions from the message.
+#
+# doc-qualifiers:coroutine
+# doc-override-return:void
 func clear_emoji_reactions(emoji: Emoji) -> void:
 	yield(get_rest().request_async(
 		DiscordREST.CHANNEL,
@@ -205,6 +232,9 @@ func clear_emoji_reactions(emoji: Emoji) -> void:
 # Deletes the message if the author is the same bot user. If the message
 # is inside a guild channel, the bot must have `MANAGE_MESSAGES` permission
 # to delete other members messages.
+#
+# doc-qualifiers:coroutine
+# doc-override-return:bool
 func delete() -> bool:
 	var bot_id: int = get_container().bot_id
 	if bot_id != author_id:

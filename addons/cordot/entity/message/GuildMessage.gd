@@ -38,6 +38,9 @@ func get_channel() -> TextChannel:
 # Cross-post a message in a `Guild.GuildNewsChannel` to following channels.
 # Requires the `SEND_MESSAGES` permission, if the current user sent the message,
 # or additionally the `MANAGE_MESSAGES` permission, for all other users' messages.
+#
+# doc-qualifiers:coroutine
+# doc-override-return:GuildMessage
 func crosspost() -> GuildMessage:
 	if self.channel.type != Channel.Type.GUILD_NEWS:
 		push_error("Can not crosspost a message in a non-news channel")

@@ -33,7 +33,7 @@ func get_guild(guild_id: int, with_counts: bool = false) -> Guild:
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_guild_response(response)
 
-func get_guild_preview(guild_id: int) -> Object:
+func get_guild_preview(_guild_id: int) -> Object:
 	return null
 
 # Modifies a guild's settings. Returns the updated guild object.  
@@ -41,9 +41,10 @@ func get_guild_preview(guild_id: int) -> Object:
 #
 # doc-qualifiers:coroutine
 # doc-override-return:Guild
-func edit_guild(guild_id: int, params: Dictionary = {}) -> Guild:
+func edit_guild(guild_id: int, params: Dictionary = {}, reason: String = "") -> Guild:
 	var request: RestRequest = rest_request(
-		DiscordREST.ENDPOINTS.GUILD.format({guild_id = guild_id})
+		DiscordREST.ENDPOINTS.GUILD.format({guild_id = guild_id}),
+		reason
 	).json_body(params).method_patch()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_guild_response(response)
@@ -83,10 +84,11 @@ func get_guild_channels(guild_id: int) -> Array:
 #
 # doc-qualifiers:coroutine
 # doc-override-return:Channel
-func create_guild_channel(guild_id: int, params: Dictionary) -> Channel:
+func create_guild_channel(guild_id: int, params: Dictionary, reason: String) -> Channel:
 	var channel: Channel = null
 	var request: RestRequest = rest_request(
-		DiscordREST.ENDPOINTS.GUILD_CHANNELS.format({guild_id = guild_id})
+		DiscordREST.ENDPOINTS.GUILD_CHANNELS.format({guild_id = guild_id}),
+		reason
 	).json_body(params).method_post()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	if response.successful():
@@ -174,12 +176,13 @@ func add_guild_member(guild_id: int, user_id: int, params: Dictionary) -> Array:
 #
 # doc-qualifiers:coroutine
 # doc-override-return:Array
-func edit_guild_member(guild_id: int, user_id: int, params: Dictionary = {}) -> Array:
+func edit_guild_member(guild_id: int, user_id: int, params: Dictionary = {}, reason: String = "") -> Array:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_MEMBER.format({
 			guild_id = guild_id,
 			user_id = user_id
-		})
+		}),
+		reason
 	).json_body(params).method_patch()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	var error: int = OK if response.code == HTTPClient.RESPONSE_OK else FAILED
@@ -191,9 +194,10 @@ func edit_guild_member(guild_id: int, user_id: int, params: Dictionary = {}) -> 
 #
 # doc-qualifiers:coroutine
 # doc-override-return:Array
-func edit_current_member(guild_id: int, params: Dictionary = {}) -> Array:
+func edit_current_member(guild_id: int, params: Dictionary = {}, reason: String = "") -> Array:
 	var request: RestRequest = rest_request(
-		DiscordREST.ENDPOINTS.CURRENT_MEMBER.format({guild_id = guild_id})
+		DiscordREST.ENDPOINTS.CURRENT_MEMBER.format({guild_id = guild_id}),
+		reason
 	).json_body(params).method_patch()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	var error: int = OK if response.code == HTTPClient.RESPONSE_OK else FAILED
@@ -205,13 +209,14 @@ func edit_current_member(guild_id: int, params: Dictionary = {}) -> Array:
 #
 # doc-qualifiers:coroutine
 # doc-override-return:bool
-func add_guild_member_role(guild_id: int, user_id: int, role_id: int) -> bool:
+func add_guild_member_role(guild_id: int, user_id: int, role_id: int, reason: String = "") -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_MEMBER_ROLE.format({
 			guild_id = guild_id,
 			user_id = user_id,
 			role_id = role_id
-		})
+		}),
+		reason
 	).empty_body().method_put()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
@@ -221,13 +226,14 @@ func add_guild_member_role(guild_id: int, user_id: int, role_id: int) -> bool:
 #
 # doc-qualifiers:coroutine
 # doc-override-return:bool
-func remove_guild_member_role(guild_id: int, user_id: int, role_id: int) -> bool:
+func remove_guild_member_role(guild_id: int, user_id: int, role_id: int, reason: String = "") -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_MEMBER_ROLE.format({
 			guild_id = guild_id,
 			user_id = user_id,
 			role_id = role_id
-		})
+		}),
+		reason
 	).method_delete()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
@@ -237,12 +243,13 @@ func remove_guild_member_role(guild_id: int, user_id: int, role_id: int) -> bool
 #
 # doc-qualifiers:coroutine
 # doc-override-return:bool
-func remove_guild_member(guild_id: int, user_id: int) -> bool:
+func remove_guild_member(guild_id: int, user_id: int, reason: String = "") -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_MEMBER.format({
 			guild_id = guild_id,
 			user_id = user_id
-		})
+		}),
+		reason
 	).method_delete()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
@@ -299,12 +306,13 @@ func get_guild_ban(guild_id: int, user_id: int) -> GuildBan:
 #
 # doc-qualifiers:coroutine
 # doc-override-return:bool
-func create_guild_ban(guild_id: int, user_id: int, params: Dictionary) -> bool:
+func create_guild_ban(guild_id: int, user_id: int, params: Dictionary, reason: String = "") -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_BAN.format({
 			guild_id = guild_id,
 			user_id = user_id
-		})
+		}),
+		reason
 	).json_body(params).method_put()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
@@ -314,12 +322,13 @@ func create_guild_ban(guild_id: int, user_id: int, params: Dictionary) -> bool:
 #
 # doc-qualifiers:coroutine
 # doc-override-return:bool
-func remove_guild_ban(guild_id: int, user_id: int) -> bool:
+func remove_guild_ban(guild_id: int, user_id: int, reason: String = "") -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_BAN.format({
 			guild_id = guild_id,
 			user_id = user_id
-		})
+		}),
+		reason
 	).method_delete()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
@@ -341,9 +350,10 @@ func get_guild_roles(guild_id: int) -> Array:
 #
 # doc-qualifiers:coroutine
 # doc-override-return:Role
-func create_guild_role(guild_id: int, params: Dictionary) -> Guild.Role:
+func create_guild_role(guild_id: int, params: Dictionary, reason: String = "")  -> Guild.Role:
 	var request: RestRequest = rest_request(
-		DiscordREST.ENDPOINTS.GUILD_ROLES.format({guild_id = guild_id})
+		DiscordREST.ENDPOINTS.GUILD_ROLES.format({guild_id = guild_id}),
+		reason
 	).json_body(params).method_post()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_role_response(response, guild_id)
@@ -354,9 +364,10 @@ func create_guild_role(guild_id: int, params: Dictionary) -> Guild.Role:
 #
 # doc-qualifiers:coroutine
 # doc-override-return:Array
-func edit_guild_role_positions(guild_id: int, params: Array) -> Array:
+func edit_guild_role_positions(guild_id: int, params: Array, reason: String = "") -> Array:
 	var request: RestRequest = rest_request(
-		DiscordREST.ENDPOINTS.GUILD_ROLES.format({guild_id = guild_id})
+		DiscordREST.ENDPOINTS.GUILD_ROLES.format({guild_id = guild_id}),
+		reason
 	).json_body(params).method_patch()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_roles_response(response, guild_id)
@@ -366,12 +377,13 @@ func edit_guild_role_positions(guild_id: int, params: Array) -> Array:
 #
 # doc-qualifiers:coroutine
 # doc-override-return:Role
-func edit_guild_role(guild_id: int, role_id: int, params: Dictionary = {}) -> Guild.Role:
+func edit_guild_role(guild_id: int, role_id: int, params: Dictionary = {}, reason: String = "") -> Guild.Role:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_ROLE.format({
 			guild_id = guild_id,
 			role_id = role_id
-		})
+		}),
+		reason
 	).json_body(params).method_patch()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return _handle_role_response(response, guild_id)
@@ -381,12 +393,13 @@ func edit_guild_role(guild_id: int, role_id: int, params: Dictionary = {}) -> Gu
 #
 # doc-qualifiers:coroutine
 # doc-override-return:bool
-func delete_guild_role(guild_id: int, role_id: int) -> bool:
+func delete_guild_role(guild_id: int, role_id: int, reason: String = "") -> bool:
 	var request: RestRequest = rest_request(
 		DiscordREST.ENDPOINTS.GUILD_ROLE.format({
 			guild_id = guild_id,
 			role_id = role_id
-		})
+		}),
+		reason
 	).method_delete()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	return response.code == HTTPClient.RESPONSE_NO_CONTENT
@@ -414,9 +427,10 @@ func get_guild_prune_count(guild_id: int, days: int = 7, include_roles: PoolStri
 #
 # doc-qualifiers:coroutine
 # doc-override-return:int
-func begin_guild_prune(guild_id: int, params: Dictionary) -> int:
+func begin_guild_prune(guild_id: int, params: Dictionary, reason: String = "") -> int:
 	var request: RestRequest = rest_request(
-		DiscordREST.ENDPOINTS.GUILD_PRUNE.format({guild_id = guild_id})
+		DiscordREST.ENDPOINTS.GUILD_PRUNE.format({guild_id = guild_id}),
+		reason
 	).json_body(params).method_post()
 	var response: HTTPResponse = yield(requester.request_async(request), "completed")
 	if response.successful():
@@ -466,19 +480,19 @@ func get_guild_invites(guild_id: int) -> Array:
 			invites.append(invite)
 	return invites
 
-func get_guild_integrations(guild_id: int) -> Array:
+func get_guild_integrations(_guild_id: int) -> Array:
 	return []
 
-func delete_guild_integration(guild_id: int, integration_id: int) -> bool:
+func delete_guild_integration(_guild_id: int, _integration_id: int) -> bool:
 	return false
 
-func get_guild_widget_settings(guild_id: int) -> Object:
+func get_guild_widget_settings(_guild_id: int) -> Object:
 	return null
 
-func edit_guild_widget_settings(guild_id: int, params: Dictionary) -> Object:
+func edit_guild_widget_settings(_guild_id: int, _params: Dictionary) -> Object:
 	return null
 
-func get_guild_widget(guild_id: int) -> Object:
+func get_guild_widget(_guild_id: int) -> Object:
 	return null
 
 # Returns a partial `Guild.Invite` object for guilds with that feature enabled.  
@@ -517,16 +531,16 @@ func get_guild_widget_image(guild_id: int, style: String = "shield") -> Texture:
 			widget_image.create_from_image(image)
 	return widget_image
 
-func get_guild_welcome_screen(guild_id: int) -> WelcomeScreen:
+func get_guild_welcome_screen(_guild_id: int) -> WelcomeScreen:
 	return null
 
-func edit_guild_welcome_screen(guild_id: int, params: Dictionary = {}) -> WelcomeScreen:
+func edit_guild_welcome_screen(_guild_id: int, _params: Dictionary = {}) -> WelcomeScreen:
 	return null
 
-func edit_current_user_voice_state(guild_id: int, params: Dictionary) -> void:
+func edit_current_user_voice_state(_guild_id: int, _params: Dictionary) -> void:
 	pass
 
-func edit_user_voice_state(guild_id: int, user_id: int, params: Dictionary) -> void:
+func edit_user_voice_state(_guild_id: int, _user_id: int, _params: Dictionary) -> void:
 	pass
 
 func _handle_guild_response(response: HTTPResponse) -> Guild:

@@ -31,9 +31,12 @@ func get_guild() -> Guild:
 
 # doc-hide
 func get_channel() -> TextChannel:
-	return self.get_container().channels.get(
-		channel_id, self.guild.get_thread(channel_id)
-	)
+	var channel: Channel = self.guild.get_channel(channel_id)
+	if not channel:
+		channel = self.guild.get_thread(channel_id)
+	if channel is Guild.GuildVoiceChannel:
+		channel = channel.text_channel
+	return channel as TextChannel
 
 # Cross-post a message in a `Guild.GuildNewsChannel` to following channels.
 # Requires the `SEND_MESSAGES` permission, if the current user sent the message,

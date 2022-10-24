@@ -1531,19 +1531,23 @@ class BaseGuildVoiceChannel extends VoiceChannel:
 class GuildVoiceChannel extends BaseGuildVoiceChannel:
 	
 	# The user limit of the voice channel, `0` if unlimited.
-	var user_limit: int    setget __set
+	var user_limit: int              setget __set
 	
 	# The camera video quality mode of the voice channel, 
 	# `VoiceChannel.VideoQualityModes.AUTO` when not present.
-	var video_quality: int setget __set
+	var video_quality: int           setget __set
+	
+	# Reference to the textual chat in the voice channel.
+	var text_channel: GuildVoiceText setget __set
 	
 	# doc-hide
 	func _init(data: Dictionary).(data) -> void:
 		type = Channel.Type.GUILD_VOICE
+		text_channel = GuildVoiceText.new(data["text_channel"], self)
 	
 	# doc-hide
 	func get_class() -> String:
-		return "GuildVoiceChannel"
+		return "Guild.GuildVoiceChannel"
 	
 	func _update(data: Dictionary) -> void:
 		user_limit = data.get("user_limit", user_limit)
@@ -1557,6 +1561,30 @@ class GuildVoiceChannel extends BaseGuildVoiceChannel:
 		arguments["video_quality"] = self.video_quality
 		
 		return data
+	
+	func __set(_value) -> void:
+		pass
+
+# Represents the textual chat in a guild voice channel.
+# Unlike a guild text channel this does not accept threads or message pinning.
+class GuildVoiceText extends TextChannel:
+	
+	var _parent: WeakRef          setget __set
+	
+	# The voice channel this chat belongs to.
+	var parent: GuildVoiceChannel setget __set
+	
+	# doc-hide
+	func _init(data: Dictionary, voice: GuildVoiceChannel).(data) -> void:
+		_parent = weakref(voice)
+	
+	# `parent` getter.
+	func get_parent() -> GuildVoiceChannel:
+		return _parent.get_ref()
+	
+	# doc-hide
+	func get_class() -> String:
+		return "Guild.GuildVoiceText"
 	
 	func __set(_value) -> void:
 		pass

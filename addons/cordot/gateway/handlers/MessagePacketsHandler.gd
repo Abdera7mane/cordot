@@ -29,7 +29,9 @@ func _on_message_create(fields: Dictionary) -> void:
 		return
 		
 	var channel_id: int = fields["channel_id"] as int
-	var channel: TextChannel = _entity_manager.get_channel(channel_id)
+	var channel: Channel = _entity_manager.get_channel(channel_id)
+	if channel is Guild.GuildVoiceChannel:
+		channel = channel.text_channel
 	if not fields.has("guild_id"):
 		if channel and _is_ephemeral(fields.get("flags", 0)):
 			fields["guild_id"] = channel.guild_id
@@ -147,11 +149,13 @@ func _on_reactions_clear_emoji(fields: Dictionary) -> void:
 
 func _on_typing_start(fields: Dictionary) -> void:
 	var channel_id: int = fields["channel_id"] as int
-	var channel: TextChannel = _entity_manager.get_channel(channel_id)
+	var channel: Channel = _entity_manager.get_channel(channel_id)
 	if not channel and fields.has("guild_id"):
 		var guild_id: int = fields["guild_id"] as int
 		var guild: Guild = _entity_manager.get_guild(guild_id)
 		channel = guild.get_thread(channel_id)
+	if channel is Guild.GuildVoiceChannel:
+		channel = channel.text_channel
 	var user: User = _entity_manager.get_user(fields["user_id"] as int)
 	var timestamp: int = fields["timestamp"]
 	if channel and user:

@@ -75,7 +75,10 @@ func construct_dm_channel(data: Dictionary) -> DMChannel:
 	return DMChannel.new(parse_dm_channel_payload(data))
 
 func construct_guild_voice_channel(data: Dictionary) -> Guild.GuildVoiceChannel:
-	return Guild.GuildVoiceChannel.new(parse_guild_voice_channel_payload(data))
+	var parsed_data: Dictionary = parse_guild_voice_channel_payload(data)
+	parsed_data["text_channel"] = parse_text_channel_payload(data)
+	parsed_data["text_channel"]["id"] = parsed_data["id"]
+	return Guild.GuildVoiceChannel.new(parsed_data)
 
 func construct_group_dm_channel(data: Dictionary) -> GroupDMChannel:
 	return GroupDMChannel.new(parse_group_dm_channel_payload(data))
@@ -160,7 +163,6 @@ func parse_guild_voice_channel_payload(data: Dictionary) -> Dictionary:
 	var parsed_data: Dictionary = {
 			bitrate = data["bitrate"],
 			user_limit = data["user_limit"],
-			rtc_region = null
 		}
 	
 	Dictionaries.merge(

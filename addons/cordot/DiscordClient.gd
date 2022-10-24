@@ -304,10 +304,7 @@ var voice_websocket: VoiceWebSocketAdapter     setget __set
 
 # A dictionary holding registered application/text commands.
 # Should not be modified directly.
-var commands_map: Dictionary = {
-	application = {},
-	text = {}
-} setget __set
+var commands_map: Dictionary setget __set
 
 # If `true`, the REST client will use an HTTP connection pool to send requests.
 # Must be set before calling `login()`. This is an **unstable experimental** feature,
@@ -399,7 +396,7 @@ func get_team(id: int) -> DiscordTeam:
 func register_application_command_executor(
 	command: String, executor: ApplicationCommandExecutor
 ) -> void:
-	commands_map.application[command] = executor
+	commands_map[command] = executor
 
 # Registers an application command with the help of a command `builder` object
 # If a `guild_id` is provided the command will only be registered on that guild,
@@ -502,19 +499,22 @@ func _on_packet(packet: DiscordPacket) -> void:
 		self.emit_signal("raw_event", packet.get_event_name(), packet.get_data())
 
 func _transmit_event(event: String, arguments: Array) -> void:
-	if self.has_signal(event):
-		self.callv("emit_signal", [event] + arguments)
+	if has_signal(event):
+		callv("emit_signal", [event] + arguments)
 		if event == "interaction_created":
-			var interaction: DiscordInteraction = arguments[0]
-			var command: String = interaction.data.name
-			if commands_map.application.has(command):
-				var executor: ApplicationCommandExecutor = commands_map.application[command]
-				if interaction.is_command():
-					executor.interact(interaction)
-				elif interaction.is_autocomplete():
-					executor.autocomplete(interaction)
+			_forward_interaction(arguments[0] as DiscordInteraction)
 	else:
-		assert(true, "Transmitted non-existing event '%s'")
+		assert(false, "Transmitted non-existing event '%s'")
+
+func _forward_interaction(interaction: DiscordInteraction) -> void:
+	if interaction.is_command() or interaction.is_autocomplete():
+		var command: String = interaction.data.name
+		if commands_map.has(command):
+			var executor: ApplicationCommandExecutor = commands_map[command]
+			executor.interact(interaction)
+	else:
+		for executor in commands_map.values():
+			executor.interact(interaction)
 
 func _to_string() -> String:
 	return "[%s:%d]" % [self.get_class(), self.get_instance_id()]

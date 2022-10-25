@@ -2,7 +2,8 @@
 tool
 
 const QUALIFIERS := PoolStringArray([
-	"coroutine"
+	"coroutine",
+	"virtual"
 ])
 
 var annotations_regex := RegEx.new()
@@ -11,6 +12,7 @@ func _init() -> void:
 	var annotations: PoolStringArray = [
 		"warnings-disable",
 		"doc-hide",
+		"doc-show",
 		"doc-deprecated"
 	]
 	var annotations_with_value: PoolStringArray = [
@@ -158,6 +160,8 @@ func handle_annotation(symbols: Dictionary, annotation: String) -> void:
 	match name:
 		"doc-hide":
 			symbols["hidden"] = true
+		"doc-show":
+			symbols["show"] = true
 		"doc-deprecated":
 			symbols["deprecated"] = true
 		"doc-override-return":

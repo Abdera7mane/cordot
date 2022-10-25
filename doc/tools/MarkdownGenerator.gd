@@ -98,7 +98,9 @@ class MarkdownGenerator:
 			properties_table.put("name", 0, 1)
 			for property in properties:
 				var name: String = property["name"]
-				if name.begins_with("_") or property.get("hidden", false):
+				var hidden: bool = property.get("hidden", false)
+				var show: bool = property.get("show", false)
+				if (name.begins_with("_") or hidden) and not show:
 					continue
 				var type: String = property["data_type"]
 				var default_value = property["default_value"]
@@ -138,7 +140,9 @@ class MarkdownGenerator:
 				if name == "_init":
 					method["name"] = clazz_name
 					method["return_type"] = clazz_name
-				elif name.begins_with("_") or method.get("hidden", false):
+				var hidden: bool = method.get("hidden", false)
+				var show: bool = method.get("show", false)
+				if (name.begins_with("_") or hidden) and not show:
 					continue
 				var return_type: String = method["return_type"]
 				
@@ -166,7 +170,9 @@ class MarkdownGenerator:
 			var signals_list := MarkdownDocument.List.new(false)
 			for _signal in signals:
 				var name: String = _signal["name"]
-				if name.begins_with("_") or _signal.get("hidden", false):
+				var hidden: bool = _signal.get("hidden", false)
+				var show: bool = _signal.get("show", false)
+				if (name.begins_with("_") or hidden) and not show:
 					continue
 				
 				var format: String = "%s%s"
@@ -192,7 +198,9 @@ class MarkdownGenerator:
 			var constants_list := MarkdownDocument.List.new(false)
 			for constant in constants:
 				var name: String = constant["name"]
-				if name.begins_with("_") or constant.get("hidden", false):
+				var hidden: bool = constant.get("hidden", false)
+				var show: bool = constant.get("show", false)
+				if (name.begins_with("_") or hidden) and not show:
 					continue
 				var type: String = constant["data_type"]
 				var value = constant["value"]
@@ -238,7 +246,9 @@ class MarkdownGenerator:
 			var properties_list := MarkdownDocument.List.new(false)
 			for property in properties:
 				var name: String = property["name"]
-				if name.begins_with("_") or property.get("hidden", false):
+				var hidden: bool = property.get("hidden", false)
+				var show: bool = property.get("show", false)
+				if (name.begins_with("_") or hidden) and not show:
 					continue
 				var type: String = property["data_type"]
 				
@@ -286,7 +296,9 @@ class MarkdownGenerator:
 				if name == "_init":
 					method["name"] = clazz_name
 					method["return_type"] = clazz_name
-				elif name.begins_with("_") or method.get("hidden", false):
+				var hidden: bool = method.get("hidden", false)
+				var show: bool = method.get("show", false)
+				if (name.begins_with("_") or hidden) and not show:
 					continue
 				
 				var format: String = "%s%s %s"

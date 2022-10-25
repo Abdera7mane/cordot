@@ -68,22 +68,21 @@ func _on_autocomplete(_interaction: DiscordAutocompleteInteraction) -> void:
 # Helper class to listen for message components interaction events of a single
 # message.
 #
-# example usage:  
-# ```gdscript
-# var message_id: int = 1234567890
-# var timeout_id: int = 20_000 # 20 seconds
-# var awaiter := await_components(message_id, 20_000)
-# 
-# while yield(awaiter.wait(), "completed"):
-# 	var event := awaiter.get_event()
-# 	match event.data.custom_id:
-# 		"hello":
-# 			event.create_reply("hello").submit()
-# 		"bye":
-# 			event.create_reply("Good bye").submit()
-# 	
-# # Timedout
-# ```
+# example usage:
+#
+#	var message_id: int = 1234567890
+#	var timeout_id: int = 20_000 # 20 seconds
+#	var awaiter := await_components(message_id, 20_000)
+#
+#	while yield(awaiter.wait(), "completed"):
+#		var event := awaiter.get_event()
+#		match event.data.custom_id:
+#			"hello":
+#				event.create_reply("hello").submit()
+#			"bye":
+#				event.create_reply("Good bye").submit()
+#	
+#	# Timedout
 class MessageComponentAwaiter:
 	
 	# Emitted when the awaiter timeouts.

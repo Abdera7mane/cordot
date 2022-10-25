@@ -3,9 +3,10 @@
 # Cordot
 
 <p align="center">
+    <img src="icon.png" alt="icon", width="128">
+    <br><br>
     Discord API wrapper for <a href="https://github.com/godotengine/godot">Godot Engine</a> written in <b>GDScript</b> language.
-    <img src="screenshots/ping-pong.png" alt="Ping pong example">
-    <br>
+    <br><br>
     <a href="https://godotengine.org/download">
         <img src="https://img.shields.io/static/v1?label=Godot&message=3.5.x&color=478cbf&style=for-the-badge&logo=godotengine&logoColor=white" alt="Godot version">
     </a>
@@ -56,7 +57,7 @@ func _on_message(message: Message) -> void:
         return
 
     if message.content.to_lower().begins_with("hello"):
-        message.channel.send_message("Greetings !")
+        message.channel.create_message("Greetings !").submit()
 
 ```
 

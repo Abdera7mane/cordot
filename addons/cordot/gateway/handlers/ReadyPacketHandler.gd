@@ -23,7 +23,12 @@ func remove_unvailable_guild(id: int) -> void:
 		check_ready()
 
 func check_ready() -> void:
-	if unavailable_guilds.empty():
+	var intents: BitFlag = BitFlag.new(GatewayIntents.get_script_constant_map())
+	var wait_for_guilds = intents.put(_connection_state.intents).has(
+		GatewayIntents.GUILDS
+	)
+	
+	if unavailable_guilds.empty() or not wait_for_guilds:
 		ready = true
 		var self_user: User = _entity_manager.get_self()
 		self.emit_signal("transmit_event", "client_ready", [self_user])

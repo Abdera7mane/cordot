@@ -63,8 +63,7 @@ func defer_reply(ephemeral: bool = false) -> bool:
 		DiscordREST.INTERACTION,
 		"create_response", [self.id, token, params]
 	), "completed")
-	if deferred and not replied:
-		replied = true
+	replied = deferred
 	return replied
 
 # Creates a followup message to the interaction. Must reply to the interaction first.

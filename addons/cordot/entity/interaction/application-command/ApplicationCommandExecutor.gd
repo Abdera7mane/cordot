@@ -90,8 +90,9 @@ class MessageComponentAwaiter:
 	
 	var _message_id: int                           setget __set
 	var _timeout: int                              setget __set
-	var _repeat: int                               setget __set
+	var _time_left: int                            setget __set
 	var _start: int                                setget __set
+	var _repeat: int                               setget __set
 	var _event: DiscordMessageComponentInteraction setget __set
 	var _coroutine: GDScriptFunctionState          setget __set
 	
@@ -108,16 +109,15 @@ class MessageComponentAwaiter:
 	# doc-override-return:bool 
 	func wait() -> bool:
 		_event = null
-		if _timeout <= 0:
-			print(_timeout)
 		if _repeat == 0:
 			yield(Awaiter.submit(), "completed")
 			return false
 		
 		if _start == 0:
-			_start = OS.get_ticks_msec()
+			reset()
 		else:
-			_timeout -= OS.get_ticks_msec() - _start
+			_time_left -= OS.get_ticks_msec() - _start
+			_start = OS.get_ticks_msec()
 		
 		# warning-ignore:function_may_yield
 		_coroutine = _await_component_event()
@@ -127,7 +127,6 @@ class MessageComponentAwaiter:
 			Awaiter.wait_for_coroutine(_coroutine, _timeout), "completed"
 		)
 		var end: int = OS.get_ticks_msec()
-		_timeout -= end - start
 		
 		_coroutine = null
 		
@@ -139,6 +138,11 @@ class MessageComponentAwaiter:
 	# Gets the interaction event after `wait()` has returned `true`.
 	func get_event() -> DiscordMessageComponentInteraction:
 		return _event
+	
+	# Resets the time left to the initial timeout time.
+	func reset() -> void:
+		_time_left = _time_left
+		_start = OS.get_ticks_msec()
 	
 	# doc-hide
 	func pass_event(event: DiscordMessageComponentInteraction) -> void:

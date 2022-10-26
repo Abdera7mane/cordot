@@ -21,6 +21,12 @@ func _init(
 func submit():
 	return _submit()
 
+func ephemeral(value: bool) -> InteractionMessageCreateAction:
+	var flags = _data.get("flags", _get_default_flags())
+	flags.EPHEMERAL = value
+	_data["flags"] = flags
+	return self
+
 # doc-hide
 func get_class() -> String:
 	return "InteractionMessageCreateAction"
@@ -33,6 +39,12 @@ func _get_arguments() -> Array:
 			data = _get_message_data()
 		}
 	]
+
+func _get_default_flags() -> BitFlag:
+	return BitFlag.new({
+		SUPPRESS_EMBEDS = 1 << 2,
+		EPHEMERAL = 1 << 6
+	})
 
 func __set(_value) -> void:
 	pass

@@ -27,6 +27,40 @@ func fetch_message() -> Message:
 	), "completed")
 	return message
 
+# Acknowledges the interaction to edit the message later.
+func defer_update() -> bool:
+	var fail: bool
+	if replied:
+		push_error("Already replied to interaction")
+		fail = true
+	if deferred:
+		push_error("Already deferred interaction")
+		fail = true
+	if fail:
+		yield(Awaiter.submit(), "completed")
+		return false
+	var params: Dictionary = {
+		type = Callback.DEFERRED_UPDATE_MESSAGE
+	}
+	deferred = yield(get_rest().request_async(
+		DiscordREST.INTERACTION,
+		"create_response", [self.id, token, params]
+	), "completed")
+	replied = deferred
+	return replied
+
+# Updates the message containing the component.
+func update_message() -> InteractionMessageUpdateAction:
+	if replied:
+		push_error("Already replied to interaction")
+		return null
+
+	var action := InteractionMessageUpdateAction.new(get_rest(), self.id, token)
+	# warning-ignore:return_value_discarded
+	action.connect("completed", self, "_on_message_updated", [], CONNECT_ONESHOT)
+
+	return action
+
 # Shows a modal popup.
 func show_modal(custom_id: String, title: String) -> InteractionModalAction:
 	if replied:
@@ -40,6 +74,9 @@ func show_modal(custom_id: String, title: String) -> InteractionModalAction:
 	action.connect("completed", self, "_on_modal_shown", [], CONNECT_ONESHOT)
 
 	return action
+
+func _on_message_updated(success: bool) -> void:
+	replied = success
 
 func _on_modal_shown(success: bool) -> void:
 	replied = success

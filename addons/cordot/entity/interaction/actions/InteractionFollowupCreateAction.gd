@@ -8,7 +8,7 @@ func _init(
 	rest: DiscordRESTMediator, application_id: int, token: String
 ).(rest, 0) -> void:
 	_type = DiscordREST.INTERACTION
-	_method = "create_response"
+	_method = "create_followup_message"
 	
 	_application_id = application_id
 	_token = token

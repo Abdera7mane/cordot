@@ -3,32 +3,30 @@ class_name Packets
 
 class IdentifyPacket extends Packet:
 	
-	func _init(connection_state: ConnectionState) -> void:
+	func _init(context: GatewayContext, shard: int) -> void:
 		payload = {
 			op = GatewayOpcodes.Gateway.IDENTIFY,
 			d = {
-				token = connection_state.token,
-				intents = connection_state.intents,
+				token = context.token,
+				intents = context.intents,
 				properties = {
-					"$os": OS.get_name(),
-					"$browser": Discord.LIBRARY,
-					"$device": Discord.LIBRARY
+					os = OS.get_name(),
+					browser = Discord.LIBRARY,
+					device = Discord.LIBRARY
 				},
-				compress = false,
-				large_threshold = 50,
-				guild_subscriptions = true,
-				shard = [0, 1],
+				large_threshold = context.large_threshold,
+				shard = [shard, context.total_shards]
 			}
 		}
 
 class ResumePacket extends Packet:
 	
-	func _init(connection_state: ConnectionState, sequence: int) -> void:
+	func _init(token: String, session_id: String, sequence: int) -> void:
 		self.payload = {
 			op = GatewayOpcodes.Gateway.RESUME,
 			d = {
-				token = connection_state.token,
-				session_id = connection_state.session_id,
+				token = token,
+				session_id = session_id,
 				seq = sequence
 			}
 		}

@@ -97,11 +97,8 @@ func construct_activity_secrets(data: Dictionary) -> ActivitySecrets:
 		instanced_match = data.get("match", "")
 	})
 
-func construct_activity_button(data: Dictionary) -> ActivityButton:
-	return ActivityButton.new({
-		label = data["label"],
-		url = data["url"]
-	})
+func construct_activity_button(label: String) -> ActivityButton:
+	return ActivityButton.new({label = label, url = ""})
 
 func update_user(user: User, data: Dictionary) -> void:
 	user._update(parse_user_payload(data))

@@ -10,16 +10,8 @@ enum {
 }
 
 # Emitted when the client connect to Discord's gateway websocket server.
-# To know if the bot is ready refer to `client_ready` signal
+# To know if the bot is ready refer to `client_ready` signal.
 signal connected()
-
-# Emitted when the client reconnects to Discord's gateway websocket server.
-# The client may attempt to reconnect when it looses connection to the server
-# or when Discord requests a reconnection.
-signal reconnected()
-
-# Emitted when the client resumed the session after reconecting (check `reconnected` signal).
-signal resumed()
 
 # Emitted when the client fails to connect.
 #
@@ -288,23 +280,20 @@ signal voice_server_updated(old, new)
 # Not implemented
 signal webhooks_updated(old, new)
 
-var _connection_state: ConnectionState         setget __set
+var _gateway_context: GatewayContext         setget __set
 
 # The entity manager instance associated this client.
-var entity_manager: BaseDiscordEntityManager   setget __set
+var entity_manager: BaseDiscordEntityManager setget __set
 
 # The REST client instance associated this client.
-var rest: DiscordRESTAdapter                   setget __set
+var rest: DiscordRESTAdapter                 setget __set
 
 # The REST client instance associated this client.
-var gateway_websocket: DiscordWebSocketAdapter setget __set
-
-# Unused, might be removed in the future.
-var voice_websocket: VoiceWebSocketAdapter     setget __set
+var gateway: DiscordGatewayAdapter           setget __set
 
 # A dictionary holding registered application/text commands.
 # Should not be modified directly.
-var commands_map: Dictionary setget __set
+var commands_map: Dictionary                 setget __set
 
 # If `true`, the REST client will use an HTTP connection pool to send requests.
 # Must be set before calling `login()`. This is an **unstable experimental** feature,
@@ -317,72 +306,73 @@ func _init(token: String, intents: int = GatewayIntents.UNPRIVILEGED) -> void:
 	name = "DiscordClient"
 	pause_mode = PAUSE_MODE_PROCESS
 	
-	_connection_state = ConnectionState.new(token, intents)
+	_gateway_context = GatewayContext.new(token, intents)
+	_setup()
 
 # Connects to Discord's gateway and identify as a bot account.
-# The node has to be inside a SceneTree or the method will fail.
-func login() -> void:
+# The node has to be inside a `SceneTree` or the method will fail.
+# If `reconnect` is `true`, the client will auto reconnect when disconnected
+func login(reconnect: bool = true) -> void:
 	if not is_inside_tree():
 		push_error("Not inside a scene tree !")
 		emit_signal("connection_error", ERR_UNCONFIGURED)
 		return
-	_setup()
-	gateway_websocket.connect_to_gateway()
+	gateway.connect_to_gateway(reconnect)
 
 # Disconnects from Discord's gateway if already connected.
 func logout() -> void:
-	gateway_websocket.auto_reconnect = false
-	gateway_websocket.disconnect_from_gateway()
+	gateway.auto_reconnect = false
+	gateway.disconnect_from_gateway()
 
 func update_presence(presence: PresenceUpdate) -> void:
-	gateway_websocket.send_packet(Packet.new({
+	gateway.send_packet(Packet.new({
 		op = GatewayOpcodes.Gateway.PRESENCE_UPDATE,
 		d = presence.to_dict()
 	}))
 
 # Whether this client instance is in an active connection
 func is_client_connected() -> bool:
-	return gateway_websocket.is_connected_to_gateway()
+	return gateway.is_connected_to_gateway()
 
 # Gets the associated token.
 func get_token() -> String:
-	return self._connection_state.token
+	return _gateway_context.token
 
 # Gets the associated intents flags.
 func get_intents() -> int:
-	return self._connection_state.intents
+	return _gateway_context.intents
 
 # Gets the gateway server latency in milliseconds.
-func get_ping() -> int:
-	return self.gateway_websocket.latency
+func get_ping() -> float:
+	return gateway.get_latency_ms()
 
 # Gets the client uptime in milliseconds.
 func get_uptime_ms() -> int:
-	return self._connection_state.get_uptime_ms()
+	return gateway.get_uptime_ms()
 
 # Gets the user object of the current connected bot account.
 func get_self() -> User:
-	return self.entity_manager.get_self()
+	return entity_manager.get_self()
 
 # Gets a user by `id`.
 func get_user(id: int) -> User:
-	return self.entity_manager.get_user(id)
+	return entity_manager.get_user(id)
 
 # Gets a user's presence by `id`.
 func get_presence(id: int) -> Presence:
-	return self.entity_manager.get_presence(id)
+	return entity_manager.get_presence(id)
 
 # Gets a guild by `id`.
 func get_guild(id: int) -> Guild:
-	return self.entity_manager.get_guild(id)
+	return entity_manager.get_guild(id)
 
 # Gets a channel by `id`.
 func get_channel(id: int) -> Channel:
-	return self.entity_manager.get_channel(id)
+	return entity_manager.get_channel(id)
 
 # Gets an application by `id`.
 func get_application(id: int) -> DiscordApplication:
-	return self.entity_manager.get_application(id)
+	return entity_manager.get_application(id)
 
 # Gets a the application object of the current bot account.
 func get_client_application() -> DiscordApplication:
@@ -390,7 +380,7 @@ func get_client_application() -> DiscordApplication:
 
 # Gets a Discord team object by `id`.
 func get_team(id: int) -> DiscordTeam:
-	return self.entity_manager.get_team(id)
+	return entity_manager.get_team(id)
 
 # Registers an applications command executor for `command` name.
 func register_application_command_executor(
@@ -430,14 +420,15 @@ func register_application_command(
 func get_class() -> String:
 	return "DiscordClient"
 
-func _create_gateway_websocket(_entity_manager: BaseDiscordEntityManager) -> DiscordWebSocketAdapter:
-	var adapter: DiscordWebSocketAdapter = DiscordWebSocketAdapter.new(_connection_state)
+func _create_gateway(
+	_entity_manager: BaseDiscordEntityManager
+) -> DiscordGatewayAdapter:
+	var adapter := DiscordGatewayAdapter.new(_gateway_context)
 	
 	adapter.connect("connected", self, "_on_connected")
-	adapter.connect("reconnected", self, "_on_reconnected")
-	adapter.connect("connection_error", self, "_on_connection_error")
-	adapter.connect("invalid_session", self, "_on_invalid_session")
 	adapter.connect("disconnected", self, "_on_disconnected")
+	adapter.connect("connection_error", self, "_on_connection_error")
+	adapter.connect("all_shards_ready", self, "_on_ready")
 	adapter.connect("packet_received", self, "_on_packet")
 
 	var handlers: Array = [
@@ -446,7 +437,7 @@ func _create_gateway_websocket(_entity_manager: BaseDiscordEntityManager) -> Dis
 		MessagePacketsHandler.new(_entity_manager),
 		ThreadPacketsHandler.new(_entity_manager),
 		IntegrationPacketshandler.new(_entity_manager),
-		ReadyPacketHandler.new(_connection_state, _entity_manager),
+		ReadyPacketHandler.new(_entity_manager),
 		InteractionPacketsHandler.new(_entity_manager)
 	]
 	
@@ -456,47 +447,38 @@ func _create_gateway_websocket(_entity_manager: BaseDiscordEntityManager) -> Dis
 	
 	return adapter
 
-func _create_voice_websocket() -> VoiceWebSocketAdapter:
-	var adapter: VoiceWebSocketAdapter = VoiceWebSocketAdapter.new()
-	return adapter
-
-
 func _setup() -> void:
 	entity_manager = DiscordEntityManager.new()
 	var intents_map: Dictionary = GatewayIntents.get_script_constant_map()
 	var intents: BitFlag = BitFlag.new(intents_map).put(get_intents())
 	entity_manager.cache_flags_from_intents(intents)
 
-	rest = DiscordRESTAdapter.new(_connection_state.token, entity_manager, use_http_pool)
-	gateway_websocket = _create_gateway_websocket(entity_manager)
-	voice_websocket = _create_voice_websocket()
+	rest = DiscordRESTAdapter.new(
+		_gateway_context.token, entity_manager, use_http_pool
+	)
+	gateway = _create_gateway(entity_manager)
 	
 	entity_manager.rest_mediator = rest.mediator
 	
-	self.add_child(rest)
-	self.add_child(gateway_websocket)
-	self.add_child(voice_websocket)
+	add_child(rest)
+	add_child(gateway)
 
 func _on_connected() -> void:
 	emit_signal("connected")
-
-func _on_connection_error() -> void:
-	emit_signal("connection_error", ERR_WEBSOCKET)
-
-func _on_invalid_session(may_resume) -> void:
-	if not may_resume:
-		entity_manager.reset()
-
-func _on_reconnected() -> void:
-	emit_signal("reconnected")
 
 func _on_disconnected() -> void:
 	entity_manager.reset()
 	emit_signal("disconnected")
 
-func _on_packet(packet: DiscordPacket) -> void:
+func _on_connection_error() -> void:
+	emit_signal("connection_error", ERR_WEBSOCKET)
+
+func _on_ready() -> void:
+	emit_signal("client_ready", get_self())
+
+func _on_packet(packet: DiscordPacket, _shard: DiscordShard) -> void:
 	if packet.is_gateway_dispatch():
-		self.emit_signal("raw_event", packet.get_event_name(), packet.get_data())
+		emit_signal("raw_event", packet.get_event_name(), packet.get_data())
 
 func _transmit_event(event: String, arguments: Array) -> void:
 	if has_signal(event):
